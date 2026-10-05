@@ -496,6 +496,25 @@
   .bar-val{font-family:var(--mono);font-size:11px;color:var(--text-dim);text-align:right;font-variant-numeric:tabular-nums}
   .bar-val b{color:var(--accent);font-weight:600}
   .bars-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .bars-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .bars-q{font-family:var(--mono);font-size:12px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 12px;width:210px;max-width:100%}
+  .bars-q:focus{outline:none;border-color:var(--accent)}
+  .bars-all{font-family:var(--mono);font-size:11px;background:transparent;color:var(--text-dim);border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer}
+  .bars-all.on{color:#0a0d07;background:var(--accent);border-color:var(--accent)}
+  .bars-sub{font-family:var(--mono);font-size:11px;color:var(--text-faint);margin:0 0 8px}
+  .bar-row.clickable{cursor:pointer;border-radius:8px;padding-inline:6px;margin-inline:-6px}
+  .bar-row.clickable:hover,.bar-row.open{background:rgba(204,255,0,.05)}
+  .bar-row .nm i.you{font-style:normal;color:#0a0d07;background:var(--accent);border-radius:999px;padding:0 6px;font-size:10px;margin-left:6px}
+  .col-who{margin:2px 0 12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.25)}
+  .cw-facts{display:flex;flex-wrap:wrap;gap:6px 16px;font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-bottom:10px}
+  .cw-facts b{color:var(--accent);font-weight:600}
+  .cw-facts a{color:var(--accent);text-decoration:none;margin-left:auto}
+  .cw-list{display:flex;flex-wrap:wrap;gap:6px;max-height:260px;overflow:auto}
+  .cw-chip{font-family:var(--mono);font-size:11px;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 10px;cursor:pointer}
+  .cw-chip span{color:var(--text-faint);margin-left:6px}
+  .cw-chip:hover{border-color:var(--accent)}
+  .cw-chip.me{border-color:var(--accent);cursor:default}
+  .cw-chip.more{color:var(--accent)}
   .bars-head .lbl{font-family:var(--mono);font-size:11px;color:var(--text-faint)}
   .bar-row.priced{grid-template-columns:minmax(0,1fr) 150px}
   .bar-val .fl{color:var(--text)}
@@ -2002,89 +2021,191 @@
   }
 
   /* ---------------- bars ---------------- */
+  // Collections chart. Two lenses: what this wallet shares with the rest of
+  // the table ("shared with you"), or every collection anyone at the table
+  // holds ("held by all"). Wallets holding only Rounds open on "held by all".
+  let barsScope = null;          // 'mine' | 'all' — null until first render picks
+  let barsEverything = false;    // ignore the 10-holder and $1 filters
+  let barsQuery = '';
+  let barsOpen = null;           // collection index expanded to show its holders
+  let colHolders = null;         // collection index -> [[addr, pieces]]
+  function holdersOf(i){
+    if (!colHolders) {
+      colHolders = new Map();
+      for (const [a, h] of Object.entries(treeData.holders || {})) {
+        (h.collections || []).forEach((ci, k) => {
+          let l = colHolders.get(ci); if (!l) { l = []; colHolders.set(ci, l); }
+          l.push([a, (h.counts && h.counts[k]) || 1]);
+        });
+      }
+      for (const l of colHolders.values()) l.sort((x, y) => y[1] - x[1]);
+    }
+    return colHolders.get(i) || [];
+  }
   function renderBars(me){
-    const other = null;
     const wrap = $('barsPanel');
     wrap.innerHTML = '';
-    // Straight greatest-to-least here. Featured ordering is deliberately NOT
-    // applied to this section — it's for the popup cards only.
-    // With a wallet selected this narrows to just what the two of you share.
-    const rawIdx = other ? sharedBetween(currentAddr, other).slice()
-                         : ((me && me.collections) || []).slice();
-    const listedIdx = rawIdx.filter(i => passesFilter(i, 'bars'));
-    const hiddenCount = rawIdx.length - listedIdx.length;
-    const mineIdx = listedIdx.filter(i => !isDelisted(COLS[i]));
-    const delistedCount = listedIdx.length - mineIdx.length;
+    const myIdx = ((me && me.collections) || []).slice();
+    const myListed = myIdx.filter(i => passesFilter(i, 'bars') && !isDelisted(COLS[i]));
+    if (!barsScope) barsScope = myListed.length ? 'mine' : 'all';
+    const all = barsScope === 'all';
+    const q = barsQuery.trim().toLowerCase();
+
+    const rawIdx = all ? COLS.map((_, i) => i) : myIdx;
+    let hiddenCount = 0, delistedCount = 0;
+    let idx = rawIdx;
+    if (!barsEverything) {
+      const listed = rawIdx.filter(i => passesFilter(i, 'bars'));
+      hiddenCount = rawIdx.length - listed.length;
+      idx = listed.filter(i => !isDelisted(COLS[i]));
+      delistedCount = listed.length - idx.length;
+    }
+    if (q) idx = idx.filter(i => String(COLS[i].name || '').toLowerCase().includes(q) || String(COLS[i].a || '').toLowerCase() === q);
     const usd = (c, k) => { const f = floorOf(c); return f ? (k === 'floor' ? f.floor_usd || 0 : f.vol_7d_usd || 0) : -1; };
-    const mine = mineIdx.map(i => [i, COLS[i]]).filter(([,c]) => c)
+    const list = idx.map(i => [i, COLS[i]]).filter(([,c]) => c)
       .sort((a, b) => barsSort === 'holders' ? b[1].holder_count - a[1].holder_count
         : (usd(b[1], barsSort) - usd(a[1], barsSort)) || (b[1].holder_count - a[1].holder_count));
-    if (FLOORS) {
-      const head = document.createElement('div');
-      head.className = 'bars-head';
-      head.innerHTML = `<div class="seg" role="group" aria-label="Sort collections">
+
+    // header: scope · sort · search
+    const head = document.createElement('div');
+    head.className = 'bars-head';
+    head.innerHTML = `<div class="bars-ctl">
+        <div class="seg" role="group" aria-label="Whose collections">
+          <button type="button" data-scope="mine">Shared with you</button>
+          <button type="button" data-scope="all">Held by all</button></div>
+        ${FLOORS ? `<div class="seg" role="group" aria-label="Sort collections">
           <button type="button" data-s="holders">Rounds holders</button>
           <button type="button" data-s="floor">Floor</button>
-          <button type="button" data-s="vol">7d volume</button></div>
-        <div class="lbl">floors from OpenSea · updated ${esc(floorsAge())}</div>`;
-      head.querySelectorAll('button').forEach(b => {
-        b.setAttribute('aria-pressed', String(b.dataset.s === barsSort));
-        b.addEventListener('click', () => { barsSort = b.dataset.s; renderBars(me); });
-      });
-      wrap.appendChild(head);
-    }
-    if (!mine.length) {
-      wrap.innerHTML = '<div class="empty">Nothing shared with other holders yet.</div>';
+          <button type="button" data-s="vol">7d volume</button></div>` : ''}
+      </div>
+      <div class="bars-ctl">
+        <input type="search" class="bars-q" placeholder="search collections" aria-label="Search collections" value="${esc(barsQuery)}">
+        <button type="button" class="bars-all${barsEverything ? ' on' : ''}" aria-pressed="${barsEverything}">show everything</button>
+      </div>`;
+    head.querySelectorAll('[data-scope]').forEach(b => {
+      b.setAttribute('aria-pressed', String(b.dataset.scope === barsScope));
+      b.addEventListener('click', () => { barsScope = b.dataset.scope; barsOpen = null; renderBars(me); });
+    });
+    head.querySelectorAll('[data-s]').forEach(b => {
+      b.setAttribute('aria-pressed', String(b.dataset.s === barsSort));
+      b.addEventListener('click', () => { barsSort = b.dataset.s; renderBars(me); });
+    });
+    head.querySelector('.bars-all').addEventListener('click', () => { barsEverything = !barsEverything; renderBars(me); });
+    const qi = head.querySelector('.bars-q');
+    let qt = null;
+    qi.addEventListener('input', () => {
+      clearTimeout(qt);
+      qt = setTimeout(() => { barsQuery = qi.value; renderBars(me); const n = $('barsPanel').querySelector('.bars-q'); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 220);
+    });
+    wrap.appendChild(head);
+    const sub = document.createElement('div');
+    sub.className = 'bars-sub';
+    const nC = `${list.length.toLocaleString()} collection${list.length === 1 ? '' : 's'}`;
+    sub.textContent = (all ? `${nC} held at the table` : `${nC} you share with other holders`)
+      + (FLOORS ? ` · floors from OpenSea, updated ${floorsAge()}` : '');
+    wrap.appendChild(sub);
+
+    if (!list.length) {
+      const e = document.createElement('div');
+      e.className = 'empty';
+      e.innerHTML = q ? 'No collections match that.' : all ? 'Nothing here yet.'
+        : 'Nothing shared with other holders yet. <button type="button" class="ar-link">see what the table holds</button>';
+      const b = e.querySelector('button');
+      if (b) b.addEventListener('click', () => { barsScope = 'all'; renderBars(me); });
+      wrap.appendChild(e);
       return;
     }
-    // Count the holders actually in the index, not the fetched-list figure —
-    // the two can differ by a few when wallets sold between the holder fetch
-    // and the snapshot, and this number is the denominator people read.
+
     const total = Object.keys(treeData.holders || {}).length || treeData.holder_count || 1;
-    const CAP = 12;
-    const render = ([ca, c]) => {
+    const rowsBox = document.createElement('div');
+    wrap.appendChild(rowsBox);
+    const render = ([ci, c]) => {
       const pct = (c.holder_count / total) * 100;
       const row = document.createElement('div');
       const f = floorOf(c);
-      row.className = 'bar-row' + (FLOORS ? ' priced' : '');
+      const mineToo = all && me && (me.collections || []).includes(ci);
+      row.className = 'bar-row clickable' + (FLOORS ? ' priced' : '') + (barsOpen === ci ? ' open' : '');
       const right = !FLOORS ? `<b>${c.holder_count}</b> · ${pct.toFixed(0)}%`
         : `<b>${c.holder_count}</b> · <span class="fl">${f && f.floor_usd != null ? fmtUsd(barsSort === 'vol' ? (f.vol_7d_usd || 0) : f.floor_usd) : '—'}</span>`;
       row.innerHTML =
-        `<div><div class="nm">${esc(c.name || short(c.a || ''))}</div>
+        `<div><div class="nm">${esc(c.name || short(c.a || ''))}${mineToo ? ' <i class="you">you</i>' : ''}</div>
            <div class="bar-track"><div class="bar-fill" style="width:0"></div></div></div>
          <div class="bar-val">${right}</div>`;
-      wrap.appendChild(row);
-      requestAnimationFrame(() => {
-        row.querySelector('.bar-fill').style.width = Math.max(1.5, pct) + '%';
-      });
+      rowsBox.appendChild(row);
+      requestAnimationFrame(() => { row.querySelector('.bar-fill').style.width = Math.max(1.5, pct) + '%'; });
       row.addEventListener('mousemove', e =>
         showTip(`<b>${esc(c.name || short(c.a || ''))}</b><br>${c.holder_count} of ${total} Rounds holders` +
-          (f && f.floor_usd != null ? `<br><span class="m">floor ${fmtUsd(f.floor_usd)} · 7d volume ${fmtUsd(f.vol_7d_usd || 0)}</span>` : ''), e.clientX, e.clientY));
+          (f && f.floor_usd != null ? `<br><span class="m">floor ${fmtUsd(f.floor_usd)} · 7d volume ${fmtUsd(f.vol_7d_usd || 0)}</span>` : '') +
+          `<br><span class="m">click to see who holds it</span>`, e.clientX, e.clientY));
       row.addEventListener('mouseleave', hideTip);
+      row.addEventListener('click', () => {
+        hideTip();
+        const was = rowsBox.querySelector('.col-who');
+        if (was) { was.previousElementSibling && was.previousElementSibling.classList.remove('open'); was.remove(); }
+        if (barsOpen === ci) { barsOpen = null; return; }
+        barsOpen = ci;
+        row.classList.add('open');
+        row.after(collectionPanel(ci, c, f));
+      });
+      if (barsOpen === ci) row.after(collectionPanel(ci, c, f));
     };
-    mine.slice(0, CAP).forEach(render);
-    if (mine.length > CAP) {
-      const btn = document.createElement('button');
-      btn.className = 'show-more-btn';
-      btn.type = 'button';
-      btn.textContent = `Show all ${mine.length}`;
-      btn.onclick = () => { mine.slice(CAP).forEach(render); btn.remove(); };
-      wrap.appendChild(btn);
-    }
-    if (delistedCount > 0) {
+    let shown = 0;
+    const STEP = all ? 50 : 12;
+    const more = document.createElement('button');
+    more.className = 'show-more-btn'; more.type = 'button';
+    const page = () => {
+      list.slice(shown, shown + (shown ? 100 : STEP)).forEach(render);
+      shown = Math.min(list.length, shown + (shown ? 100 : STEP));
+      if (shown < list.length) more.textContent = `Show ${Math.min(100, list.length - shown)} more · ${(list.length - shown).toLocaleString()} left`;
+      else more.remove();
+    };
+    more.onclick = page;
+    wrap.appendChild(more);
+    page();
+    if (!barsEverything && (delistedCount || hiddenCount)) {
       const note = document.createElement('div');
       note.className = 'empty';
       note.style.paddingTop = '10px';
-      note.textContent = `${delistedCount} delisted for trading under $1`;
+      note.textContent = [delistedCount ? `${delistedCount.toLocaleString()} delisted for trading under $1` : '',
+        hiddenCount ? `${hiddenCount.toLocaleString()} held by ${MIN_SHARED_HOLDERS} or fewer holders` : ''].filter(Boolean).join(' · ') + ' — hidden. ';
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'ar-link'; b.textContent = 'show everything';
+      b.addEventListener('click', () => { barsEverything = true; renderBars(me); });
+      note.appendChild(b);
       wrap.appendChild(note);
     }
-    if (hiddenCount > 0) {
-      const note = document.createElement('div');
-      note.className = 'empty';
-      note.style.paddingTop = '10px';
-      note.textContent = `${hiddenCount} more held by ${MIN_SHARED_HOLDERS} or fewer holders, hidden`;
-      wrap.appendChild(note);
+  }
+  // Who at the table holds one collection.
+  function collectionPanel(ci, c, f){
+    const who = holdersOf(ci);
+    const pieces = who.reduce((n, [, k]) => n + k, 0);
+    const box = document.createElement('div');
+    box.className = 'col-who';
+    const slug = f && f.slug;
+    box.innerHTML = `<div class="cw-facts">
+        <span><b>${who.length}</b> Rounds holders</span><span><b>${pieces.toLocaleString()}</b> pieces between them</span>
+        ${f && f.floor_usd != null ? `<span>floor <b>${fmtUsd(f.floor_usd)}</b></span><span>7d volume <b>${fmtUsd(f.vol_7d_usd || 0)}</b></span>` : ''}
+        ${slug ? `<a href="https://opensea.io/collection/${encodeURIComponent(slug)}" target="_blank" rel="noopener noreferrer">OpenSea ↗</a>` : ''}
+      </div><div class="cw-list"></div>`;
+    const listEl = box.querySelector('.cw-list');
+    const CAP = 60;
+    const add = ([a, k]) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cw-chip' + (a === currentAddr ? ' me' : '');
+      b.innerHTML = `${esc(displayName(a))}<span>×${k}</span>`;
+      b.title = a === currentAddr ? 'you' : 'Open on the map';
+      if (a !== currentAddr) b.addEventListener('click', (e) => { e.stopPropagation(); setTableView('map'); openDetail(a); });
+      listEl.appendChild(b);
+    };
+    who.slice(0, CAP).forEach(add);
+    if (who.length > CAP) {
+      const m = document.createElement('button');
+      m.type = 'button'; m.className = 'cw-chip more'; m.textContent = `+${who.length - CAP} more`;
+      m.addEventListener('click', (e) => { e.stopPropagation(); m.remove(); who.slice(CAP).forEach(add); });
+      listEl.appendChild(m);
     }
+    return box;
   }
 
   /* ---------------- deep cuts ---------------- */
