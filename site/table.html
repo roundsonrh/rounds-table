@@ -1111,11 +1111,12 @@
       (NAMES_API ? fetch(NAMES_API + '/floors').then(r => r.ok ? r.json() : null) : Promise.resolve(null)).catch(() => null),
     ]);
     if (!snap && !live) return;
-    const base = (snap && snap.collections) || {};
-    const fresh = (live && live.collections) || {};
+    // whichever copy is newer wins; the other only fills gaps
+    const t = (d) => (d && Date.parse(d.generated_at)) || 0;
+    const [older, newer] = t(live) > t(snap) ? [snap, live] : [live, snap];
     FLOORS = {
-      generated_at: (live && live.generated_at) || (snap && snap.generated_at),
-      collections: Object.assign({}, base, fresh),
+      generated_at: newer.generated_at,
+      collections: Object.assign({}, (older && older.collections) || {}, newer.collections || {}),
     };
   }
   const floorOf = (c) => (FLOORS && c && c.a && FLOORS.collections[String(c.a).toLowerCase()]) || null;
