@@ -1,0 +1,3843 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Rounds Holder Dashboard</title>
+<meta name="description" content="Your Rounds, your people, and what you collect together on Robinhood Chain.">
+<meta name="theme-color" content="#050605">
+<!-- link preview when the dashboard URL is posted (X, Discord, iMessage) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Rounds">
+<meta property="og:title" content="Rounds Holder Dashboard">
+<meta property="og:description" content="Your Rounds, your people, and what you collect together on Robinhood Chain.">
+<meta property="og:url" content="https://roundsonrh.com/table">
+<meta property="og:image" content="https://roundsonrh.com/og-dashboard.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@RoundsOnRH">
+<meta name="twitter:title" content="Rounds Holder Dashboard">
+<meta name="twitter:description" content="Your Rounds, your people, and what you collect together on Robinhood Chain.">
+<meta name="twitter:image" content="https://roundsonrh.com/og-dashboard.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23000'/%3E%3Ccircle cx='32' cy='32' r='20' fill='%23ccff00'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#050605; --surface:#0c0f0a; --surface-2:#12160e; --line:rgba(204,255,0,.14);
+    --line-soft:rgba(204,255,0,.07);
+    --accent:#ccff00; --accent-dim:#8fb300; --text:#eef2e6; --text-dim:#8a9282; --text-faint:#565e50;
+    --display:'Bricolage Grotesque',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text)}
+  body{font-family:var(--display);padding:0 20px;padding-block:28px 60px;min-height:100%}
+  .wrap{max-width:980px;margin:0 auto}
+  html,body{overflow-x:clip}
+  a{color:var(--accent)}
+  ::selection{background:var(--accent);color:#000}
+  [hidden]{display:none!important}
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:34px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .dot{width:22px;height:22px;border-radius:50%;background:var(--accent);box-shadow:0 0 18px var(--accent)}
+  .brand-text{display:flex;flex-direction:column;line-height:1.1}
+  .brand-text b{font-size:15px;letter-spacing:.06em}
+  .brand-text span{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:.04em}
+  nav{display:flex;gap:18px;font-family:var(--mono);font-size:12px}
+  nav a{color:var(--text-dim);text-decoration:none}
+  nav a:hover{color:var(--accent)}
+  nav{align-items:center}
+  /* brand marks from Simple Icons (CC0), tinted with the link colour */
+  .ico{display:block;width:18px;height:18px;background:currentColor;
+    -webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
+  .ico-opensea{--m:url(https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/opensea.svg)}
+  .ico-x{--m:url(https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/x.svg);width:16px;height:16px}
+  .nav-ico{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;
+    border:1px solid var(--line);transition:border-color .15s,color .15s,background .15s}
+  .nav-ico:hover{border-color:var(--accent);background:rgba(204,255,0,.06)}
+  /* home as a #ccff00 pill, same height as the icon buttons beside it */
+  nav a.nav-home{display:inline-flex;align-items:center;height:34px;padding:0 16px;border-radius:999px;
+    background:var(--accent);color:#0a0d07;font-weight:600;text-decoration:none;transition:filter .15s}
+  nav a.nav-home:hover{color:#0a0d07;filter:brightness(1.08)}
+
+  .connect-btn{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.02em;
+    background:var(--accent);color:#0a0d07;border:none;border-radius:10px;padding:12px 20px;cursor:pointer}
+  .connect-btn:hover{filter:brightness(1.08)}
+  .connect-btn:disabled{opacity:.55;cursor:default}
+  .connect-btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+
+  .gate{border:1px solid var(--line);border-radius:18px;background:var(--surface);padding:52px 28px;text-align:center}
+  .gate h1{font-size:clamp(26px,4.4vw,38px);margin:0 0 12px;text-wrap:balance}
+  .gate h1 + .connect-btn, .gate h1 + div{margin-top:18px}
+  .gate p{color:var(--text-dim);margin:0 0 26px;font-size:15px;max-width:54ch;margin-inline:auto}
+  .gate .reassure{font-family:var(--mono);font-size:11px;color:var(--text-faint);margin-top:18px}
+  .status-line{font-family:var(--mono);font-size:12px;color:var(--text-faint);margin-top:16px;min-height:16px}
+  .status-line.err{color:#FF6B6B}
+  .denied{border:1px solid rgba(255,107,107,.25);background:rgba(255,107,107,.06)}
+  /* wallet picker: every wallet the browser has, plus WalletConnect */
+  .wallet-pick{display:grid;gap:8px;max-width:340px;margin:18px auto 0;text-align:left}
+  .wallet-pick[hidden]{display:none}
+  .wallet-pick .wp-title{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);text-align:center;margin-bottom:2px}
+  .wallet-pick button{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:12px;
+    border:1px solid var(--line);background:rgba(255,255,255,.02);color:var(--text);font:inherit;font-size:14px;cursor:pointer;transition:border-color .15s,background .15s}
+  .wallet-pick button:hover{border-color:var(--accent);background:rgba(204,255,0,.06)}
+  .wallet-pick img,.wallet-pick .wp-dot{width:28px;height:28px;border-radius:8px;flex:none;object-fit:contain}
+  .wallet-pick .wp-dot{border-radius:50%;background:var(--accent)}
+  .wallet-pick .wp-sub{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--text-faint)}
+  .denied h1{color:#FF6B6B}
+
+  /* ---------- identity ---------- */
+  .idrow{position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:26px}
+  .backdrop{position:absolute;pointer-events:none;z-index:-1;opacity:.11;
+    -webkit-mask-image:radial-gradient(closest-side,#000 55%,transparent);mask-image:radial-gradient(closest-side,#000 55%,transparent)}
+  #idBackdrop{width:460px;height:460px;right:-120px;top:-190px}
+  @media (max-width:600px){#idBackdrop{width:320px;height:320px;right:-110px;top:-120px}}
+  .gate{position:relative;overflow:hidden;isolation:isolate}
+  #gateBackdrop{width:620px;height:620px;left:50%;top:50%;transform:translate(-50%,-50%);opacity:.13}
+  .who-big{display:flex;align-items:center;gap:14px;min-width:0}
+  .who-big .av{width:44px;height:44px;border-radius:50%;position:relative;flex:none;box-shadow:0 0 22px -4px currentColor}
+  .who-big .av::after{content:'';position:absolute;inset:34%;border-radius:50%;background:var(--bg)}
+  .av.art::after,.avatar.art::after{display:none}
+  .av canvas,.avatar canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:50%}
+  .who-big .av{width:56px;height:56px}
+  .who-big .nm{min-width:0}
+  .who-big .nm b{display:block;font-size:22px;font-weight:600;line-height:1.15;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46ch}
+  .who-big .nm span{font-family:var(--mono);font-size:11px;color:var(--text-faint)}
+  .asof{font-family:var(--mono);font-size:11px;color:var(--text-faint);text-align:right}
+  .idright{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+  .addrline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  /* delegated wallets: switch between the vaults you can view */
+  .seats{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px}
+  .seats button{font-family:var(--mono);font-size:10px;background:transparent;color:var(--text-dim);
+    border:1px solid var(--line);border-radius:999px;padding:4px 10px;cursor:pointer}
+  .seats button:hover{color:var(--text);border-color:var(--accent)}
+  .seats button[aria-pressed="true"]{background:rgba(204,255,0,.13);color:var(--accent);border-color:var(--accent)}
+  .via{color:var(--accent-dim)}
+  .pencil{font-family:var(--mono);font-size:10px;color:var(--text-dim);background:transparent;
+    border:1px solid var(--line);border-radius:999px;padding:2px 9px;cursor:pointer;line-height:1.7;flex:none}
+  .pencil:hover{color:var(--accent);border-color:var(--accent)}
+  .renamer{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-14px 0 26px}
+  .renamer input{font-family:var(--mono);font-size:13px;color:var(--text);background:var(--surface);
+    border:1px solid var(--line);border-radius:8px;padding:7px 10px;width:220px;max-width:60vw}
+  .renamer input:focus{outline:none;border-color:var(--accent)}
+  .renamer button[disabled]{opacity:.45;cursor:default}
+  .renote{font-family:var(--mono);font-size:11px;color:var(--text-faint);flex-basis:100%}
+  .renote.bad{color:#ff7a6b}
+  .renote.good{color:var(--accent)}
+
+  /* ---------- review queue (moderator only) ---------- */
+  .review{border:1px solid var(--line);background:var(--surface);border-radius:14px;
+    padding:16px 18px;margin:-10px 0 26px}
+  .review-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .review-head b{font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--text-dim)}
+  .review-tools{display:flex;align-items:center;gap:8px}
+  .review-tools input{font-family:var(--mono);font-size:11px;color:var(--text);
+    background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 9px;width:150px}
+  .review-tools input:focus{outline:none;border-color:var(--accent)}
+  .review-sub{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--text-faint);margin:6px 0 2px}
+  .review-list{max-height:min(52vh,460px);overflow-y:auto}
+  .review-list{display:flex;flex-direction:column;gap:8px}
+  .review-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 12px;
+    border:1px solid var(--line-soft);border-radius:10px;background:var(--bg)}
+  .review-row .rn{font-size:15px;font-weight:600;min-width:0;max-width:24ch;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .review-row .rw{font-family:var(--mono);font-size:10px;color:var(--text-faint);
+    flex:1 1 auto;min-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .review-row button{font-family:var(--mono);font-size:10px;border-radius:8px;padding:5px 10px;
+    cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--text-dim);flex:none}
+  .review-row button[disabled]{opacity:.45;cursor:default}
+  .review-row .ok:hover:not([disabled]){color:var(--accent);border-color:var(--accent)}
+  .review-row .no:hover:not([disabled]){color:#ff7a6b;border-color:#ff7a6b}
+
+  /* ---------- section ---------- */
+  .sec{margin-top:52px}
+  .sec-head{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:18px}
+  .sec-head h2{font-family:var(--display);font-size:clamp(22px,3.2vw,28px);font-weight:700;letter-spacing:-.015em;
+    line-height:1.1;color:var(--text);margin:0;display:flex;align-items:center;gap:12px}
+  /* a single Round marks every section title */
+  .sec-head h2::before{content:'';width:12px;height:12px;border-radius:50%;background:var(--accent);flex:none;
+    box-shadow:0 0 14px rgba(204,255,0,.55)}
+  .sec-head .note{font-family:var(--mono);font-size:12px;color:var(--text-dim);letter-spacing:.01em}
+  /* a label that should read as a second title, e.g. "Collections in common" */
+  .sec-head.split{flex-direction:row;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:14px}
+  .sec-title{display:flex;flex-direction:column;gap:6px}
+  .view-seg button{padding:8px 16px;font-size:12px}
+  .chart-view{min-height:520px}
+  @media (max-width:600px){.chart-view{min-height:0}}
+  .sec-head:has(.h2like){flex-direction:row;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+  .sec-head .note.h2like{font-family:var(--display);font-size:clamp(22px,3.2vw,28px);font-weight:700;
+    letter-spacing:-.015em;line-height:1.1;color:var(--text)}
+  @media (max-width:600px){.sec-head .note.h2like{font-size:14px;color:var(--text-dim);font-weight:600}}
+
+  /* ---------- pieces ---------- */
+  .pieces{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
+  .piece{border:1px solid var(--line-soft);border-radius:12px;overflow:hidden;background:#000}
+  .piece canvas{display:block;width:100%;height:auto;aspect-ratio:1}
+  /* caption sits under the art rather than over it — these are the artworks,
+     they shouldn't be dimmed by a scrim just to hold a label */
+  .piece .cap{padding:9px 11px;border-top:1px solid var(--line-soft);background:var(--surface);
+    font-family:var(--mono);font-size:10px;color:var(--text-dim);display:flex;justify-content:space-between;
+    align-items:baseline;gap:10px}
+  .piece .cap{flex-wrap:wrap}
+  .piece .cap b{color:var(--accent);font-weight:600;flex:none}
+  .piece .cap .held{flex-basis:100%;color:var(--text-faint);font-size:9px;letter-spacing:.05em;
+    text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .piece .cap span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+  .pieces-more{font-family:var(--mono);font-size:11px;color:var(--text-faint);margin-top:12px}
+
+  /* ---------- tabs ---------- */
+  .tabs{position:sticky;top:0;z-index:20;margin:30px 0 0;padding:10px 0;pointer-events:none}
+  .tabs-in{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:14px;background:rgba(12,15,10,.92);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 12px 32px -12px rgba(0,0,0,.9);
+    width:max-content;max-width:100%;pointer-events:auto}
+  .tab{position:relative;font-family:var(--mono);font-size:12px;letter-spacing:.03em;background:transparent;border:0;
+    color:var(--text-dim);padding:10px 18px;border-radius:10px;cursor:pointer;white-space:nowrap;
+    transition:color .15s,background .15s}
+  .tab:hover{color:var(--text)}
+  .tab[aria-selected="true"]{background:var(--accent);color:#0a0d07;font-weight:600}
+  .tab .ct{opacity:.6;margin-left:6px;font-weight:400}
+  .tab .new{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);
+    box-shadow:0 0 8px var(--accent);margin-left:7px;vertical-align:2px}
+  .tab[aria-selected="true"] .new{display:none}
+  @media (max-width:600px){
+    .tabs-in{width:100%}
+    .tab{flex:1;padding:10px 6px;font-size:11px}
+    .tab .ct{display:none}
+  }
+  .pane[hidden]{display:none!important}
+  /* arcade */
+  .arc{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:clamp(18px,3vw,32px);align-items:start}
+  @media (max-width:820px){.arc{grid-template-columns:1fr}}
+  .arc-board{width:100%;max-width:min(400px,calc((100vh - 140px)*2/3));min-width:240px;justify-self:center}
+  .arc-board canvas{width:100%;aspect-ratio:2/3;display:block;background:#000;border:1px solid var(--line);border-radius:14px;touch-action:pan-y;outline:none}
+  .arc-board canvas.live{touch-action:none}
+  .arc-board canvas:focus-visible{border-color:var(--accent)}
+  .arc-pad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,56px);gap:8px;justify-content:center;margin-top:14px}
+  .arc-pad[hidden]{display:none}
+  .arc-pad button{font:600 20px var(--mono);background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:12px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  .arc-pad button:active{background:var(--accent);color:#000}
+  .arc-result{margin-top:14px;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:14px 16px;font-family:var(--mono);font-size:13px}
+  .arc-result[hidden]{display:none}
+  .ar-line{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;color:var(--text)}
+  .ar-line b{color:var(--accent);font-size:18px}
+  .ar-dot{color:var(--text-faint)}
+  .ar-name{color:var(--text-dim)}
+  .ar-link{font:inherit;font-size:12px;color:var(--accent);background:transparent;border:1px solid var(--accent);border-radius:999px;padding:3px 10px;cursor:pointer}
+  .ar-link:hover{background:rgba(204,255,0,.1)}
+  .ar-status{margin-top:10px;color:var(--text-dim);font-size:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .ar-status b{color:var(--accent)}
+  .ar-status .connect-btn{padding:9px 14px;font-size:12px}
+  .ar-sub{color:var(--text-faint);font-size:11px}
+  .arc-lb .lb-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:12px;font-family:var(--mono);font-size:11px;color:var(--text-faint)}
+  .arc-lb .lb-head b{font-family:var(--display);font-size:18px;color:var(--text);font-weight:700}
+  .arc-lb ol{list-style:none;margin:0;padding:0;max-height:560px;overflow:auto}
+  .lb-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto 28px;gap:10px;align-items:center;padding:8px 6px;border-bottom:1px solid var(--line-soft);font-family:var(--mono);font-size:12px}
+  .lb-row:last-child{border-bottom:0}
+  .lb-row.me{background:rgba(204,255,0,.07);border-radius:8px}
+  .lb-rk{color:var(--text-faint);text-align:right}
+  .lb-row.top .lb-rk{color:var(--accent);font-weight:700}
+  .lb-nm{color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lb-nm i{font-style:normal;color:#0a0d07;background:var(--accent);border-radius:999px;padding:1px 7px;font-size:10px;margin-left:6px}
+  .lb-sc{color:var(--accent);font-variant-numeric:tabular-nums;font-weight:600}
+  .lb-play{background:transparent;border:1px solid var(--line);color:var(--text-dim);border-radius:8px;width:26px;height:24px;font-size:9px;cursor:pointer}
+  .lb-play:hover{color:var(--accent);border-color:var(--accent)}
+  .lb-empty{color:var(--text-faint);font-family:var(--mono);font-size:12px;padding:10px 4px}
+  .arc-last{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--text-dim);line-height:1.8}
+  .arc-last:empty{display:none}
+  .arc-last b{color:var(--accent)}
+  .lb-lastk{color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;margin-right:6px}
+  .pane > .sec:first-child{margin-top:22px}
+
+  /* "make pfp" shortcut on each piece */
+  .piece{position:relative}
+  .piece .to-pfp{position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:10px;font-weight:600;
+    background:rgba(5,6,5,.82);color:var(--accent);border:1px solid var(--accent);border-radius:999px;
+    padding:4px 10px;cursor:pointer;opacity:0;transform:translateY(-3px);transition:opacity .15s,transform .15s}
+  .piece:hover .to-pfp,.piece .to-pfp:focus-visible{opacity:1;transform:none}
+  @media (hover:none){.piece .to-pfp{opacity:1;transform:none}}
+
+  /* ---------- pfp studio ---------- */
+  .studio{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+  @media (max-width:820px){.studio{grid-template-columns:1fr;gap:22px}}
+  .studio-stage{position:sticky;top:78px}
+  .stage{position:relative;border-radius:22px;padding:14px;background:
+      radial-gradient(120% 90% at 50% 0%,rgba(204,255,0,.10),rgba(204,255,0,0) 60%),var(--surface);
+    border:1px solid var(--line);box-shadow:0 30px 80px -40px rgba(204,255,0,.35);transition:border-color .15s,box-shadow .15s}
+  .stage.drag{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 30px 80px -30px rgba(204,255,0,.55)}
+  .stage canvas{display:block;width:100%;height:auto;aspect-ratio:1;border-radius:12px;background:#000}
+  .stage.has-img canvas{cursor:crosshair}
+  /* where X crops the square to a circle */
+  .stage .crop{position:absolute;inset:14px;border-radius:50%;border:1.5px dashed rgba(238,242,230,.28);pointer-events:none}
+  .stage-chip{position:absolute;top:24px;left:24px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--text-dim);background:rgba(5,6,5,.78);border:1px solid var(--line);
+    border-radius:999px;padding:4px 10px;pointer-events:none}
+  .stage-hint{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);font-family:var(--mono);font-size:11px;
+    color:#0a0d07;background:var(--accent);border-radius:999px;padding:6px 14px;font-weight:600;pointer-events:none;
+    white-space:nowrap;box-shadow:0 6px 24px -6px rgba(204,255,0,.7)}
+  .stage.has-img .stage-hint{display:none}
+  .feed{display:flex;align-items:flex-end;justify-content:center;gap:26px;margin-top:16px}
+  .feed-item{display:flex;flex-direction:column;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;
+    color:var(--text-faint);letter-spacing:.04em}
+  .feed-item canvas{border-radius:50%;background:#000;box-shadow:0 0 0 1px var(--line-soft)}
+  .feed-post{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--line-soft);border-radius:12px;
+    background:var(--surface)}
+  .feed-post canvas{width:40px;height:40px}
+  .feed-post i{display:block;height:6px;border-radius:3px;background:var(--line);margin:3px 0}
+  .feed-post .l1{width:74px}
+  .feed-post .l2{width:120px;opacity:.6}
+  #pfpMiniB{width:112px;height:112px}
+
+  .steps{display:flex;flex-direction:column;gap:12px;min-width:0}
+  .step{display:flex;gap:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:16px;
+    transition:opacity .2s}
+  .step.off{opacity:.45}
+  .step-n{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent);border:1px solid var(--accent)}
+  .step.done .step-n{background:var(--accent);color:#0a0d07}
+  .step-body{flex:1;min-width:0}
+  .step-t{font-size:15px;font-weight:600;margin:2px 0 12px;display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+  .step-t .step-note{font-family:var(--mono);font-size:10px;font-weight:400;color:var(--text-faint)}
+  .drop{display:flex;align-items:center;gap:14px;border:1px dashed var(--line);border-radius:12px;padding:12px;
+    background:rgba(204,255,0,.02);transition:border-color .15s,background .15s}
+  .drop.drag{border-color:var(--accent);background:rgba(204,255,0,.06)}
+  .drop canvas{width:48px;height:48px;border-radius:10px;flex:none;background:#000}
+  .drop .drop-ico{width:48px;height:48px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--line);color:var(--accent);font-size:20px}
+  .drop-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+  .drop-txt b{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .drop-txt span{font-family:var(--mono);font-size:10px;color:var(--text-faint)}
+  .drop .connect-btn{padding:9px 14px;font-size:12px;flex:none}
+  .pfp-rounds{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:8px;max-height:236px;overflow-y:auto;
+    padding:2px;scrollbar-width:thin}
+  .pfp-round{position:relative;padding:0;border:1px solid var(--line-soft);border-radius:10px;background:#000;cursor:pointer;
+    overflow:hidden;display:flex;flex-direction:column;transition:transform .12s,border-color .12s}
+  .pfp-round:hover{transform:translateY(-2px);border-color:var(--line)}
+  .pfp-round canvas{display:block;width:100%;aspect-ratio:1}
+  .pfp-round span{font-family:var(--mono);font-size:9px;color:var(--text-faint);padding:3px 0;background:var(--surface)}
+  .pfp-round[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 16px -4px var(--accent)}
+  .pfp-round[aria-pressed="true"] span{color:var(--accent);font-weight:600}
+  .seg{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+  .seg button{font-family:var(--mono);font-size:11px;background:transparent;border:0;color:var(--text-dim);
+    padding:7px 12px;border-radius:7px;cursor:pointer}
+  .seg button:hover{color:var(--text)}
+  .seg button[aria-pressed="true"]{background:rgba(204,255,0,.13);color:var(--accent)}
+  .seg button:disabled{opacity:.5;cursor:default}
+  .seg button.nudge:not([aria-pressed="true"]){color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+  .pfp-row{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:11px;color:var(--text-dim);flex-wrap:wrap}
+  .pfp-row + .pfp-row{margin-top:12px}
+  .pfp-row > span:first-child{width:70px;flex:none}
+  .pfp-row input[type=range]{flex:1;min-width:120px;accent-color:#ccff00}
+  .chipbox{display:inline-flex;align-items:center;gap:7px;cursor:pointer;border:1px solid var(--line);border-radius:999px;
+    padding:5px 11px;color:var(--text-dim)}
+  .chipbox input{accent-color:#ccff00;margin:0}
+  .chipbox:has(input:checked){border-color:var(--accent);color:var(--accent)}
+  .linkbtn{font-family:var(--mono);font-size:11px;background:transparent;border:0;color:var(--text-dim);
+    padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .linkbtn:hover{color:var(--accent)}
+  .linkbtn:disabled{opacity:.4;cursor:default;text-decoration:none}
+  .tune-off{font-family:var(--mono);font-size:11px;color:var(--text-faint)}
+  .save-row{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+  .connect-btn.big{width:100%;padding:16px 20px;font-size:14px;border-radius:14px;box-shadow:0 12px 40px -14px rgba(204,255,0,.8)}
+  .connect-btn.big:disabled{box-shadow:none}
+  .status-line.warn{color:var(--accent)}
+  .pfp-private{font-family:var(--mono);font-size:10px;color:var(--text-faint);text-align:center}
+  /* phones — kept last so these win over the base studio rules above */
+  @media (max-width:820px){
+    .studio{display:flex;flex-direction:column;gap:12px;align-items:stretch}
+    .steps{display:contents}
+    .step,.step-body,.pfp-rounds{min-width:0}
+    #stepUpload{order:1} .studio-stage{order:2;position:static} #stepRound{order:3} #stepTune{order:4} .save-row{order:5}
+    /* one swipeable row, so the preview stays on screen while you pick */
+    .pfp-rounds{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:64px;overflow-x:auto;overflow-y:hidden;
+      max-height:none;padding-bottom:6px}
+    .feed{gap:18px}
+  }
+
+  /* ---------- stats ---------- */
+  /* auto-fit rather than a fixed 3, so the fourth stat doesn't strand
+     itself on a row of its own at desktop width */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:12px}
+  @media (max-width:700px){
+    .grid{grid-template-columns:1fr 1fr;gap:10px}
+    .grid .stat{padding:14px 14px 13px}
+    .grid .stat .value{font-size:26px}
+    .grid .stat .value.textual{font-size:18px}
+    .grid .stat .label{margin-bottom:8px;font-size:9px}
+    .grid .stat .sub{font-size:10px;line-height:1.45}
+  }
+  .stat{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:18px 18px 16px}
+  .stat .label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-faint);margin-bottom:10px}
+  .stat .value{font-family:var(--mono);font-size:34px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
+  .stat .sub{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:8px}
+  .stat .pct{color:var(--accent)}
+  /* "1 yr 2 mo" is words, not a number — 34px mono overflows a stat card */
+  .stat .value.textual{font-size:22px;letter-spacing:-.01em}
+  /* percentile rail: a recessive track with the holder's position marked */
+  .rail{height:3px;border-radius:2px;background:var(--line-soft);margin-top:12px;position:relative;overflow:hidden}
+  /* percentile shown as twenty Rounds, lit left to right */
+  .dots{display:grid;grid-template-columns:repeat(20,1fr);gap:3px;margin-top:14px}
+  .dots i{display:block;aspect-ratio:1;border-radius:50%;background:var(--line-soft);transition:background .4s}
+  .dots i.on{background:var(--accent)}
+  .rail i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:2px;display:block}
+
+  /* ---------- constellation ---------- */
+  .constel{border:1px solid var(--line);background:var(--surface);border-radius:16px;position:relative;overflow:hidden}
+  .constel canvas{display:block;width:100%;height:520px}
+  @media (max-width:600px){.constel canvas{height:380px}}
+  /* 50 / 100 / 300 / all — sits on the map, top right */
+  .mapsize{position:absolute;top:12px;right:12px;z-index:2;display:flex;gap:2px;padding:3px;
+    border:1px solid var(--line);border-radius:10px;background:rgba(5,6,5,.78);
+    font-family:var(--mono);font-size:10px}
+  .mapsize button{background:transparent;border:0;color:var(--text-faint);padding:5px 9px;border-radius:7px;
+    cursor:pointer;font:inherit;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+  .mapsize button:hover{color:var(--text)}
+  .mapsize button[aria-pressed="true"]{background:rgba(204,255,0,.13);color:var(--accent)}
+  .mapsize button[hidden]{display:none}
+  /* on a phone the legend would sit on top of the dots — put it underneath */
+  @media (max-width:600px){.constel .legend{position:static;padding:4px 16px 14px}}
+  .detail{border:1px solid var(--accent);background:var(--surface);border-radius:16px;padding:18px 20px;margin-bottom:12px}
+  .detail-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .detail-head .who{display:flex;align-items:center;gap:11px;min-width:0}
+  .detail-head .avatar{flex:none;width:30px;height:30px;border-radius:50%;position:relative;box-shadow:0 0 12px -2px currentColor}
+  .detail-head .avatar::after{content:'';position:absolute;inset:32%;border-radius:50%;background:var(--bg)}
+  .detail-head .names{min-width:0;display:flex;flex-direction:column;line-height:1.3}
+  .detail-head .names b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .detail-head .names span{font-family:var(--mono);font-size:10px;color:var(--text-faint)}
+  .dclose{font-family:var(--mono);font-size:10px;color:var(--text-faint);background:transparent;
+    border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer;flex:none}
+  .dclose:hover{color:var(--accent);border-color:var(--accent)}
+  /* Shows every shared collection — scrolls rather than growing without
+     bound. The mask fades the last row so there's a visible cue that more
+     is below. */
+  .dlist{display:flex;flex-wrap:wrap;gap:7px;max-height:300px;overflow-y:auto;overflow-x:hidden;
+    padding-right:6px;scrollbar-width:thin;scrollbar-color:var(--accent-dim) transparent}
+  .dlist.is-scrollable{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent);
+    mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent)}
+  .dlist::-webkit-scrollbar{width:8px}
+  .dlist::-webkit-scrollbar-track{background:transparent}
+  .dlist::-webkit-scrollbar-thumb{background:rgba(204,255,0,.22);border-radius:4px}
+  .dlist::-webkit-scrollbar-thumb:hover{background:rgba(204,255,0,.4)}
+  .dlist .ch{font-family:var(--mono);font-size:11px;background:var(--surface-2);border:1px solid var(--line-soft);
+    border-radius:9px;padding:5px 10px 5px 6px;display:inline-flex;gap:7px;align-items:center}
+  .dlist .ch .tip-logo,.dlist .ch .tip-dot{width:18px;height:18px;border-radius:5px;flex:none}
+  .tip-dot.round{width:10px!important;height:10px!important;border-radius:50%!important;border:none!important;
+    background:hsl(var(--h) 80% 60%)!important;box-shadow:0 0 8px -1px hsl(var(--h) 80% 60% / .7);margin:0 2px}
+  .dlist .ch .tip-dot{border:1px solid var(--line-soft);background:var(--bg);display:flex;
+    align-items:center;justify-content:center;font-size:9px;color:var(--text-faint)}
+  .dlist .ch b{color:var(--accent);font-weight:600}
+  .dlist .note{font-family:var(--mono);font-size:11px;color:var(--text-faint);width:100%}
+  .person{border-top:1px solid var(--line-soft)}
+  .person:first-of-type{border-top:none}
+  .person > .conn-row{border-top:none!important;border-radius:10px;margin:0 -10px;padding:13px 10px;outline:none;
+    transition:background .15s}
+  .person > .conn-row:focus-visible{box-shadow:0 0 0 1px var(--accent)}
+  .person.open > .conn-row{background:rgba(204,255,0,.045)}
+  .chev{flex:none;width:9px;height:9px;border-right:1.5px solid var(--text-faint);border-bottom:1.5px solid var(--text-faint);
+    transform:rotate(45deg) translate(-2px,-2px);transition:transform .25s,border-color .15s;margin-left:4px}
+  .person.open .chev{transform:rotate(225deg) translate(-1px,-1px);border-color:var(--accent)}
+  .person-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.2,.7,.2,1)}
+  .person.open .person-body{grid-template-rows:1fr}
+  .person-body > div{overflow:hidden;min-height:0}
+  .pair{padding:6px 0 20px 39px}
+  @media (max-width:560px){.pair{padding-left:0}}
+  .pair-meta{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-bottom:14px}
+  .pair-meta b{color:var(--accent);font-weight:600}
+  .pair-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-bottom:16px}
+  .pair-facts .fact{padding:12px 14px;border-radius:12px;background:var(--bg)}
+  .pair-facts .fact .v{font-size:15px}
+  .pair-h{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--text-faint);margin-bottom:9px}
+  .pair .dlist{max-height:220px}
+  .detail .pair{padding:0}
+  .conn-row{cursor:pointer}
+  .conn-row:hover{background:rgba(204,255,0,.03)}
+
+  .legend{position:absolute;left:16px;bottom:14px;font-family:var(--mono);font-size:10px;color:var(--text-faint);
+    line-height:1.7;pointer-events:none}
+  .legend b{color:var(--text-dim);font-weight:400}
+
+  /* ---------- people ---------- */
+  .conn-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-top:1px solid var(--line-soft)}
+  .conn-row:first-of-type{border-top:none}
+  .conn-row .who{display:flex;align-items:center;gap:11px;min-width:0}
+  .conn-row .avatar{flex:none;width:28px;height:28px;border-radius:50%;position:relative;box-shadow:0 0 10px -2px currentColor}
+  .conn-row .avatar::after{content:'';position:absolute;inset:32%;border-radius:50%;background:var(--bg)}
+  .conn-row .names{min-width:0;display:flex;flex-direction:column;line-height:1.3}
+  .conn-row .names b{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40ch}
+  .conn-row .names span{font-family:var(--mono);font-size:10px;color:var(--text-faint);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52ch}
+  .conn-row .names span em{font-style:normal;color:var(--accent-dim)}
+  .conn-row .count{font-family:var(--mono);font-size:11px;color:var(--accent);background:rgba(204,255,0,.07);
+    border:1px solid var(--line);border-radius:999px;padding:4px 11px;white-space:nowrap;flex:none}
+  /* match strength — the value the list is actually sorted by.
+     The bar gets its own track so a 100% bar can't push the number out of
+     the box. */
+  .conn-row .match{flex:none;display:flex;align-items:center;gap:10px;width:146px}
+  .conn-row .match .track{flex:1;min-width:0;height:7px;border-radius:4px;background:var(--line-soft)}
+  .conn-row .match i{display:block;height:100%;border-radius:4px;background:var(--accent);
+    min-width:3px;box-shadow:0 0 10px -3px var(--accent)}
+  .conn-row .match b{flex:none;width:26px;text-align:right;font-family:var(--mono);font-size:11px;
+    color:var(--text-dim);font-weight:500;font-variant-numeric:tabular-nums}
+  @media (max-width:560px){ .conn-row .match{width:96px} }
+
+  /* ---------- bars ---------- */
+  .bar-row{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:14px;align-items:center;padding:7px 0;cursor:default}
+  .bar-row .nm{font-family:var(--mono);font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar-track{height:9px;border-radius:5px;background:var(--line-soft);overflow:hidden;margin-top:5px}
+  .bar-fill{height:100%;border-radius:5px;background:var(--accent);
+    transition:width .5s cubic-bezier(.2,.7,.3,1)}
+  .bar-row:hover .bar-fill{filter:brightness(1.15)}
+  .bar-val{font-family:var(--mono);font-size:11px;color:var(--text-dim);text-align:right;font-variant-numeric:tabular-nums}
+  .bar-val b{color:var(--accent);font-weight:600}
+  .bars-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .bars-head .lbl{font-family:var(--mono);font-size:11px;color:var(--text-faint)}
+  .bar-row.priced{grid-template-columns:minmax(0,1fr) 150px}
+  .bar-val .fl{color:var(--text)}
+
+  .panel{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:22px}
+  .empty{font-family:var(--mono);font-size:12px;color:var(--text-faint);padding:12px 0}
+  .show-more-btn{font-family:var(--mono);font-size:12px;background:transparent;color:var(--accent);
+    border:1px dashed var(--line);border-radius:10px;padding:9px 14px;margin-top:14px;cursor:pointer}
+  .show-more-btn:hover{border-color:var(--accent)}
+  .linkish{background:none;border:none;padding:0;font:inherit;color:var(--accent);cursor:pointer;
+    text-decoration:underline;text-underline-offset:2px}
+
+  /* ---------- superlatives ---------- */
+  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+  .fact{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:16px 18px}
+  .fact .k{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-faint)}
+  .fact .v{font-size:17px;font-weight:600;margin-top:7px;line-height:1.25;word-break:break-word}
+  .fact .d{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:5px}
+
+  /* ---------- tooltip ---------- */
+  #tip{position:fixed;z-index:50;pointer-events:none;opacity:0;transition:opacity .12s;
+    background:#0a0d07;border:1px solid var(--line);border-radius:12px;padding:12px 13px;
+    font-family:var(--mono);font-size:11px;color:var(--text);max-width:300px;line-height:1.5;
+    box-shadow:0 10px 34px rgba(0,0,0,.7)}
+  #tip b{color:var(--accent);font-weight:600}
+  #tip .m{color:var(--text-faint)}
+  /* hover card for a person in the constellation */
+  #tip .tip-who{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+  #tip .tip-av{width:20px;height:20px;border-radius:50%;position:relative;flex:none;
+    box-shadow:0 0 9px -2px currentColor}
+  #tip .tip-av::after{content:'';position:absolute;inset:32%;border-radius:50%;background:#0a0d07}
+  #tip .tip-nm{font-family:var(--display);font-size:14px;font-weight:600;color:var(--text);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #tip .tip-lead{color:var(--text-dim);margin-bottom:7px}
+  #tip .tip-list{display:flex;flex-direction:column;gap:5px}
+  #tip .tip-item{display:flex;align-items:center;gap:8px;min-width:0}
+  #tip .tip-logo{width:18px;height:18px;border-radius:5px;flex:none;object-fit:cover;
+    background:var(--surface-2);border:1px solid var(--line-soft)}
+  /* fallback marker when a collection has no logo yet */
+  #tip .tip-dot{width:18px;height:18px;border-radius:5px;flex:none;border:1px solid var(--line-soft);
+    background:var(--surface-2);display:flex;align-items:center;justify-content:center;
+    font-size:9px;color:var(--text-faint)}
+  #tip .tip-nmx{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+  #tip .tip-n{flex:none;color:var(--text-faint)}
+  #tip .tip-key{margin-top:9px;padding-top:8px;border-top:1px solid var(--line-soft);color:var(--text-faint)}
+  #tip .tip-more{margin-top:5px;color:var(--text-faint)}
+
+  footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--text-faint)}
+  footer a{color:var(--text-faint);text-decoration:none}
+  footer a:hover{color:var(--accent)}
+
+  @media (prefers-reduced-motion:reduce){
+    .bar-fill{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="dot"></div>
+      <div class="brand-text"><b>ROUNDS</b><span>HOLDER DASHBOARD</span></div>
+    </div>
+    <nav>
+      <a class="nav-home" href="/">home</a>
+      <a class="nav-ico" href="https://opensea.io/collection/roundsonrh" target="_blank" rel="noopener noreferrer"
+        aria-label="Rounds on OpenSea" title="OpenSea"><i class="ico ico-opensea"></i></a>
+      <a class="nav-ico" href="https://x.com/RoundsOnRH" target="_blank" rel="noopener noreferrer"
+        aria-label="Rounds on X" title="@RoundsOnRH"><i class="ico ico-x"></i></a>
+    </nav>
+  </header>
+
+  <section id="gate" class="gate">
+    <canvas class="backdrop" id="gateBackdrop" width="1240" height="1240" aria-hidden="true"></canvas>
+    <h1>Enter the Rounds table</h1>
+    <button id="connectBtn" class="connect-btn">Connect Wallet</button>
+    <div id="walletPick" class="wallet-pick" hidden></div>
+    <div id="statusLine" class="status-line"></div>
+    <div class="reassure">Connect wallet is read only</div>
+  </section>
+
+  <section id="deniedPanel" class="gate denied" hidden>
+    <h1>No Rounds found</h1>
+    <p>We couldn't find any Rounds in <b id="deniedAddr"></b>. Connect a different wallet, or grab one on <a href="https://opensea.io/collection/roundsonrh" target="_blank" rel="noopener noreferrer">OpenSea</a>.</p>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+      <button id="retryBtn" class="connect-btn">Try Another Wallet</button>
+      <a class="connect-btn ghost" href="https://opensea.io/collection/roundsonrh" style="text-decoration:none;display:inline-block">View on OpenSea</a>
+    </div>
+  </section>
+
+  <section id="dash" hidden>
+
+    <div class="idrow">
+      <canvas class="backdrop" id="idBackdrop" width="920" height="920" aria-hidden="true"></canvas>
+      <div class="who-big">
+        <div class="av" id="idAvatar"></div>
+        <div class="nm">
+          <b id="idName">—</b>
+          <div class="seats" id="seatSwitch" hidden></div>
+          <span class="addrline"><span id="idAddr"></span><button type="button" id="renameBtn" class="pencil" hidden
+            aria-label="Rename this wallet" title="Rename this wallet">&#9998; rename</button></span>
+        </div>
+      </div>
+      <div class="idright">
+        <div class="asof" id="dataAsOf"></div>
+        <button type="button" id="reviewBtn" class="dclose" hidden>review names</button>
+        <button type="button" id="disconnectBtn" class="dclose">disconnect</button>
+      </div>
+    </div>
+
+    <div class="renamer" id="renameEditor" hidden>
+      <input id="renameInput" type="text" maxlength="24" placeholder="what should people call you?"
+             autocomplete="off" spellcheck="false" aria-label="Wallet name">
+      <button type="button" id="renameSave" class="dclose">save</button>
+      <button type="button" id="renameClear" class="dclose">clear</button>
+      <button type="button" id="renameCancel" class="dclose">cancel</button>
+      <span class="renote" id="renameNote">Your wallet signs the name to prove it's yours. Not a transaction — nothing can move.</span>
+    </div>
+
+    <div class="review" id="reviewPanel" hidden>
+      <div class="review-head">
+        <b>Names in use</b>
+        <span class="review-tools">
+          <input id="reviewFilter" type="search" placeholder="filter" autocomplete="off" aria-label="Filter names">
+          <button type="button" id="reviewClose" class="dclose">close</button>
+        </span>
+      </div>
+      <div class="review-list" id="reviewList"></div>
+      <span class="renote" id="reviewNote"></span>
+    </div>
+
+
+
+
+
+    <div class="sec">
+      <div class="grid">
+        <div class="stat">
+          <div class="label">Close family</div>
+          <div class="value" id="statFamily">—</div>
+          <div class="sub" id="statFamilySub">share 10+ collections with you</div>
+          <div class="dots" id="railFamily" aria-hidden="true"></div>
+        </div>
+        <div class="stat">
+          <div class="label">Shared collections</div>
+          <div class="value" id="statCollections">—</div>
+          <div class="sub" id="statCollectionsSub">held by you and other Rounds</div>
+          <div class="dots" id="railCollections" aria-hidden="true"></div>
+        </div>
+        <div class="stat">
+          <div class="label">Your Rounds</div>
+          <div class="value" id="statRounds">—</div>
+          <div class="sub" id="statRoundsSub">pieces held</div>
+          <div class="dots" id="railRounds" aria-hidden="true"></div>
+        </div>
+        <div class="stat" id="statHoldCard" hidden>
+          <div class="label">Longest held</div>
+          <div class="value" id="statHold">—</div>
+          <div class="sub" id="statHoldSub">your oldest Rounds</div>
+          <div class="dots" id="railHold" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="tabs" aria-label="Dashboard sections">
+      <div class="tabs-in" role="tablist">
+        <button type="button" class="tab" role="tab" id="tab-table" data-tab="table" aria-controls="pane-table" aria-selected="true">Your Table</button>
+        <button type="button" class="tab" role="tab" id="tab-pieces" data-tab="pieces" aria-controls="pane-pieces" aria-selected="false">Your Rounds<span class="ct" id="tabPiecesCt"></span></button>
+        <button type="button" class="tab" role="tab" id="tab-pfp" data-tab="pfp" aria-controls="pane-pfp" aria-selected="false">PFP studio</button>
+        <button type="button" class="tab" role="tab" id="tab-arcade" data-tab="arcade" aria-controls="pane-arcade" aria-selected="false">Arcade<span class="new" aria-hidden="true"></span></button>
+      </div>
+    </nav>
+
+    <div class="pane" id="pane-table" role="tabpanel" aria-labelledby="tab-table">
+    <div class="sec" id="secConstel">
+      <div class="sec-head split">
+        <div class="sec-title">
+          <h2>Your Table</h2>
+          <div class="note" id="tableNote">closer = more in common</div>
+        </div>
+        <div class="seg view-seg" id="tableView" role="group" aria-label="Show the map or the collections chart">
+          <button type="button" data-v="map" aria-pressed="true">Map</button>
+          <button type="button" data-v="chart" aria-pressed="false">Collections</button>
+        </div>
+      </div>
+      <div id="detail" class="detail" hidden>
+        <div class="detail-head">
+          <div class="who">
+            <div class="avatar" id="dAvatar"></div>
+            <div class="names"><b id="dName"></b><span id="dMeta"></span></div>
+          </div>
+          <button type="button" id="dClose" class="dclose" aria-label="Close">esc</button>
+        </div>
+        <div id="dBody"></div>
+      </div>
+      <div class="constel" id="constelAnchor">
+        <canvas id="constel"></canvas>
+        <div class="mapsize" id="mapSize" role="group" aria-label="How many holders to show">
+          <button type="button" data-n="50" aria-pressed="true">50</button>
+          <button type="button" data-n="100" aria-pressed="false">100</button>
+          <button type="button" data-n="300" aria-pressed="false">300</button>
+          <button type="button" data-n="all" aria-pressed="false">all</button>
+        </div>
+      </div>
+      <div class="panel chart-view" id="barsPanel" hidden></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <h2>Your people</h2>
+        <div class="note h2like">Collections in common (3+)</div>
+      </div>
+      <div id="peopleAnchor"></div>
+      <div class="panel" id="connectionsList"></div>
+    </div>
+
+    <div class="sec" id="secFacts">
+      <div class="sec-head"><h2>Deep cuts</h2><div class="note" id="factsNote">about you</div></div>
+      <div class="facts" id="factsGrid"></div>
+    </div>
+
+    </div>
+
+    <div class="pane" id="pane-pieces" role="tabpanel" aria-labelledby="tab-pieces" hidden>
+    <div class="sec">
+      <div class="sec-head">
+        <h2>Your Rounds</h2>
+        <div class="note" id="piecesNote"></div>
+      </div>
+      <div class="pieces" id="piecesGrid"></div>
+      <div class="pieces-more" id="piecesMore"></div>
+    </div>
+    </div>
+
+    <div class="pane" id="pane-arcade" role="tabpanel" aria-labelledby="tab-arcade" hidden>
+    <div class="sec" id="secArcade">
+      <div class="sec-head">
+        <h2>Trail</h2>
+        <div class="note">Collect rounds, watch your tail. <span id="arcPrize"></span></div>
+      </div>
+      <div class="arc">
+        <div class="arc-board">
+          <canvas id="arcCanvas" tabindex="0" aria-label="Trail game board"></canvas>
+          <div class="arc-pad" id="arcPad" hidden>
+            <button type="button" data-d="0" aria-label="Up" style="grid-column:2;grid-row:1">&uarr;</button>
+            <button type="button" data-d="3" aria-label="Left" style="grid-column:1;grid-row:2">&larr;</button>
+            <button type="button" data-d="2" aria-label="Down" style="grid-column:2;grid-row:2">&darr;</button>
+            <button type="button" data-d="1" aria-label="Right" style="grid-column:3;grid-row:2">&rarr;</button>
+          </div>
+          <div class="arc-result" id="arcResult" hidden></div>
+        </div>
+        <div class="panel arc-lb">
+          <div class="lb-head"><b>This week</b><span><span id="arcCount"></span> · <span id="arcEnds"></span></span></div>
+          <ol id="arcBoard"></ol>
+          <div class="arc-last" id="arcLast"></div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <div class="pane" id="pane-pfp" role="tabpanel" aria-labelledby="tab-pfp" hidden>
+    <div class="sec" id="secPfp">
+      <div class="studio">
+        <div class="studio-stage">
+          <div class="stage" id="pfpStage">
+            <canvas id="pfpCanvas" width="1000" height="1000" aria-label="pfp preview"></canvas>
+            <div class="crop" aria-hidden="true"></div>
+            <div class="stage-chip">preview</div>
+            <div class="stage-hint">your pfp goes here</div>
+          </div>
+          <div class="feed" aria-hidden="true">
+            <div class="feed-item">
+              <div class="feed-post"><canvas id="pfpMiniA" width="80" height="80"></canvas><div><i class="l1"></i><i class="l2"></i></div></div>
+              <span>in the feed</span>
+            </div>
+            <div class="feed-item"><canvas id="pfpMiniB" width="224" height="224"></canvas><span>on your profile</span></div>
+          </div>
+        </div>
+
+        <div class="steps">
+          <div class="step" id="stepUpload">
+            <div class="step-n">1</div>
+            <div class="step-body">
+              <div class="step-t">Your pfp</div>
+              <div class="drop" id="pfpDrop">
+                <div class="drop-ico" id="pfpDropIco" aria-hidden="true">+</div>
+                <canvas id="pfpOrig" width="96" height="96" hidden></canvas>
+                <div class="drop-txt"><b id="pfpDropTitle">Upload an image</b><span id="pfpDropSub">or drop it here · squares work best</span></div>
+                <button type="button" class="connect-btn" id="pfpPick">Choose</button>
+              </div>
+              <input type="file" id="pfpFile" accept="image/*" hidden>
+            </div>
+          </div>
+
+          <div class="step done" id="stepRound">
+            <div class="step-n">2</div>
+            <div class="step-body">
+              <div class="step-t">Pick your Rounds <span class="step-note" id="pfpRoundNote"></span></div>
+              <div class="pfp-rounds" id="pfpRounds"></div>
+            </div>
+          </div>
+
+          <div class="step off" id="stepTune">
+            <div class="step-n">3</div>
+            <div class="step-body">
+              <div class="step-t">Clean it up</div>
+              <div class="tune-off" id="pfpTuneOff">Upload a pfp first.</div>
+              <div id="pfpControls" hidden>
+                <div class="pfp-row">
+                  <span>cutout</span>
+                  <div class="seg" id="pfpMode" role="group" aria-label="How to cut out the background">
+                    <button type="button" data-m="flat" aria-pressed="true">Flat background</button>
+                    <button type="button" data-m="ai" id="pfpAIBtn" aria-pressed="false">AI cutout</button>
+                  </div>
+                </div>
+                <div class="pfp-row" id="pfpTolRow">
+                  <span>tolerance</span><input type="range" id="pfpTol" min="4" max="90" value="30" aria-label="Background colour tolerance">
+                </div>
+                <div class="pfp-row">
+                  <span>size</span><input type="range" id="pfpScale" min="60" max="130" value="100" aria-label="Size">
+                </div>
+                <div class="pfp-row">
+                  <label class="chipbox"><input type="checkbox" id="pfpOutline" checked> dark outline</label>
+                  <button type="button" class="linkbtn" id="pfpUndo" disabled>undo tap</button>
+                  <button type="button" class="linkbtn" id="pfpReset">reset cutout</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="save-row">
+            <button type="button" class="connect-btn big" id="pfpSave" disabled>Save PFP</button>
+            <div class="status-line" id="pfpStatus"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+  </section>
+
+  <footer>
+    <span>Data refreshes daily · Robinhood Chain</span>
+    <span><a href="https://roundsonrh.com">roundsonrh.com</a></span>
+  </footer>
+</div>
+
+<div id="tip"></div>
+
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+  const gate = $('gate'), deniedPanel = $('deniedPanel'), dash = $('dash');
+  const statusLine = $('statusLine');
+  const short = (a) => a.slice(0,6) + '…' + a.slice(-4);
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Robinhood Chain. Kept for when delegate.xyz resolution lands and the page
+  // needs real on-chain reads; the dashboard itself reads a static snapshot,
+  // so it deliberately never asks the wallet to switch networks.
+  const CHAIN_ID_HEX = '0x1237';
+  const CHAIN_PARAMS = {
+    chainId: CHAIN_ID_HEX,
+    chainName: 'Robinhood Chain',
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    rpcUrls: ['https://rpc.mainnet.chain.robinhood.com'],
+    blockExplorerUrls: ['https://robinhoodchain.blockscout.com'],
+  };
+
+  let treeData = null, pieces = null;
+
+  // Collection names come off-chain and wallet names come from other
+  // holders. Neither is ours, both end up inside innerHTML, so both go
+  // through here first.
+  function esc(v){
+    return String(v == null ? '' : v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  let NAMES = {};      // address -> the name that holder chose for themselves
+  let NAMES_API = null; // set from data/config.json; null = renaming is off
+  let ADMIN_ADDR = null; // moderator wallet, for showing the review button
+  let adminToken = null; // short-lived, from a signature; the worker enforces
+  let HOLDS = null;    // tokenId -> { since } from data/holds.json
+
+  /* ---------------- identity ---------------- */
+  // Connections are ordered by how many collections you have in common,
+  // most first. The data file ships ordered by a rarity-weighted taste score;
+  // this re-sorts to the simpler, more legible metric that the UI actually
+  // shows. Ties fall back to the taste score.
+  function orderedConns(me){
+    return ((me && me.connections) || []).slice()
+      .sort((a, b) => (b.shared - a.shared) || ((b.score || 0) - (a.score || 0)));
+  }
+
+  function metaFor(addr){ return (treeData && treeData.meta && treeData.meta[addr]) || null; }
+  function displayName(addr){
+    const custom = NAMES[String(addr).toLowerCase()];
+    if (custom) return custom;
+    const m = metaFor(addr);
+    if (m && m.ens) return m.ens;
+    if (m && m.rounds_token_ids && m.rounds_token_ids.length) {
+      const ids = m.rounds_token_ids;
+      const extra = ids.length - 1;
+      return 'Rounds #' + ids[0] + (extra > 0 ? ' +' + extra : '');
+    }
+    return short(addr);
+  }
+  function hueFor(addr){
+    let h = 0;
+    for (let i = 0; i < addr.length; i++) h = (h * 31 + addr.charCodeAt(i)) >>> 0;
+    return h % 360;
+  }
+  function paintAvatar(el, addr){
+    const c = `hsl(${hueFor(addr)} 85% 58%)`;
+    el.style.background = c; el.style.color = c;
+    el.classList.remove('art');
+    const old = el.querySelector('canvas');
+    if (old) old.remove();
+    // wear their own Round once the art is loaded
+    const sprite = pieces ? walletSprite(addr) : null;
+    if (sprite && firstTokenOf(addr) !== null) {
+      const cv = document.createElement('canvas');
+      cv.width = sprite.width; cv.height = sprite.height;
+      cv.getContext('2d').drawImage(sprite, 0, 0);
+      el.appendChild(cv);
+      el.classList.add('art');
+      el.style.background = '#000';
+    }
+  }
+  // A Round drawn big and borderless — lime circles, no black square — for
+  // the faint backdrops behind your name and the connect screen.
+  function drawBackdrop(canvas, tokenId){
+    const rec = pieces && pieces[Number(tokenId) - 1];
+    if (!canvas || !rec) return;
+    const S = canvas.width, c = canvas.getContext('2d');
+    c.clearRect(0, 0, S, S);
+    c.fillStyle = '#ccff00';
+    const k = S / 10000, circles = rec[3];
+    c.beginPath();
+    for (let i = 0; i < circles.length; i += 3) {
+      const x = circles[i] * k, y = circles[i + 1] * k, r = circles[i + 2] * k;
+      c.moveTo(x + r, y);
+      c.arc(x, y, r, 0, Math.PI * 2);
+    }
+    c.fill();
+  }
+  // twenty Rounds, lit left to right for the percentile
+  function paintDots(el, pct){
+    if (!el) return;
+    if (el.children.length !== 20) {
+      el.innerHTML = '';
+      for (let i = 0; i < 20; i++) el.appendChild(document.createElement('i'));
+    }
+    const on = pct ? Math.max(1, Math.round(pct / 5)) : 0;
+    [...el.children].forEach((d, i) => d.classList.toggle('on', i < on));
+  }
+  function avatarEl(addr){
+    const d = document.createElement('div');
+    d.className = 'avatar';
+    paintAvatar(d, addr);
+    return d;
+  }
+
+  /* ---------------- tooltip ---------------- */
+  const tip = $('tip');
+  function showTip(html, x, y){
+    tip.innerHTML = html;
+    tip.style.opacity = '1';
+    const r = tip.getBoundingClientRect();
+    let left = x + 14, top = y + 14;
+    if (left + r.width > window.innerWidth - 10) left = x - r.width - 14;
+    if (top + r.height > window.innerHeight - 10) top = y - r.height - 14;
+    tip.style.left = left + 'px'; tip.style.top = top + 'px';
+  }
+  function hideTip(){ tip.style.opacity = '0'; }
+
+  /* ---------------- data ---------------- */
+  // COLS[i] = a collection record. Both data shapes normalise to this, so the
+  // rest of the page has exactly one code path.
+  //   new format: collections is an ARRAY, holders refer to it by index
+  //   old format: collections is an OBJECT keyed by address, holders refer by address
+  // Hide collections that only a handful of Rounds holders own.
+  //
+  //   MIN_SHARED_HOLDERS  drop collections at or below this holder count
+  //   FILTER_SCOPE        'bars'       the long list only (default)
+  //                       'everywhere' also the hover card, click panel, deep cuts
+  //                       'off'        no filtering
+  //
+  // Default is 'bars' on purpose: 74% of collections have <=10 holders, and
+  // that tail is what clutters the list. But those same rare collections are
+  // the entire point of "Rarest together" and "Only you two" — a collection
+  // exactly 2 holders own IS the interesting fact — so filtering everywhere
+  // would delete the best cards to tidy the worst list.
+  const MIN_SHARED_HOLDERS = 10;
+  const FILTER_SCOPE = 'bars';
+
+  function passesFilter(i, scope){
+    if (FILTER_SCOPE === 'off') return true;
+    if (FILTER_SCOPE === 'bars' && scope !== 'bars') return true;
+    const col = COLS[i];
+    return !col || col.holder_count > MIN_SHARED_HOLDERS;
+  }
+
+  let COLS = [];
+  function normalizeTree(t){
+    if (!t) return t;
+    if (Array.isArray(t.collections)) { COLS = t.collections; return t; }
+    const entries = Object.entries(t.collections || {});
+    const idx = new Map();
+    COLS = entries.map(([a, c], i) => { idx.set(a, i); return Object.assign({ a }, c); });
+    for (const h of Object.values(t.holders || {})) {
+      h.collections = (h.collections || []).map(a => idx.get(a)).filter(v => v !== undefined);
+      if (h.rarest) h.rarest = h.rarest.map(a => idx.get(a)).filter(v => v !== undefined);
+      for (const cn of (h.connections || [])) {
+        if (cn.via) cn.via = cn.via.map(a => idx.get(a)).filter(v => v !== undefined);
+      }
+    }
+    return t;
+  }
+
+  async function loadTree(){
+    const raw = await fetch('/data/family_tree.json').then(r=>r.ok?r.json():null).catch(()=>null);
+    treeData = normalizeTree(raw);
+  }
+
+  // Exact shared collections between two holders, rarest last in the source
+  // arrays (which are most-held first), so reverse for rarest-first display.
+  // How many tokens `addr` holds of collection index `i`. Returns null when
+  // the snapshot predates per-collection counts, so callers can skip rather
+  // than show a wrong number.
+  function countOf(addr, i){
+    const h = treeData.holders[addr];
+    if (!h || !Array.isArray(h.counts)) return null;
+    const k = (h.collections || []).indexOf(i);
+    return k === -1 ? 0 : (h.counts[k] || 0);
+  }
+
+  function sharedBetween(aAddr, bAddr){
+    const A = treeData.holders[aAddr], B = treeData.holders[bAddr];
+    if (!A || !B) return [];
+    const setA = new Set(A.collections || []);
+    return (B.collections || []).filter(i => setA.has(i));
+  }
+  // Optional: data/logos.json maps a collection contract address (lowercase)
+  // to an image path, e.g. { "0xabc…": "logos/suited-apes.png" }. Entirely
+  // optional — anything without an entry falls back to a neutral marker, so
+  // the file can be added, extended or removed without touching this page.
+  let LOGOS = {};
+
+  // data/featured.json: an array of collection contract addresses, in the
+  // order you want them to appear. Featured collections sort to the top of
+  // every shared-collection view; everything else keeps its normal order
+  // below them. Missing file or unknown address is harmless.
+  let FEATURED = new Map(); // address -> priority rank
+  async function loadFeatured(){
+    try {
+      const j = await fetch('/data/featured.json').then(r => r.ok ? r.json() : null);
+      if (Array.isArray(j)) j.forEach((a, i) => FEATURED.set(String(a).toLowerCase(), i));
+    } catch (e) { /* no featured file is a perfectly normal state */ }
+  }
+  // Stable sort: featured first in their listed order, the rest untouched.
+  function featuredFirst(idxList){
+    const rank = (i) => {
+      const col = COLS[i];
+      const r = col && col.a ? FEATURED.get(String(col.a).toLowerCase()) : undefined;
+      return r === undefined ? Infinity : r;
+    };
+    return idxList
+      .map((v, i) => [v, i])
+      .sort((x, y) => (rank(x[0]) - rank(y[0])) || (x[1] - y[1]))
+      .map(([v]) => v);
+  }
+
+  // data/config.json is optional: { "names_api": "https://…" }. Without it
+  // there is no rename button, and everything else behaves as before.
+  async function loadConfig(){
+    try {
+      const j = await fetch('/data/config.json').then(r => r.ok ? r.json() : null);
+      if (j && j.names_api) NAMES_API = String(j.names_api).replace(/\/+$/, '');
+      if (j && j.admin) ADMIN_ADDR = String(j.admin).toLowerCase();
+    } catch (e) { /* normal until the name worker is deployed */ }
+  }
+  async function loadNames(){
+    if (!NAMES_API) return;
+    try {
+      // no-store, or the browser serves a cached copy and a holder who just
+      // renamed sees their old name after a reload.
+      const j = await fetch(NAMES_API + '/names', { cache: 'no-store' }).then(r => r.ok ? r.json() : null);
+      if (j && typeof j === 'object' && !Array.isArray(j)) {
+        const next = {};
+        for (const [k, v] of Object.entries(j)) {
+          if (typeof v === 'string' && v.trim()) next[String(k).toLowerCase()] = v.slice(0, 40);
+        }
+        NAMES = next;
+      }
+    } catch (e) { /* the name service being down must not take the page down */ }
+  }
+
+  // data/holds.json: { holds: { "<tokenId>": { since: <unix seconds> } } },
+  // written by holdtime.js. A missing file means no hold times anywhere —
+  // silently, not as an error.
+  // OpenSea floors/volume, fetched at refresh time (floors.json). Optional.
+  let FLOORS = null;
+  async function loadFloors(){
+    // the snapshot from the last refresh, then the live floors (worker, refreshed
+    // every few minutes in slices) on top of it
+    const [snap, live] = await Promise.all([
+      fetch('/data/floors.json').then(r => r.ok ? r.json() : null).catch(() => null),
+      (NAMES_API ? fetch(NAMES_API + '/floors').then(r => r.ok ? r.json() : null) : Promise.resolve(null)).catch(() => null),
+    ]);
+    if (!snap && !live) return;
+    const base = (snap && snap.collections) || {};
+    const fresh = (live && live.collections) || {};
+    FLOORS = {
+      generated_at: (live && live.generated_at) || (snap && snap.generated_at),
+      collections: Object.assign({}, base, fresh),
+    };
+  }
+  const floorOf = (c) => (FLOORS && c && c.a && FLOORS.collections[String(c.a).toLowerCase()]) || null;
+  // Like a stock exchange: anything trading under $1 (or with nothing listed) is delisted from the chart.
+  const DELIST_USD = 1;
+  const isDelisted = (c) => { const f = floorOf(c); return !!f && f.floor_usd != null && f.floor_usd < DELIST_USD; };
+  const fmtUsd = (v) => v >= 1000 ? '$' + Math.round(v).toLocaleString() : v >= 100 ? '$' + v.toFixed(0) : '$' + v.toFixed(2);
+  let barsSort = 'holders';
+  function floorsAge(){
+    const t = Date.parse(FLOORS && FLOORS.generated_at);
+    if (!t) return '';
+    const m = Math.round((Date.now() - t) / 60000);
+    if (m < 2) return 'just now';
+    if (m < 60) return m + ' min ago';
+    if (m < 48 * 60) return Math.round(m / 60) + 'h ago';
+    return new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+  async function loadHolds(){
+    try {
+      const j = await fetch('/data/holds.json').then(r => r.ok ? r.json() : null);
+      if (j && j.holds && typeof j.holds === 'object') HOLDS = j.holds;
+    } catch (e) { /* optional */ }
+  }
+  function heldSince(tokenId){
+    const h = HOLDS && HOLDS[String(tokenId)];
+    const s = h && Number(h.since);
+    return Number.isFinite(s) && s > 0 ? s : null;
+  }
+  // "5 days", "7 months", "1 yr 2 mo" — short enough to sit in a caption.
+  function fmtHeld(secs){
+    if (secs === null || secs === undefined || !Number.isFinite(secs)) return null;
+    const s = Math.max(0, secs);
+    const days = Math.floor(s / 86400);
+    if (days < 1) {
+      const hrs = Math.floor(s / 3600);
+      return hrs < 1 ? 'just now' : hrs + (hrs === 1 ? ' hour' : ' hours');
+    }
+    if (days < 31) return days + (days === 1 ? ' day' : ' days');
+    const months = Math.floor(days / 30.44);
+    if (months < 12) return months + (months === 1 ? ' month' : ' months');
+    const yrs = Math.floor(months / 12), rem = months % 12;
+    return yrs + ' yr' + (yrs > 1 ? 's' : '') + (rem ? ' ' + rem + ' mo' : '');
+  }
+  const nowSecs = () => Math.floor(Date.now() / 1000);
+  function heldSecs(tokenId){
+    const s = heldSince(tokenId);
+    return s === null ? null : nowSecs() - s;
+  }
+  // A wallet's headline hold number is its longest continuously-held piece.
+  function longestHoldSecs(addr){
+    const m = metaFor(addr);
+    const ids = (m && m.rounds_token_ids) || [];
+    if (!HOLDS || !ids.length) return null;
+    const now = nowSecs();
+    let best = null;
+    for (const id of ids) {
+      const since = heldSince(id);
+      if (since === null) continue;
+      const age = now - since;
+      if (best === null || age > best) best = age;
+    }
+    return best;
+  }
+
+  async function loadLogos(){
+    try {
+      const j = await fetch('/data/logos.json').then(r => r.ok ? r.json() : null);
+      if (j && typeof j === 'object') {
+        for (const [k, v] of Object.entries(j)) LOGOS[String(k).toLowerCase()] = v;
+      }
+    } catch (e) { /* no logo file is a perfectly normal state */ }
+  }
+
+  // A logo that 404s or is a broken file swaps itself for the neutral marker.
+  // Done via a global hook rather than inline quotes inside an HTML attribute
+  // inside a template literal — that nesting is a quoting trap.
+  window.__logoFail = function(img){
+    const s = document.createElement('span');
+    s.className = 'tip-dot round';
+    s.style.setProperty('--h', '74');
+    img.replaceWith(s);
+  };
+  // Paths in logos.json are resolved relative to /data/ (where logos.json
+  // itself lives), NOT relative to the page — so "logos/foo.png" means
+  // /data/logos/foo.png, which is what you'd expect when editing that file.
+  // A leading "/" or a full URL is used as-is.
+  function logoURL(src){
+    const s = String(src).trim();
+    if (/^(https?:)?\/\//i.test(s) || s.startsWith('/')) return s;
+    return '/data/' + s.replace(/^\.?\//, '');
+  }
+  function collectionMark(col){
+    const src = col && col.a ? LOGOS[String(col.a).toLowerCase()] : null;
+    if (!src) {
+      const hue = col && col.a ? hueFor(String(col.a).toLowerCase()) : 80;
+      return `<span class="tip-dot round" style="--h:${hue}" aria-hidden="true"></span>`;
+    }
+    const safe = logoURL(src).replace(/"/g, '&quot;');
+    return `<img class="tip-logo" src="${safe}" alt="" loading="lazy" onerror="window.__logoFail(this)">`;
+  }
+
+  // The hover card: who they are, and exactly what you both hold.
+  // `trueShared` is the authoritative count from the data — the same value
+  // the rings and the list are ordered by. The rendered chip list can be
+  // shorter when a snapshot carries truncated collection lists, so showing
+  // the list's length here would contradict the ordering.
+  function peopleTipHTML(otherAddr, sharedIdx, trueShared){
+    const MAX = 6;
+    const hue = hueFor(otherAddr);
+    const shown = sharedIdx.slice(0, MAX);
+    const rows = shown.map(i => {
+      const col = COLS[i];
+      if (!col) return '';
+      return `<div class="tip-item">${collectionMark(col)}` +
+             `<span class="tip-nmx">${esc(col.name || short(col.a || ''))}</span>` +
+             `<span class="tip-n">${col.holder_count}</span></div>`;
+    }).join('');
+    const total = trueShared != null ? trueShared : sharedIdx.length;
+    const extra = total - shown.length;
+    return `<div class="tip-who">
+        <span class="tip-av" style="background:hsl(${hue} 85% 58%);color:hsl(${hue} 85% 58%)"></span>
+        <span class="tip-nm">${esc(displayName(otherAddr))}</span>
+      </div>` +
+      (function(){ const h = fmtHeld(longestHoldSecs(otherAddr)); return h ? `<div class="tip-key">holding ${esc(h)}</div>` : ''; })() +
+      (sharedIdx.length
+        ? `<div class="tip-lead">Collections in common: <b>${trueShared != null ? trueShared : sharedIdx.length}</b></div><div class="tip-list">${rows}</div>` +
+          `<div class="tip-key">Amount held by all Rounds</div>` +
+          (extra > 0 ? `<div class="tip-more">+${extra} more · click for all</div>`
+                     : `<div class="tip-more">click for the full view</div>`)
+        : `<div class="tip-lead">No shared collections.</div>`);
+  }
+
+  async function loadPieces(){
+    if (pieces) return;
+    pieces = await fetch('/data/pieces.json').then(r=>r.ok?r.json():null).catch(()=>null);
+  }
+  function findHolder(addr){
+    if (!treeData || !treeData.meta) return null;
+    return treeData.meta[addr] || null;
+  }
+
+  /* ---------------- piece rendering ----------------
+     Each piece is circles in a 0-10000 square. Circles intentionally bleed
+     past the edges and get clipped by the frame — that crop is part of the
+     artwork, so the canvas clips rather than scaling to fit. */
+  function drawPiece(canvas, tokenId){
+    const rec = pieces && pieces[tokenId - 1];
+    if (!rec) return null;
+    const circles = rec[3];
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const size = canvas.clientWidth || 160;
+    canvas.width = size * dpr; canvas.height = size * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = '#ccff00';
+    const k = size / 10000;
+    ctx.beginPath();
+    for (let i = 0; i < circles.length; i += 3) {
+      const x = circles[i] * k, y = circles[i+1] * k, r = circles[i+2] * k;
+      ctx.moveTo(x + r, y);
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+    }
+    ctx.fill();
+    return rec;
+  }
+
+  function renderPieces(ids){
+    const grid = $('piecesGrid');
+    grid.innerHTML = '';
+    $('piecesMore').textContent = '';
+    if (!ids || !ids.length) {
+      grid.innerHTML = '<div class="empty">No Rounds pieces found for this wallet.</div>';
+      return;
+    }
+    const CAP = 12;
+    const sorted = ids.slice().sort((a,b)=>Number(a)-Number(b));
+    const show = sorted.slice(0, CAP);
+    show.forEach(id => {
+      const cell = document.createElement('div');
+      cell.className = 'piece';
+      const cv = document.createElement('canvas');
+      cell.appendChild(cv);
+      const cap = document.createElement('div');
+      cap.className = 'cap';
+      cell.appendChild(cap);
+      if (pfp.ids.length || ids.length) {
+        const go = document.createElement('button');
+        go.type = 'button';
+        go.className = 'to-pfp';
+        go.textContent = 'make pfp';
+        go.setAttribute('aria-label', 'Make a pfp with Rounds #' + id);
+        go.addEventListener('click', (e) => { e.stopPropagation(); pfpSelect(id); setTab('pfp'); });
+        cell.appendChild(go);
+      }
+      grid.appendChild(cell);
+      // size is known once it's in the DOM
+      const rec = drawPiece(cv, Number(id));
+      const held = fmtHeld(heldSecs(id));
+      cap.innerHTML = `<b>#${id}</b><span>${esc(rec ? rec[0] : '')}</span>` +
+        (held ? `<span class="held">held ${esc(held)}</span>` : '');
+      if (rec) {
+        cell.addEventListener('mousemove', e =>
+          showTip(`<b>Rounds #${id}</b><br>${esc(rec[0])} · ${esc(rec[1])}<br><span class="m">${esc(rec[2])} · ${rec[3].length/3} rounds</span>`
+            + (held ? `<br><span class="m">held ${esc(held)}</span>` : ''), e.clientX, e.clientY));
+        cell.addEventListener('mouseleave', hideTip);
+      }
+    });
+    $('piecesNote').textContent = sorted.length + (sorted.length === 1 ? ' piece' : ' pieces');
+    $('tabPiecesCt').textContent = sorted.length;
+    if (sorted.length > CAP) {
+      $('piecesMore').textContent = `+ ${sorted.length - CAP} more not shown`;
+    }
+  }
+
+  /* ---------------- percentile ---------------- */
+  function percentile(values, v){
+    if (!values.length) return null;
+    let below = 0;
+    for (const x of values) if (x < v) below++;
+    return Math.round((below / values.length) * 100);
+  }
+  function setStat(valEl, subEl, railEl, value, pct, baseText){
+    valEl.textContent = value.toLocaleString();
+    if (pct === null) { subEl.textContent = baseText; return; }
+    const top = 100 - pct;
+    subEl.innerHTML = baseText + ' · <span class="pct">top ' + Math.max(1, top) + '%</span>';
+    paintDots(railEl, pct);
+  }
+
+  // Same rail + percentile treatment as setStat, for a value that's words
+  // ("7 months") rather than a number.
+  function setStatText(valEl, subEl, railEl, text, pct, baseText){
+    valEl.textContent = text;
+    valEl.classList.add('textual');
+    if (pct === null || pct === undefined) { subEl.textContent = baseText; paintDots(railEl, 0); return; }
+    const top = 100 - pct;
+    subEl.innerHTML = esc(baseText) + ' · <span class="pct">top ' + Math.max(1, top) + '%</span>';
+    paintDots(railEl, pct);
+  }
+
+  /* ---------------- constellation ---------------- */
+  let constelAnim = null;
+  let constelResize = null;
+  // How many holders the map shows. Starts at 50 every visit — the full
+  // community is a choice, not the default, because on a phone 667 dots is a
+  // texture rather than a list of people.
+  const MAP_SIZES = [50, 100, 300, 'all'];
+  let mapSize = 50;
+  // Carried across re-renders so switching sizes doesn't snap the spin back
+  // to zero, and so dots can glide from where they were to where they go.
+  let constelRot = 0;
+  let constelPrev = new Map(); // addr -> { t, ang, R } from the last layout
+
+  // Each dot on the map is filled with that wallet's own Round. The art is
+  // rendered once per token into a small offscreen canvas, already cut to a
+  // circle, and reused every frame — at "all" that's ~670 draws a frame, and
+  // a clip() per dot would be the expensive part.
+  const pieceTiles = new Map(); // tokenId -> canvas, or null if we can't draw it
+  const TILE_PX = 64;           // 2x the biggest dot, so it stays crisp on retina
+  function pieceTile(tokenId){
+    if (tokenId === null || tokenId === undefined) return null;
+    const key = String(tokenId);
+    if (pieceTiles.has(key)) return pieceTiles.get(key);
+    const rec = pieces && pieces[Number(tokenId) - 1];
+    if (!rec) {
+      // Only remember the miss once pieces.json has actually loaded —
+      // otherwise an early frame would poison the cache with nulls.
+      if (pieces) pieceTiles.set(key, null);
+      return null;
+    }
+    const cv = document.createElement('canvas');
+    cv.width = TILE_PX; cv.height = TILE_PX;
+    const c = cv.getContext('2d');
+    c.beginPath();
+    c.arc(TILE_PX / 2, TILE_PX / 2, TILE_PX / 2, 0, Math.PI * 2);
+    c.clip();
+    c.fillStyle = '#000';
+    c.fillRect(0, 0, TILE_PX, TILE_PX);
+    c.fillStyle = '#ccff00';
+    const k = TILE_PX / 10000;
+    const circles = rec[3];
+    c.beginPath();
+    for (let i = 0; i < circles.length; i += 3) {
+      const x = circles[i] * k, y = circles[i + 1] * k, r = circles[i + 2] * k;
+      c.moveTo(x + r, y);
+      c.arc(x, y, r, 0, Math.PI * 2);
+    }
+    c.fill();
+    pieceTiles.set(key, cv);
+    return cv;
+  }
+  // One sprite per wallet: their Round with their colour's rim baked in, so
+  // each dot on the map is a single drawImage instead of a draw plus a
+  // stroked path. At "all" that halves the work per frame.
+  const walletSprites = new Map(); // addr -> canvas
+  function walletSprite(addr){
+    if (walletSprites.has(addr)) return walletSprites.get(addr);
+    const tile = pieceTile(firstTokenOf(addr));
+    if (!tile && !pieces) return null; // art not loaded yet — try next frame
+    const S = TILE_PX, half = S / 2, rim = 3;
+    const cv = document.createElement('canvas');
+    cv.width = S; cv.height = S;
+    const c = cv.getContext('2d');
+    const col = `hsl(${hueFor(addr)} 85% 58%)`;
+    if (tile) {
+      c.drawImage(tile, 0, 0, S, S);
+      c.beginPath();
+      c.arc(half, half, half - rim / 2, 0, Math.PI * 2);
+      c.strokeStyle = col;
+      c.lineWidth = rim;
+      c.stroke();
+    } else {
+      // no art for this wallet — the old coloured dot with a dark centre
+      c.beginPath(); c.arc(half, half, half, 0, Math.PI * 2);
+      c.fillStyle = col; c.fill();
+      c.beginPath(); c.arc(half, half, half * .34, 0, Math.PI * 2);
+      c.fillStyle = '#050605'; c.fill();
+    }
+    walletSprites.set(addr, cv);
+    return cv;
+  }
+  function firstTokenOf(addr){
+    const m = metaFor(addr);
+    const ids = (m && m.rounds_token_ids) || [];
+    return ids.length ? ids[0] : null;
+  }
+
+  // Every other holder, scored against you in the browser. The data file only
+  // carries each wallet's top 60, but it also carries everyone's complete
+  // collection list — so the full ranking is a few thousand set lookups, not
+  // a bigger download. Same formula as the batch job (rounds-node-batch/
+  // batch.js), so the first 60 here are the same 60 the file ships:
+  //   score = Σ 1/holder_count over shared collections
+  //           ÷ √((yours + 25) × (theirs + 25))
+  // Ordered like the people list — most in common first, score breaks ties.
+  // Wallets sharing nothing go last, biggest Rounds holders first among them.
+  let rankCache = { addr: null, tree: null, list: null };
+  function rankEveryone(addr){
+    if (rankCache.addr === addr && rankCache.tree === treeData && rankCache.list) return rankCache.list;
+    const H = treeData.holders || {};
+    const mine = (H[addr] && H[addr].collections) || [];
+    const mineSet = new Set(mine);
+    const myFoot = mine.length + 25;
+    const out = [];
+    for (const [other, h] of Object.entries(H)) {
+      if (other === addr) continue;
+      const theirs = h.collections || [];
+      let shared = 0, weight = 0;
+      for (const i of theirs) {
+        if (!mineSet.has(i)) continue;
+        shared++;
+        const col = COLS[i];
+        if (col && col.holder_count) weight += 1 / col.holder_count;
+      }
+      const m = metaFor(other);
+      out.push({
+        addr: other,
+        shared,
+        score: shared ? weight / Math.sqrt(myFoot * (theirs.length + 25)) : 0,
+        rounds: (m && m.rounds_token_ids && m.rounds_token_ids.length) || 0,
+      });
+    }
+    out.sort((a, b) => (b.shared - a.shared) || (b.score - a.score) ||
+                       (b.rounds - a.rounds) || (a.addr < b.addr ? -1 : 1));
+    rankCache = { addr, tree: treeData, list: out };
+    return out;
+  }
+
+  function paintMapSize(total){
+    const box = $('mapSize');
+    if (!box) return;
+    box.querySelectorAll('button').forEach(b => {
+      const n = b.dataset.n;
+      const v = n === 'all' ? 'all' : Number(n);
+      b.setAttribute('aria-pressed', String(v === mapSize));
+      if (n === 'all') b.textContent = total ? `all ${total}` : 'all';
+      // a size bigger than the community is the same as "all" — hide it
+      b.hidden = n !== 'all' && Number(n) >= total;
+    });
+  }
+
+  function renderConstellation(addr, me){
+    const canvas = $('constel');
+    const ctx = canvas.getContext('2d');
+    const everyone = rankEveryone(addr);
+    const limit = mapSize === 'all' ? everyone.length : Math.min(mapSize, everyone.length);
+    const conns = everyone.slice(0, limit);
+    if (constelAnim) cancelAnimationFrame(constelAnim);
+    paintMapSize(everyone.length);
+
+    const zeroFrom = conns.findIndex(c => c.shared === 0);
+    const pos = zeroFrom === -1 ? conns : conns.slice(0, zeroFrom);
+    const zero = zeroFrom === -1 ? [] : conns.slice(zeroFrom);
+    const hasZeroLegend = $('legendZero');
+    if (hasZeroLegend) hasZeroLegend.hidden = zero.length === 0;
+
+    // Where each group lives, as a fraction of the way out. You sit inside
+    // INNER. Wallets with something in common fill the disc out to POS_OUT;
+    // wallets sharing nothing get their own band at the rim, past a dashed
+    // line, so "far away" means something rather than just "ranked low".
+    // The band grows with how many wallets are in it: a collector with three
+    // strangers gets a thin rim hugging the dashes; a wallet that shares
+    // nothing with anyone gets a wide band instead of a crush at the edge.
+    const INNER = 0.14;
+    const zeroFrac = conns.length ? zero.length / conns.length : 0;
+    const POS_OUT = zero.length ? 1 - (0.08 + 0.3 * zeroFrac) : 1;
+    const ZERO_IN = POS_OUT + 0.05;
+    const GOLD = Math.PI * (3 - Math.sqrt(5)); // the sunflower angle
+    const TAU = Math.PI * 2;
+
+    const born = performance.now();
+    const TWEEN = reduceMotion ? 0 : 650;
+    let nodes = [];
+    function layout(){
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // On a phone the size selector sits over the top of the map, so the
+      // map drops a little to clear it.
+      const topPad = w < 600 ? 40 : 0;
+      const cx = w / 2, cy = h / 2 + topPad / 2;
+      // Elliptical, but capped so it reads as orbits rather than a smear.
+      const ryMax = h / 2 - 18 - topPad / 2;
+      const rxMax = Math.min(w / 2 - 22, ryMax * 1.45);
+
+      // Dot size comes from how much room each dot actually gets. Area of
+      // the band ÷ number of dots gives the spacing; a dot takes a bit under
+      // half of that. So 50 holders get big art and 667 get a fine texture,
+      // without anyone hand-tuning sizes per setting.
+      function roomFor(t0, t1, n){
+        if (!n) return 0;
+        const area = Math.PI * rxMax * ryMax * (t1 * t1 - t0 * t0);
+        return Math.max(2.2, Math.min(15, Math.sqrt(area / n) * 0.44));
+      }
+      const posMax = roomFor(INNER, POS_OUT, pos.length);
+      const zeroMax = Math.min(roomFor(ZERO_IN, 1, zero.length), posMax || 15);
+      const maxShared = Math.max(1, ...pos.map(c => c.shared));
+
+      // Sunflower spiral: rank k sits at √k of the way out, turned by the
+      // golden angle. Gives even spacing at any count, closest match
+      // innermost, and never lines dots up into spokes.
+      function place(list, t0, t1, sizeOf, offset){
+        const n = list.length;
+        list.forEach((c, k) => {
+          const f = (k + 0.5) / n;
+          const t = Math.sqrt(t0 * t0 + (t1 * t1 - t0 * t0) * f);
+          const prev = constelPrev.get(c.addr);
+          const ang = (offset + k * GOLD) % TAU;
+          nodes.push({
+            c, t, ang, size: sizeOf(c, k),
+            rank: nodes.length,
+            // where it animates in from: its old spot, or just past the rim
+            from: prev || { t: 1.08, ang, R: 0, fresh: true },
+          });
+          // turn the short way round when gliding to a new spot
+          const node = nodes[nodes.length - 1];
+          let d = (ang - node.from.ang) % TAU;
+          if (d > Math.PI) d -= TAU; else if (d < -Math.PI) d += TAU;
+          node.dAng = d;
+        });
+      }
+      nodes = [];
+      place(pos, INNER, POS_OUT, (c) => posMax * (0.5 + 0.5 * Math.sqrt(c.shared / maxShared)), 0);
+      place(zero, ZERO_IN, 1, () => zeroMax * 0.8, 0.9);
+      return { w, h, cx, cy, rxMax, ryMax };
+    }
+
+    let dims = layout();
+    let hoverIdx = -1;
+    const N = nodes.length;
+    const ease = (x) => 1 - Math.pow(1 - x, 3);
+
+    function frame(){
+      // In a hidden tab the canvas is 0px wide — don't draw, and re-measure
+      // the moment it's shown so the map isn't laid out for a 0px box.
+      const cw = canvas.clientWidth;
+      if (!cw) { constelAnim = requestAnimationFrame(frame); return; }
+      if (cw !== dims.w) { dims = layout(); settle(); }
+      const { w, h, cx, cy, rxMax, ryMax } = dims;
+      const now = performance.now();
+      const p = TWEEN ? ease(Math.min(1, (now - born) / TWEEN)) : 1;
+      ctx.clearRect(0, 0, w, h);
+
+      // #ccff00 glow falling off outward, squashed to track the ellipse
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(1, ryMax / rxMax);
+      const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, rxMax);
+      glow.addColorStop(0,   'rgba(204,255,0,0.085)');
+      glow.addColorStop(0.45,'rgba(204,255,0,0.030)');
+      glow.addColorStop(1,   'rgba(204,255,0,0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(0, 0, rxMax, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // faint orbit guides, bold near you and fading outward
+      const guides = [0.3, 0.52, 0.72, POS_OUT];
+      guides.forEach((t, gi) => {
+        const f = gi / (guides.length - 1);
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rxMax * t, ryMax * t, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(204,255,0,${(0.26 - f * 0.2).toFixed(3)})`;
+        ctx.lineWidth = 1.6 - f * 0.9;
+        ctx.stroke();
+      });
+      // the "nothing in common" boundary
+      if (zero.length) {
+        const t = (POS_OUT + ZERO_IN) / 2;
+        ctx.save();
+        ctx.setLineDash([3, 5]);
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rxMax * t, ryMax * t, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(204,255,0,0.16)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      for (const n of nodes) {
+        const t = n.from.t + (n.t - n.from.t) * p;
+        const a = n.from.ang + n.dAng * p + constelRot;
+        n.R = n.from.fresh ? n.size * p : n.from.R + (n.size - n.from.R) * p;
+        n.x = cx + Math.cos(a) * rxMax * t;
+        n.y = cy + Math.sin(a) * ryMax * t;
+      }
+
+      const big = N > 100;
+      const drawNode = (n, isHover) => {
+        const R = isHover ? Math.max(n.R + 3, 8) : n.R;
+        if (R <= 0.3) return;
+        // Dimmer as you go out when the map is crowded, so the people nearest
+        // you still read as the foreground. Nothing-in-common is dimmest.
+        let alpha = n.c.shared === 0 ? 0.38 : (big ? 1 - 0.5 * (n.rank / N) : 0.92);
+        if (n.from.fresh) alpha *= p;
+        ctx.globalAlpha = isHover ? 1 : alpha;
+        const sprite = walletSprite(n.c.addr);
+        if (sprite) ctx.drawImage(sprite, n.x - R, n.y - R, R * 2, R * 2);
+        if (isHover) {
+          // a crisp ring on the one you're pointing at
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, R + 1.5, 0, Math.PI * 2);
+          ctx.strokeStyle = '#ccff00';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+      };
+      for (let i = 0; i < N; i++) if (i !== hoverIdx) drawNode(nodes[i], false);
+      // hovered dot last, and bumped to a readable size — at "all" the dots
+      // are a few pixels across and this is how you find out who one is
+      if (hoverIdx >= 0 && nodes[hoverIdx]) drawNode(nodes[hoverIdx], true);
+      ctx.globalAlpha = 1;
+
+      // centre = you, wearing your own first piece
+      const meTile = pieceTile(firstTokenOf(addr));
+      const meR = Math.max(12, Math.min(17, rxMax * INNER * 0.55));
+      ctx.beginPath();
+      ctx.arc(cx, cy, meR, 0, Math.PI * 2);
+      ctx.fillStyle = '#ccff00';
+      ctx.shadowColor = '#ccff00'; ctx.shadowBlur = 26;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      if (meTile) {
+        ctx.drawImage(meTile, cx - meR, cy - meR, meR * 2, meR * 2);
+        ctx.beginPath();
+        ctx.arc(cx, cy, meR, 0, Math.PI * 2);
+        ctx.strokeStyle = '#ccff00';
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.arc(cx, cy, 5.2, 0, Math.PI * 2);
+        ctx.fillStyle = '#050605';
+        ctx.fill();
+      }
+
+      if (!reduceMotion && hoverIdx === -1) constelRot += 0.0012;
+      constelAnim = requestAnimationFrame(frame);
+    }
+    frame();
+
+    // Remember where everything is headed, so the next size change glides
+    // from here instead of popping.
+    function settle(){
+      constelPrev = new Map(nodes.map(n => [n.c.addr, { t: n.t, ang: n.ang, R: n.size }]));
+    }
+    settle();
+
+    function hitTest(clientX, clientY){
+      const r = canvas.getBoundingClientRect();
+      const mx = clientX - r.left, my = clientY - r.top;
+      // generous target when dots are tiny, so they're still pickable
+      const pad = N > 100 ? 4 : 6;
+      let found = -1, bestD = Infinity;
+      for (let i = 0; i < N; i++) {
+        const n = nodes[i];
+        const d = Math.hypot(mx - n.x, my - n.y);
+        if (d <= Math.max(n.R, 3) + pad && d < bestD) { bestD = d; found = i; }
+      }
+      return found;
+    }
+    canvas.onmousemove = (e) => {
+      const found = hitTest(e.clientX, e.clientY);
+      hoverIdx = found;
+      canvas.style.cursor = found >= 0 ? 'pointer' : 'default';
+      if (found >= 0) {
+        const c = nodes[found].c;
+        const sh = featuredFirst(sharedBetween(addr, c.addr).slice().reverse());
+        showTip(peopleTipHTML(c.addr, sh, c.shared), e.clientX, e.clientY);
+      } else hideTip();
+    };
+    canvas.onmouseleave = () => { hoverIdx = -1; hideTip(); };
+    // Hit-test the click itself rather than trusting the last hover — on a
+    // phone there's no hover, just a tap.
+    canvas.onclick = (e) => {
+      const found = hitTest(e.clientX, e.clientY);
+      if (found >= 0) { hoverIdx = -1; hideTip(); openDetail(nodes[found].c.addr); }
+    };
+    if (constelResize) window.removeEventListener('resize', constelResize);
+    constelResize = () => { dims = layout(); settle(); };
+    window.addEventListener('resize', constelResize);
+  }
+
+  $('mapSize').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-n]');
+    if (!b || !currentAddr || !treeData) return;
+    const v = b.dataset.n === 'all' ? 'all' : Number(b.dataset.n);
+    if (v === mapSize) return;
+    mapSize = v;
+    hideTip();
+    renderConstellation(currentAddr, treeData.holders[currentAddr] || null);
+  });
+
+  /* ---------------- shared-collections detail ---------------- */
+  let currentAddr = null;    // the seat on screen (a vault, when viewing through delegation)
+  let connectedAddr = null;  // the wallet actually connected — the one that signs
+  let seatList = [];         // every seat this wallet can view: itself and/or vaults
+  let selectedAddr = null; // wallet open in the map panel, if any
+
+  // Deep cuts and "What you collect together" are always about you. What you
+  // share with one person lives inside that person — in their row in the
+  // list, or in the panel over the map.
+  function applyScope(){
+    const me = (treeData.holders && treeData.holders[currentAddr]) || null;
+    renderFacts(currentAddr, me);
+    renderBars(me);
+    $('factsNote').textContent = 'about you';
+    $('secFacts').hidden = $('factsGrid').children.length === 0;
+  }
+
+  // Facts about you and one other holder, as [label, value, detail].
+  function pairFacts(addr, other){
+    const out = [];
+    const cols = sharedBetween(addr, other).map(i => COLS[i]).filter(Boolean); // most-held first
+    const rarest = cols[cols.length - 1];
+    const common = cols[0];
+    const justUs = cols.filter(x => x.holder_count === 2);
+    if (rarest) {
+      out.push(['Rarest together', rarest.name,
+        rarest.holder_count === 2 ? 'only the two of you hold it'
+                                  : `just ${rarest.holder_count} Rounds holders hold it`]);
+    }
+    if (justUs.length) {
+      out.push(['Only you two', String(justUs.length),
+        justUs.length === 1 ? `nobody else holds ${justUs[0].name}`
+                            : 'collections no other Rounds holder has']);
+    }
+    // the collection the two of you hold the most tokens of between you
+    const shIdx = sharedBetween(addr, other);
+    let bigIdx = -1, bigTotal = 0, bigMine = 0, bigTheirs = 0;
+    for (const i of shIdx) {
+      const a = countOf(addr, i), t = countOf(other, i);
+      if (a === null || t === null) { bigIdx = -1; break; }
+      if (a + t > bigTotal) { bigTotal = a + t; bigIdx = i; bigMine = a; bigTheirs = t; }
+    }
+    if (bigIdx !== -1 && COLS[bigIdx] && bigTotal > 0) {
+      out.push(['Together you hold the most of', COLS[bigIdx].name,
+        `${bigTotal} between you — ${bigMine} yours, ${bigTheirs} theirs`]);
+    }
+    if (common) out.push(['Most common NFT', common.name, `${common.holder_count} holders also hold it`]);
+    return out;
+  }
+
+  // Everything about one person, built on demand: the count, how long they've
+  // held, the pair facts, then every collection you share.
+  function buildPairBody(other){
+    const idx = sharedBetween(currentAddr, other);
+    const ordered = featuredFirst(idx.slice().reverse()); // featured, then rarest
+    const wrap = document.createElement('div');
+    wrap.className = 'pair';
+    const held = fmtHeld(longestHoldSecs(other));
+    const meta = document.createElement('div');
+    meta.className = 'pair-meta';
+    meta.innerHTML = `<b>${idx.length}</b> collection${idx.length === 1 ? '' : 's'} in common` +
+      (held ? ` · holding ${esc(held)}` : '');
+    wrap.appendChild(meta);
+    const facts = pairFacts(currentAddr, other);
+    if (facts.length) {
+      const g = document.createElement('div');
+      g.className = 'pair-facts';
+      for (const [k, v, d] of facts) {
+        const el = document.createElement('div');
+        el.className = 'fact';
+        el.innerHTML = `<div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="d">${esc(d)}</div>`;
+        g.appendChild(el);
+      }
+      wrap.appendChild(g);
+    }
+    const h = document.createElement('div');
+    h.className = 'pair-h';
+    h.innerHTML = '<span>Shared collections</span><span>Amount held by all Rounds</span>';
+    wrap.appendChild(h);
+    const list = document.createElement('div');
+    list.className = 'dlist';
+    ordered.forEach(i => {
+      const col = COLS[i];
+      if (!col) return;
+      const el = document.createElement('span');
+      el.className = 'ch';
+      el.innerHTML = collectionMark(col) +
+        `<span>${esc(col.name || short(col.a || ''))}</span> <b>${col.holder_count}</b>`;
+      el.title = `${col.holder_count} Rounds holders hold this`;
+      list.appendChild(el);
+    });
+    if (!idx.length) list.innerHTML = '<div class="note">No shared collections recorded.</div>';
+    wrap.appendChild(list);
+    requestAnimationFrame(() => {
+      list.classList.toggle('is-scrollable', list.scrollHeight > list.clientHeight + 4);
+    });
+    return wrap;
+  }
+
+  // The map's panel: same contents as a row in the list, shown over the map
+  // so a click on a dot doesn't throw you down the page.
+  function openDetail(otherAddr){
+    closePerson();
+    paintAvatar($('dAvatar'), otherAddr);
+    $('dName').textContent = displayName(otherAddr);
+    $('dMeta').textContent = short(otherAddr);
+    const body = $('dBody');
+    body.innerHTML = '';
+    body.appendChild(buildPairBody(otherAddr));
+    selectedAddr = otherAddr;
+    const panel = $('detail');
+    panel.hidden = false;
+    panel.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
+  }
+  function closeDetail(){
+    $('detail').hidden = true;
+    selectedAddr = null;
+  }
+
+  // One person open at a time in the list.
+  let openPersonEl = null;
+  function closePerson(){
+    if (!openPersonEl) return;
+    openPersonEl.classList.remove('open');
+    const hd = openPersonEl.querySelector('.conn-row');
+    if (hd) hd.setAttribute('aria-expanded', 'false');
+    openPersonEl = null;
+  }
+  function togglePerson(item, addr){
+    if (openPersonEl === item) { closePerson(); return; }
+    closePerson();
+    closeDetail();
+    const body = item.querySelector('.person-body > div');
+    if (!body.firstChild) body.appendChild(buildPairBody(addr)); // built on first open
+    // next frame, so the height transition runs from closed
+    requestAnimationFrame(() => {
+      item.classList.add('open');
+      item.querySelector('.conn-row').setAttribute('aria-expanded', 'true');
+    });
+    openPersonEl = item;
+  }
+  $('dClose').addEventListener('click', closeDetail);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDetail(); closePerson(); } });
+
+  /* ---------------- your table: map or chart ---------------- */
+  let tableView = 'map';
+  function setTableView(v){
+    tableView = v === 'chart' ? 'chart' : 'map';
+    const chart = tableView === 'chart';
+    $('constelAnchor').hidden = chart;
+    $('barsPanel').hidden = !chart;
+    if (chart) closeDetail();
+    $('tableNote').textContent = chart ? 'Amount held by all Rounds' : 'closer = more in common';
+    document.querySelectorAll('#tableView button').forEach(b =>
+      b.setAttribute('aria-pressed', String(b.dataset.v === tableView)));
+    hideTip();
+    // redraw so the bars grow in each time the chart is opened
+    if (chart && currentAddr) renderBars((treeData.holders || {})[currentAddr] || null);
+  }
+  $('tableView').addEventListener('click', e => {
+    const b = e.target.closest('button[data-v]');
+    if (b && b.dataset.v !== tableView) setTableView(b.dataset.v);
+  });
+
+  /* ---------------- people ---------------- */
+  const FAMILY_MIN = 3; // collections in common to count as family in the list
+  function renderPeople(addr, me){
+    const wrap = $('connectionsList');
+    wrap.innerHTML = '';
+    openPersonEl = null;
+    // Everyone sharing 3+ collections with you — scored in the browser against
+    // the whole community (same ranking as the map), not just the 60 the data
+    // file ships per holder.
+    const conns = rankEveryone(addr).filter(c => c.shared >= FAMILY_MIN);
+    if (!conns.length) {
+      wrap.innerHTML = '<div class="empty">No shared-collection connections yet.</div>';
+      return;
+    }
+    const CAP = 10, STEP = 50;
+    // The list is ordered by rarity-weighted match, so the badge has to show
+    // THAT, not the raw shared count — otherwise the visible number jumps
+    // around and the sort looks broken. Scored relative to the closest match,
+    // which is always 100.
+    const topShared = conns[0].shared || 1;
+    const render = (e) => {
+      const item = document.createElement('div');
+      item.className = 'person';
+      const row = document.createElement('div');
+      row.className = 'conn-row';
+      row.setAttribute('role', 'button');
+      row.tabIndex = 0;
+      row.setAttribute('aria-expanded', 'false');
+      const who = document.createElement('div');
+      who.className = 'who';
+      who.appendChild(avatarEl(e.addr));
+      const names = document.createElement('div');
+      names.className = 'names';
+      const shIdx = sharedBetween(addr, e.addr);
+      const via = shIdx.slice(-2).reverse().map(i => COLS[i]).filter(Boolean)
+        .map(col => `<em>${esc(col.name)}</em> (${col.holder_count})`);
+      const sub = `${e.shared} shared` + (via.length ? ' · both hold ' + via.join(', ') : '');
+      names.innerHTML = `<b>${esc(displayName(e.addr))}</b><span>${sub}</span>`;
+      who.appendChild(names);
+      row.appendChild(who);
+
+      const pct = Math.max(2, Math.round((e.shared / topShared) * 100));
+      const badge = document.createElement('span');
+      badge.className = 'match';
+      badge.innerHTML = `<span class="track"><i style="width:${pct}%"></i></span><b>${e.shared}</b>`;
+      badge.title = `${e.shared} collections in common`;
+      row.appendChild(badge);
+      const chev = document.createElement('span');
+      chev.className = 'chev';
+      chev.setAttribute('aria-hidden', 'true');
+      row.appendChild(chev);
+      item.appendChild(row);
+      const body = document.createElement('div');
+      body.className = 'person-body';
+      body.appendChild(document.createElement('div'));
+      item.appendChild(body);
+      row.addEventListener('click', () => togglePerson(item, e.addr));
+      row.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); togglePerson(item, e.addr); }
+      });
+      wrap.insertBefore(item, wrap.querySelector('.show-more-btn'));
+    };
+    conns.slice(0, CAP).forEach(render);
+    // Load the rest in steps of 50 — a few hundred rows at once would stall.
+    let shown = CAP;
+    if (conns.length > shown) {
+      const btn = document.createElement('button');
+      btn.className = 'show-more-btn';
+      btn.type = 'button';
+      const label = () => {
+        const left = conns.length - shown;
+        btn.textContent = `Show ${Math.min(STEP, left)} more · ${conns.length} in your family`;
+      };
+      label();
+      btn.onclick = () => {
+        conns.slice(shown, shown + STEP).forEach(render);
+        shown += STEP;
+        if (shown >= conns.length) btn.remove(); else label();
+      };
+      wrap.appendChild(btn);
+    }
+  }
+
+  /* ---------------- bars ---------------- */
+  function renderBars(me){
+    const other = null;
+    const wrap = $('barsPanel');
+    wrap.innerHTML = '';
+    // Straight greatest-to-least here. Featured ordering is deliberately NOT
+    // applied to this section — it's for the popup cards only.
+    // With a wallet selected this narrows to just what the two of you share.
+    const rawIdx = other ? sharedBetween(currentAddr, other).slice()
+                         : ((me && me.collections) || []).slice();
+    const listedIdx = rawIdx.filter(i => passesFilter(i, 'bars'));
+    const hiddenCount = rawIdx.length - listedIdx.length;
+    const mineIdx = listedIdx.filter(i => !isDelisted(COLS[i]));
+    const delistedCount = listedIdx.length - mineIdx.length;
+    const usd = (c, k) => { const f = floorOf(c); return f ? (k === 'floor' ? f.floor_usd || 0 : f.vol_7d_usd || 0) : -1; };
+    const mine = mineIdx.map(i => [i, COLS[i]]).filter(([,c]) => c)
+      .sort((a, b) => barsSort === 'holders' ? b[1].holder_count - a[1].holder_count
+        : (usd(b[1], barsSort) - usd(a[1], barsSort)) || (b[1].holder_count - a[1].holder_count));
+    if (FLOORS) {
+      const head = document.createElement('div');
+      head.className = 'bars-head';
+      head.innerHTML = `<div class="seg" role="group" aria-label="Sort collections">
+          <button type="button" data-s="holders">Rounds holders</button>
+          <button type="button" data-s="floor">Floor</button>
+          <button type="button" data-s="vol">7d volume</button></div>
+        <div class="lbl">floors from OpenSea · updated ${esc(floorsAge())}</div>`;
+      head.querySelectorAll('button').forEach(b => {
+        b.setAttribute('aria-pressed', String(b.dataset.s === barsSort));
+        b.addEventListener('click', () => { barsSort = b.dataset.s; renderBars(me); });
+      });
+      wrap.appendChild(head);
+    }
+    if (!mine.length) {
+      wrap.innerHTML = '<div class="empty">Nothing shared with other holders yet.</div>';
+      return;
+    }
+    // Count the holders actually in the index, not the fetched-list figure —
+    // the two can differ by a few when wallets sold between the holder fetch
+    // and the snapshot, and this number is the denominator people read.
+    const total = Object.keys(treeData.holders || {}).length || treeData.holder_count || 1;
+    const CAP = 12;
+    const render = ([ca, c]) => {
+      const pct = (c.holder_count / total) * 100;
+      const row = document.createElement('div');
+      const f = floorOf(c);
+      row.className = 'bar-row' + (FLOORS ? ' priced' : '');
+      const right = !FLOORS ? `<b>${c.holder_count}</b> · ${pct.toFixed(0)}%`
+        : `<b>${c.holder_count}</b> · <span class="fl">${f && f.floor_usd != null ? fmtUsd(barsSort === 'vol' ? (f.vol_7d_usd || 0) : f.floor_usd) : '—'}</span>`;
+      row.innerHTML =
+        `<div><div class="nm">${esc(c.name || short(c.a || ''))}</div>
+           <div class="bar-track"><div class="bar-fill" style="width:0"></div></div></div>
+         <div class="bar-val">${right}</div>`;
+      wrap.appendChild(row);
+      requestAnimationFrame(() => {
+        row.querySelector('.bar-fill').style.width = Math.max(1.5, pct) + '%';
+      });
+      row.addEventListener('mousemove', e =>
+        showTip(`<b>${esc(c.name || short(c.a || ''))}</b><br>${c.holder_count} of ${total} Rounds holders` +
+          (f && f.floor_usd != null ? `<br><span class="m">floor ${fmtUsd(f.floor_usd)} · 7d volume ${fmtUsd(f.vol_7d_usd || 0)}</span>` : ''), e.clientX, e.clientY));
+      row.addEventListener('mouseleave', hideTip);
+    };
+    mine.slice(0, CAP).forEach(render);
+    if (mine.length > CAP) {
+      const btn = document.createElement('button');
+      btn.className = 'show-more-btn';
+      btn.type = 'button';
+      btn.textContent = `Show all ${mine.length}`;
+      btn.onclick = () => { mine.slice(CAP).forEach(render); btn.remove(); };
+      wrap.appendChild(btn);
+    }
+    if (delistedCount > 0) {
+      const note = document.createElement('div');
+      note.className = 'empty';
+      note.style.paddingTop = '10px';
+      note.textContent = `${delistedCount} delisted for trading under $1`;
+      wrap.appendChild(note);
+    }
+    if (hiddenCount > 0) {
+      const note = document.createElement('div');
+      note.className = 'empty';
+      note.style.paddingTop = '10px';
+      note.textContent = `${hiddenCount} more held by ${MIN_SHARED_HOLDERS} or fewer holders, hidden`;
+      wrap.appendChild(note);
+    }
+  }
+
+  /* ---------------- deep cuts ---------------- */
+  function renderFacts(addr, me){
+    const grid = $('factsGrid');
+    grid.innerHTML = '';
+    const add = (k, v, d) => {
+      const el = document.createElement('div');
+      el.className = 'fact';
+      el.innerHTML = `<div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="d">${esc(d)}</div>`;
+      grid.appendChild(el);
+    };
+
+    // Default: facts about you alone.
+    const mineIdx = (me && me.collections) || [];
+    const rarest = (me && me.rarest ? me.rarest.map(i => COLS[i])
+                                    : mineIdx.slice(-3).reverse().map(i => COLS[i])).filter(Boolean);
+    if (rarest[0]) {
+      add('Rarest NFT held', rarest[0].name,
+        `only ${rarest[0].holder_count} Rounds holders have it`);
+    }
+    const top = orderedConns(me)[0] || null;
+    if (top) {
+      const sh = sharedBetween(addr, top.addr);
+      const via = (sh.length ? COLS[sh[sh.length - 1]] : null);
+      add('Most NFTs in common with', displayName(top.addr),
+        `${top.shared} collections in common${via ? ` · incl. ${via.name}` : ''}`);
+    }
+    const mineCols = mineIdx.map(i => COLS[i]).filter(Boolean);
+    if (mineCols[0]) {
+      add('Most common NFT', mineCols[0].name,
+        `${mineCols[0].holder_count} holders — the thing that unites you`);
+    }
+  }
+
+  /* ---------------- render ---------------- */
+  async function renderDashboard(addr, viaAddr){
+    gate.hidden = true; deniedPanel.hidden = true; dash.hidden = false;
+    currentAddr = addr;
+    closeDetail();
+
+    const meta = findHolder(addr);
+    const me = (treeData.holders && treeData.holders[addr]) || null;
+
+    await loadPieces();
+    paintAvatar($('idAvatar'), addr);
+    drawBackdrop($('idBackdrop'), firstTokenOf(addr));
+    $('idName').textContent = displayName(addr);
+    if (viaAddr && viaAddr !== addr) {
+      $('idAddr').innerHTML = esc(short(addr)) + ' <span class="via">· via ' + esc(short(viaAddr)) + '</span>';
+      $('idAddr').title = 'Viewing this vault through a delegate.xyz delegation to ' + viaAddr;
+    } else {
+      $('idAddr').textContent = short(addr);
+      $('idAddr').title = '';
+    }
+    paintSeats();
+    $('dataAsOf').textContent = treeData.generated_at
+      ? 'snapshot ' + new Date(treeData.generated_at).toLocaleDateString(undefined,{month:'short',day:'numeric'})
+        + ' · ' + (treeData.holder_count || 0) + ' holders'
+      : '';
+
+    // percentile context across all holders
+    const all = Object.values(treeData.holders || {});
+    const famVals = all.map(h => h.close_connections ?? 0);
+    // Older snapshots carried total_shared_collections; the interned format
+    // doesn't, but every collection in a holder's list is held by 2+ Rounds
+    // holders by construction, so the list length is the same number.
+    const sharedCount = (h) => h.total_shared_collections ?? ((h.collections || []).length);
+    const colVals = all.map(sharedCount);
+    const rndVals = Object.values(treeData.meta || {}).map(m => (m.rounds_token_ids||[]).length);
+
+    const fam = me ? (me.close_connections ?? 0) : 0;
+    const col = me ? sharedCount(me) : 0;
+    const rnd = meta && meta.rounds_token_ids ? meta.rounds_token_ids.length : 0;
+
+    setStat($('statFamily'), $('statFamilySub'), $('railFamily'), fam,
+      percentile(famVals, fam), 'share 10+ collections with you');
+    setStat($('statCollections'), $('statCollectionsSub'), $('railCollections'), col,
+      percentile(colVals, col), 'held by you and other Rounds');
+    setStat($('statRounds'), $('statRoundsSub'), $('railRounds'), rnd,
+      percentile(rndVals, rnd), rnd === 1 ? 'piece held' : 'pieces held');
+
+    // Hold time only exists once data/holds.json is in place. Until then the
+    // card stays hidden rather than showing an em dash forever.
+    const holdCard = $('statHoldCard');
+    const myHold = longestHoldSecs(addr);
+    if (HOLDS && myHold !== null) {
+      const holdVals = Object.keys(treeData.meta || {})
+        .map(a => longestHoldSecs(a))
+        .filter(v => v !== null);
+      holdCard.hidden = false;
+      setStatText($('statHold'), $('statHoldSub'), $('railHold'), fmtHeld(myHold),
+        percentile(holdVals, myHold), 'your oldest Rounds');
+    } else {
+      holdCard.hidden = true;
+    }
+
+    $('renameBtn').hidden = !NAMES_API;
+    closeRenamer();
+    closeReview();
+    $('reviewBtn').hidden = !(NAMES_API && isAdmin());
+    refreshPendingCount();
+
+    renderPeople(addr, me);
+    selectedAddr = null;
+    applyScope();
+    // The map fills its dots with artwork now, so the piece data has to be
+    // here before the first frame rather than after it.
+    await loadPieces();
+    // Hidden only when there's nobody else to draw. A holder who shares
+    // nothing still gets the map: the whole community, at arm's length.
+    // Unhidden before drawing — a hidden canvas measures 0px wide.
+    const others = Object.keys((treeData && treeData.holders) || {}).filter(a => a !== addr).length;
+    $('secConstel').hidden = others === 0;
+    if (others) renderConstellation(addr, me);
+
+    await loadPieces();
+    renderPieces(meta && meta.rounds_token_ids);
+    setupPfp(meta && meta.rounds_token_ids);
+    piecesPainted = false;
+    setTableView('map');
+    setTab(tabFromHash(), { noScroll: true });
+  }
+
+  /* ---------------- rename ----------------
+     The name lives in a small worker (see rounds-name-service/) that only
+     accepts it with a signature from the wallet it belongs to. That
+     signature is a personal_sign: not a transaction, and it cannot move
+     anything. With no data/config.json pointing at a worker, none of this
+     appears and the page behaves exactly as it did before. */
+
+  // Must match the worker's normalisation character for character. The name
+  // is inside the signed message, so if we sign the raw text while the
+  // worker verifies the cleaned text, every signature fails.
+  function normalizeName(raw){
+    return String(raw)
+      .replace(/[​-‏‪-‮⁦-⁩﻿]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  function nameMessage(name, address, issued){
+    return 'Rounds — set wallet name\n\n'
+      + 'Name: ' + name + '\n'
+      + 'Wallet: ' + address + '\n'
+      + 'Issued: ' + issued + '\n\n'
+      + 'Signing this proves you own this wallet. It is not a transaction and cannot move anything.';
+  }
+  function toHexUtf8(str){
+    return '0x' + [...new TextEncoder().encode(str)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  function setRenameNote(text, kind){
+    const el = $('renameNote');
+    el.textContent = text;
+    el.className = 'renote' + (kind ? ' ' + kind : '');
+  }
+  async function openRenamer(){
+    if (!NAMES_API || !currentAddr) return;
+    $('renameEditor').hidden = false;
+    $('renameInput').value = NAMES[currentAddr] || '';
+    $('renameClear').hidden = !NAMES[currentAddr];
+    setRenameNote("Your wallet signs the name to prove it's yours. Not a transaction — nothing can move.", '');
+    $('renameInput').focus();
+    $('renameInput').select();
+    // Someone with a name already in the queue should see it, not a blank
+    // box that makes it look like nothing happened.
+    try {
+      const m = await fetch(NAMES_API + '/mine?address=' + currentAddr, { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null);
+      if (m && m.pending && !$('renameEditor').hidden) {
+        $('renameInput').value = m.pending;
+        $('renameInput').select();
+        setRenameNote('"' + m.pending + '" is waiting to be approved.', '');
+      }
+    } catch (e) { /* the queue lookup is a nicety, not a requirement */ }
+  }
+  function closeRenamer(){ $('renameEditor').hidden = true; }
+
+  let renaming = false;
+  async function submitName(clear){
+    if (renaming || !NAMES_API || !currentAddr) return;
+    const raw = clear ? '' : normalizeName($('renameInput').value);
+    if (!clear && !raw) { setRenameNote('Type a name first.', 'bad'); return; }
+    if (!clear && [...raw].length > 24) { setRenameNote('24 characters max.', 'bad'); return; }
+
+    renaming = true;
+    const buttons = ['renameSave', 'renameClear', 'renameCancel'].map(id => $(id));
+    buttons.forEach(b => { b.disabled = true; });
+    setRenameNote('Check your wallet for the signature request…', '');
+
+    try {
+      const issued = new Date().toISOString();
+      const message = nameMessage(raw, currentAddr, issued);
+      const signature = await prov().request({
+        method: 'personal_sign',
+        params: [toHexUtf8(message), connectedAddr || currentAddr],
+      });
+      const resp = await fetch(NAMES_API + '/name', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ address: currentAddr, name: clear ? '' : raw, issued, signature,
+          // a delegate signing for a vault: which Rounds, for token-level delegations
+          tokenIds: connectedAddr && connectedAddr !== currentAddr ? ((findHolder(currentAddr) || {}).rounds_token_ids || []).slice(0, 20) : undefined }),
+      });
+      const body = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        setRenameNote(body.error || ('Could not save that (' + resp.status + ').'), 'bad');
+        return;
+      }
+
+      // A queued name must NOT show as yours yet — that's the whole point
+      // of the queue, and showing it would be a lie to the person who set it.
+      if (body.pending) {
+        setRenameNote('Submitted. It goes live once it\'s approved.', 'good');
+        return;
+      }
+
+      if (clear) delete NAMES[currentAddr]; else NAMES[currentAddr] = raw;
+      $('idName').textContent = displayName(currentAddr);
+      arc.refreshNames();
+      renderPeople(currentAddr, (treeData.holders && treeData.holders[currentAddr]) || null);
+      applyScope();
+      if (selectedAddr) $('dName').textContent = displayName(selectedAddr);
+      setRenameNote(clear ? 'Name cleared.' : 'Saved — other holders see it now.', 'good');
+      $('renameClear').hidden = clear;
+      setTimeout(() => { if (!$('renameEditor').hidden) closeRenamer(); }, 1500);
+    } catch (e) {
+      const m = (e && (e.message || e.reason)) || '';
+      setRenameNote(/reject|denied|4001/i.test(m) ? 'Signature cancelled.' : 'Something went wrong. Try again.', 'bad');
+    } finally {
+      renaming = false;
+      buttons.forEach(b => { b.disabled = false; });
+    }
+  }
+
+  /* ---------------- name panel (moderator only) ----------------
+     Names go live as soon as they're set. This panel lists every name in
+     use so the moderator can pull one after the fact. It also shows the
+     approval queue, which only fills if moderation is switched on in the
+     worker's KV config.
+
+     Only the ADMIN_ADDRESS wallet in the worker's config can read or act on
+     any of this. What follows just hides the button from everyone else —
+     the worker does the enforcing, and a forged config.json or a poked
+     variable gets you a 401, not a list. */
+
+  const isAdmin = () => !!(ADMIN_ADDR && currentAddr && currentAddr === ADMIN_ADDR);
+
+  function adminMessage(address, issued){
+    return 'Rounds — moderator sign-in\n\n'
+      + 'Wallet: ' + address + '\n'
+      + 'Issued: ' + issued + '\n\n'
+      + 'Signing this opens the name review queue for 30 minutes. '
+      + 'It is not a transaction and cannot move anything.';
+  }
+
+  async function adminSignIn(){
+    if (adminToken) return adminToken;
+    const issued = new Date().toISOString();
+    const signature = await prov().request({
+      method: 'personal_sign',
+      params: [toHexUtf8(adminMessage(currentAddr, issued)), connectedAddr || currentAddr],
+    });
+    const r = await fetch(NAMES_API + '/admin/session', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ address: currentAddr, issued, signature }),
+    });
+    const b = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(b.error || 'Moderator sign-in failed.');
+    adminToken = b.token;
+    // The worker expires the token on its own; drop ours at the same moment
+    // so the next click asks for a signature instead of failing with a 401.
+    setTimeout(() => { adminToken = null; }, (b.expires_in || 1800) * 1000);
+    return adminToken;
+  }
+
+  function setReviewNote(text, kind){
+    const el = $('reviewNote');
+    el.textContent = text;
+    el.className = 'renote' + (kind ? ' ' + kind : '');
+  }
+
+  async function refreshPendingCount(){
+    if (!NAMES_API || !isAdmin()) return;
+    try {
+      const h = await fetch(NAMES_API + '/health', { cache: 'no-store' }).then(r => r.ok ? r.json() : null);
+      const live = (h && h.names) || 0;
+      const queued = (h && h.pending) || 0;
+      $('reviewBtn').textContent = queued
+        ? 'names (' + live + ', ' + queued + ' waiting)'
+        : 'names (' + live + ')';
+    } catch (e) { /* the count is decoration; the button still works */ }
+  }
+
+  let adminRows = []; // [{address, name, queued}] — kept so filtering is local
+
+  function nameRow(address, name, queued){
+    const row = document.createElement('div');
+    row.className = 'review-row';
+    // The default Rounds name is the useful bit of context here: it says
+    // which wallet this is in the same language the rest of the page uses.
+    const m = metaFor(address);
+    const fallback = (m && m.rounds_token_ids && m.rounds_token_ids.length)
+      ? 'Rounds #' + m.rounds_token_ids[0] + (m.rounds_token_ids.length > 1 ? ' +' + (m.rounds_token_ids.length - 1) : '')
+      : short(address);
+    row.innerHTML = '<span class="rn">' + esc(name) + '</span>'
+      + '<span class="rw">' + esc(fallback) + ' · ' + esc(short(address)) + '</span>';
+    if (queued) {
+      const ok = document.createElement('button');
+      ok.type = 'button'; ok.className = 'ok'; ok.textContent = 'approve';
+      ok.onclick = () => moderate(address, 'approve', row);
+      const no = document.createElement('button');
+      no.type = 'button'; no.className = 'no'; no.textContent = 'reject';
+      no.onclick = () => moderate(address, 'reject', row);
+      row.appendChild(ok); row.appendChild(no);
+    } else {
+      const rm = document.createElement('button');
+      rm.type = 'button'; rm.className = 'no'; rm.textContent = 'remove';
+      rm.onclick = () => revoke(address, name, row);
+      row.appendChild(rm);
+    }
+    return row;
+  }
+
+  function paintAdminList(){
+    const list = $('reviewList');
+    const q = ($('reviewFilter').value || '').trim().toLowerCase();
+    const match = (r) => !q || r.name.toLowerCase().includes(q) || r.address.includes(q);
+    const queued = adminRows.filter(r => r.queued && match(r));
+    const live = adminRows.filter(r => !r.queued && match(r));
+    list.innerHTML = '';
+    if (queued.length) {
+      const h = document.createElement('div');
+      h.className = 'review-sub'; h.textContent = 'waiting for approval';
+      list.appendChild(h);
+      queued.forEach(r => list.appendChild(nameRow(r.address, r.name, true)));
+    }
+    if (live.length) {
+      if (queued.length) {
+        const h2 = document.createElement('div');
+        h2.className = 'review-sub'; h2.textContent = 'live';
+        list.appendChild(h2);
+      }
+      live.forEach(r => list.appendChild(nameRow(r.address, r.name, false)));
+    }
+    if (!queued.length && !live.length) {
+      list.innerHTML = '<div class="note">' + (q ? 'Nothing matches that.' : 'Nobody has set a name yet.') + '</div>';
+    }
+    const total = adminRows.filter(r => !r.queued).length;
+    const waiting = adminRows.filter(r => r.queued).length;
+    setReviewNote(total + (total === 1 ? ' name in use' : ' names in use')
+      + (waiting ? ' · ' + waiting + ' waiting for approval' : ''), '');
+  }
+
+  async function renderPending(){
+    const rows = [];
+    // Live names are public, but read them fresh — a cached copy would show
+    // a name that was already pulled.
+    try {
+      const live = await fetch(NAMES_API + '/names', { cache: 'no-store' }).then(r => r.ok ? r.json() : null);
+      if (live && typeof live === 'object') {
+        for (const [address, name] of Object.entries(live)) rows.push({ address, name: String(name), queued: false });
+      }
+    } catch (e) { /* fall through to whatever the queue gives us */ }
+
+    const r = await fetch(NAMES_API + '/admin/pending', {
+      headers: { Authorization: 'Bearer ' + adminToken }, cache: 'no-store',
+    });
+    const b = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      if (r.status === 401) adminToken = null;
+      setReviewNote(b.error || 'Could not load the list.', 'bad');
+      return;
+    }
+    (b.pending || []).forEach(it => rows.push({ address: it.address, name: it.name, queued: true }));
+
+    rows.sort((x, y) => (Number(y.queued) - Number(x.queued)) || x.name.localeCompare(y.name));
+    adminRows = rows;
+    paintAdminList();
+  }
+
+  async function revoke(address, name, row){
+    const btns = row.querySelectorAll('button');
+    btns.forEach(b => { b.disabled = true; });
+    try {
+      const r = await fetch(NAMES_API + '/admin/revoke', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', Authorization: 'Bearer ' + adminToken },
+        body: JSON.stringify({ address }),
+      });
+      const b = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        if (r.status === 401) adminToken = null;
+        setReviewNote(b.error || 'That did not go through.', 'bad');
+        btns.forEach(x => { x.disabled = false; });
+        return;
+      }
+      delete NAMES[address];
+      adminRows = adminRows.filter(x => !(x.address === address && !x.queued));
+      paintAdminList();
+      setReviewNote('Removed "' + name + '" — that wallet is back to its Rounds number.', 'good');
+      renderPeople(currentAddr, (treeData.holders && treeData.holders[currentAddr]) || null);
+      applyScope();
+      if (address === currentAddr) $('idName').textContent = displayName(currentAddr);
+      if (selectedAddr) $('dName').textContent = displayName(selectedAddr);
+      refreshPendingCount();
+    } catch (e) {
+      setReviewNote('Network error — nothing was changed.', 'bad');
+      btns.forEach(x => { x.disabled = false; });
+    }
+  }
+
+  async function moderate(address, decision, row){
+    const btns = row.querySelectorAll('button');
+    btns.forEach(b => { b.disabled = true; });
+    try {
+      const r = await fetch(NAMES_API + '/admin/moderate', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', Authorization: 'Bearer ' + adminToken },
+        body: JSON.stringify({ address, decision }),
+      });
+      const b = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        if (r.status === 401) adminToken = null;
+        setReviewNote(b.error || 'That did not go through.', 'bad');
+        btns.forEach(x => { x.disabled = false; });
+        return;
+      }
+      adminRows = adminRows.filter(x => !(x.address === address && x.queued));
+      if (decision === 'approve' && b.name) {
+        NAMES[address] = b.name;
+        adminRows = adminRows.filter(x => x.address !== address);
+        adminRows.push({ address, name: b.name, queued: false });
+      }
+      paintAdminList();
+      // whatever was showing that wallet's old name needs redrawing
+      renderPeople(currentAddr, (treeData.holders && treeData.holders[currentAddr]) || null);
+      applyScope();
+      if (selectedAddr) $('dName').textContent = displayName(selectedAddr);
+      refreshPendingCount();
+    } catch (e) {
+      setReviewNote('Network error — nothing was changed.', 'bad');
+      btns.forEach(x => { x.disabled = false; });
+    }
+  }
+
+  async function openReview(){
+    if (!NAMES_API || !isAdmin()) return;
+    $('reviewPanel').hidden = false;
+    $('reviewList').innerHTML = '';
+    $('reviewFilter').value = '';
+    setReviewNote('Check your wallet for the moderator signature…', '');
+    try {
+      await adminSignIn();
+      await renderPending();
+    } catch (e) {
+      const m = (e && e.message) || '';
+      setReviewNote(/reject|denied|4001/i.test(m) ? 'Signature cancelled.' : (m || 'Could not sign in.'), 'bad');
+    }
+  }
+  function closeReview(){ $('reviewPanel').hidden = true; }
+
+  function renderDenied(addr){
+    gate.hidden = true; dash.hidden = true; deniedPanel.hidden = false;
+    $('deniedAddr').textContent = short(addr);
+  }
+
+  /* ---------------- delegation (delegate.xyz) ----------------
+     Keep Rounds in a vault, connect a hot wallet. We ask the delegate.xyz
+     registry on Robinhood Chain which vaults have delegated to the connected
+     wallet: "all" delegations, ones for the Rounds contract, or ones for
+     specific Rounds. Delegations scoped to another app's rights don't count
+     — same rule the registry's own check uses. Read-only calls to the public
+     RPC; nothing is signed. */
+  const RH_RPC = 'https://rpc.mainnet.chain.robinhood.com';
+  // delegate.xyz delegations are per chain, and most people make theirs on
+  // Ethereum (the delegate.xyz site doesn't offer Robinhood Chain), so we
+  // read the same registry on each of these. Several RPCs per chain = fallbacks.
+  const DELEGATION_CHAINS = [
+    { name: 'Robinhood Chain', rpcs: [RH_RPC] },
+    { name: 'Ethereum', rpcs: ['https://ethereum-rpc.publicnode.com', 'https://eth.drpc.org'] },
+    { name: 'Base', rpcs: ['https://base-rpc.publicnode.com', 'https://base.drpc.org'] },
+  ];
+  const DELEGATE_V2 = '0x00000000000000447e69651d841bd8d104bed493';
+  const DELEGATE_V1 = '0x00000000000076a84fef008cdabe6409d2fe638b';
+  const ROUNDS_ADDR = '0x8cd655173351c6f619acb907ba08bf920b736d1c';
+  const pad32 = (a) => a.toLowerCase().replace(/^0x/, '').padStart(64, '0');
+  // The public RPC rate-limits, so a busy moment can bounce a call. Retry a
+  // couple of times; if it still fails, throw — "couldn't check" must never
+  // look like "no delegations".
+  async function ethCall(to, data, rpcs){
+    rpcs = rpcs || [RH_RPC];
+    let last;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const RPC = rpcs[attempt % rpcs.length];
+      if (attempt) await new Promise(r => setTimeout(r, 700 * attempt));
+      const ctl = new AbortController();
+      const t = setTimeout(() => ctl.abort(), 7000);
+      try {
+        const r = await fetch(RPC, { method: 'POST', signal: ctl.signal, headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_call', params: [{ to, data }, 'latest'] }) });
+        if (!r.ok) { last = new Error('RPC ' + r.status); continue; }
+        const j = await r.json();
+        if (typeof j.result === 'string') return j.result;
+        last = new Error((j.error && j.error.message) || 'RPC error');
+      } catch (e) { last = e; } finally { clearTimeout(t); }
+    }
+    throw last || new Error('RPC unreachable');
+  }
+  // Decode a returned array of static structs `width` words wide.
+  function structs(hex, width){
+    if (!hex || hex.length < 130) return [];
+    const w = (i) => hex.slice(2 + i * 64, 2 + (i + 1) * 64);
+    const n = parseInt(w(1), 16), out = [];
+    for (let k = 0; k < n && k < 500; k++) out.push(Array.from({ length: width }, (_, j) => w(2 + k * width + j)));
+    return out;
+  }
+  const word2addr = (w) => '0x' + w.slice(24).toLowerCase();
+  async function findVaults(hot){
+    const vaults = new Set();
+    const reads = await Promise.all(DELEGATION_CHAINS.map(c => Promise.all([
+      ethCall(DELEGATE_V2, '0x42f87c25' + pad32(hot), c.rpcs).catch(() => undefined),   // getIncomingDelegations
+      ethCall(DELEGATE_V1, '0x4fc69282' + pad32(hot), c.rpcs).catch(() => undefined),   // getDelegationsByDelegate (v1)
+    ])));
+    for (const [v2, v1] of reads) readDelegations(v2, v1, vaults);
+    vaults.delete(hot);
+    // if no chain could be read at all, say so rather than "no Rounds"
+    if (!vaults.size && reads.every(([v2]) => v2 === undefined)) { const e = new Error('delegation check failed'); e.unreachable = true; throw e; }
+    return [...vaults];
+  }
+  function readDelegations(v2, v1, vaults){
+    // v2: type, to, from, rights, contract, tokenId, amount — 1 ALL · 2 CONTRACT · 3 ERC721
+    for (const f of structs(v2, 7)) {
+      const type = parseInt(f[0], 16), from = word2addr(f[2]), contract = word2addr(f[4]);
+      if (/[^0]/.test(f[3])) continue; // rights-scoped to some other app
+      if (type === 1 || ((type === 2 || type === 3) && contract === ROUNDS_ADDR)) vaults.add(from);
+    }
+    // v1: type, vault, delegate, contract, tokenId — 1 ALL · 2 CONTRACT · 3 TOKEN
+    for (const f of structs(v1, 5)) {
+      const type = parseInt(f[0], 16), vault = word2addr(f[1]), contract = word2addr(f[3]);
+      if (type === 1 || ((type === 2 || type === 3) && contract === ROUNDS_ADDR)) vaults.add(vault);
+    }
+  }
+  const roundsCount = (a) => ((findHolder(a) || {}).rounds_token_ids || []).length;
+
+  async function checkAndRender(addr){
+    addr = addr.toLowerCase();
+    connectedAddr = addr;
+    statusLine.textContent = 'Checking holder status…';
+    let lookupFailed = false;
+    const vaultsP = findVaults(addr).catch(() => { lookupFailed = true; return []; });
+    if (!treeData) {
+      await loadTree();
+      // loadNames needs the config first; the rest are independent.
+      await Promise.all([loadLogos(), loadFeatured(), loadHolds(), loadConfig().then(() => Promise.all([loadNames(), loadFloors()]))]);
+    }
+    const vaults = (await vaultsP).filter(v => findHolder(v) && roundsCount(v) > 0);
+    seatList = [];
+    if (findHolder(addr) && roundsCount(addr) > 0) seatList.push(addr);
+    vaults.sort((a, b) => roundsCount(b) - roundsCount(a)).forEach(v => { if (!seatList.includes(v)) seatList.push(v); });
+    if (!seatList.length) {
+      if (lookupFailed) {
+        // don't tell a delegate "no Rounds" just because the chain was busy
+        statusLine.textContent = "Couldn't check delegations right now — try again in a moment.";
+        statusLine.className = 'status-line err';
+        return;
+      }
+      renderDenied(addr); return;
+    }
+    await renderDashboard(seatList[0], addr);
+  }
+
+  // one button per seat when a wallet can view more than one
+  function paintSeats(){
+    const box = $('seatSwitch');
+    box.innerHTML = '';
+    box.hidden = seatList.length < 2;
+    if (box.hidden) return;
+    for (const a of seatList) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      const n = roundsCount(a);
+      b.textContent = (a === connectedAddr ? 'this wallet' : 'vault ' + short(a)) + ' · ' + n + (n === 1 ? ' Round' : ' Rounds');
+      b.setAttribute('aria-pressed', String(a === currentAddr));
+      b.addEventListener('click', () => { if (a !== currentAddr) renderDashboard(a, connectedAddr); });
+      box.appendChild(b);
+    }
+  }
+
+  // Kept for when delegate.xyz resolution lands; not called today.
+  async function ensureChain(){
+    const chainId = await prov().request({ method: 'eth_chainId' });
+    if (chainId === CHAIN_ID_HEX) return;
+    try {
+      await prov().request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CHAIN_ID_HEX }] });
+    } catch (switchErr) {
+      if (switchErr && switchErr.code === 4902) {
+        await prov().request({ method: 'wallet_addEthereumChain', params: [CHAIN_PARAMS] });
+      } else throw switchErr;
+    }
+  }
+
+  /* ---------------- wallets ----------------
+     A wallet in the browser (extension, or a wallet app's own browser) is
+     used directly. Without one — Safari or Chrome on a phone, or a desktop
+     with no extension — WalletConnect shows a wallet list (phone) or a QR
+     code (desktop) and the person approves in their wallet app. Either way
+     the page only reads the address: no network switch, no transactions. */
+  const WC_PROJECT_ID = '006d164af3a2dfb368f16a8abc671229';
+  const WC_LIB = 'https://esm.sh/@walletconnect/ethereum-provider@2.25.0?bundle';
+  let activeProvider = null;   // whichever wallet is connected right now
+  let wcPromise = null;        // WalletConnect loads only when it's needed
+  function prov(){ return activeProvider || window.ethereum; }
+  function getWC(){
+    if (!wcPromise) {
+      wcPromise = import(WC_LIB).then(({ EthereumProvider }) => EthereumProvider.init({
+        projectId: WC_PROJECT_ID,
+        // Any EVM wallet works: we only need the address, which is the same on
+        // every chain. Robinhood Chain is offered, not required, so wallets
+        // that don't list it yet still connect.
+        chains: [1],
+        optionalChains: [4663],
+        showQrModal: true,
+        qrModalOptions: {
+          themeMode: 'dark',
+          themeVariables: { '--w3m-accent': '#ccff00', '--w3m-color-mix': '#050605', '--w3m-color-mix-strength': 20 },
+        },
+        metadata: {
+          name: 'Rounds',
+          description: 'The Rounds holder table',
+          url: location.origin,
+          icons: [location.origin + '/og.png'],
+        },
+      })).then(p => {
+        p.on('accountsChanged', (accounts) => {
+          if (activeProvider !== p) return;
+          const next = accounts && accounts[0];
+          if (next && next.toLowerCase() !== connectedAddr) checkAndRender(next);
+        });
+        p.on('disconnect', () => { if (activeProvider === p) { activeProvider = null; resetToGate(); } });
+        return p;
+      }).catch(e => { wcPromise = null; throw e; });
+    }
+    return wcPromise;
+  }
+  async function connectWC(){
+    statusLine.textContent = 'Opening wallets…';
+    const p = await getWC();
+    // an earlier session in this browser is reused without asking again
+    if (!p.session || !(p.accounts && p.accounts.length)) {
+      statusLine.textContent = 'Approve in your wallet app…';
+      await p.connect();
+    }
+    activeProvider = p;
+    return p.accounts;
+  }
+
+  /* Wallet discovery (EIP-6963). With several extensions installed, the
+     plain window.ethereum belongs to whichever one grabbed it last (often
+     Phantom), so we ask every wallet to announce itself and let the person
+     pick. Wallets that don't announce still show up as "Browser wallet". */
+  const injected = new Map();   // rdns -> { info, provider }
+  window.addEventListener('eip6963:announceProvider', (e) => {
+    const d = e.detail;
+    if (d && d.info && d.provider) injected.set(d.info.rdns || d.info.uuid, d);
+  });
+  window.dispatchEvent(new Event('eip6963:requestProvider'));
+  const WALLET_KEY = 'rounds.wallet';
+  function walletChoices(){
+    const list = [...injected.values()];
+    if (!list.length && window.ethereum) list.push({ info: { rdns: 'injected', name: 'Browser wallet' }, provider: window.ethereum });
+    return list;
+  }
+  const isPhone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  let watched = null;           // the injected provider whose events we follow
+  function watch(p){
+    if (watched === p || typeof p.on !== 'function') return;
+    watched = p;
+    p.on('accountsChanged', (accounts) => {
+      if (activeProvider !== p) return;
+      if (!accounts || !accounts.length) { disconnect(); return; }
+      if (accounts[0].toLowerCase() !== connectedAddr) checkAndRender(accounts[0]);
+    });
+  }
+  function hidePicker(){ $('walletPick').hidden = true; $('walletPick').innerHTML = ''; }
+  function showPicker(list){
+    const box = $('walletPick');
+    box.innerHTML = '<div class="wp-title">Choose a wallet</div>';
+    const add = (label, icon, sub, fn) => {
+      const b = document.createElement('button'); b.type = 'button';
+      if (icon) { const i = document.createElement('img'); i.src = icon; i.alt = ''; b.appendChild(i); }
+      else { const d = document.createElement('span'); d.className = 'wp-dot'; b.appendChild(d); }
+      const n = document.createElement('span'); n.textContent = label; b.appendChild(n);
+      if (sub) { const t = document.createElement('span'); t.className = 'wp-sub'; t.textContent = sub; b.appendChild(t); }
+      b.addEventListener('click', () => { hidePicker(); fn(); });
+      box.appendChild(b);
+    };
+    for (const w of list) add(w.info.name || 'Browser wallet', w.info.icon, null, () => connectWith(w));
+    add('WalletConnect', null, 'phone / other', () => connectWith(null));
+    box.hidden = false;
+    statusLine.textContent = '';
+  }
+
+  // Connect button: pick when there's a choice, go straight in when there isn't.
+  function connect(){
+    window.dispatchEvent(new Event('eip6963:requestProvider'));
+    const list = walletChoices();
+    if (!list.length) return connectWith(null);              // no extension: WalletConnect
+    if (list.length === 1 && isPhone) return connectWith(list[0]);   // wallet app's own browser
+    if (!$('walletPick').hidden) { hidePicker(); return; }
+    showPicker(list);
+  }
+
+  async function connectWith(choice){
+    $('connectBtn').disabled = true;
+    statusLine.className = 'status-line';
+    try {
+      let accounts;
+      if (choice) {
+        statusLine.textContent = 'Requesting connection from ' + (choice.info.name || 'your wallet') + '…';
+        accounts = await choice.provider.request({ method: 'eth_requestAccounts' });
+        activeProvider = choice.provider;
+        watch(choice.provider);
+        try { localStorage.setItem(WALLET_KEY, choice.info.rdns); } catch (e) {}
+      } else {
+        accounts = await connectWC();
+        try { localStorage.setItem(WALLET_KEY, 'walletconnect'); } catch (e) {}
+      }
+      if (!accounts || !accounts[0]) throw new Error('No account was shared — try again.');
+      // No network switch: this page reads a static snapshot, never the chain.
+      await checkAndRender(accounts[0]);
+    } catch (e) {
+      const msg = (e && e.message) || '';
+      // closing the wallet list isn't an error worth shouting about
+      if (/reset|closed|reject|cancel|user/i.test(msg)) { statusLine.textContent = 'Connection cancelled.'; }
+      else {
+        statusLine.textContent = msg || 'Connection failed — try again.';
+        statusLine.className = 'status-line err';
+      }
+    } finally {
+      $('connectBtn').disabled = false;
+    }
+  }
+
+  // Returning to the gate. Wallets have no universal "disconnect", so we
+  // also ask the wallet to revoke account permission where that's supported
+  // (EIP-2255). Without it, pressing Connect again silently reuses the same
+  // account and you can never switch — which is the whole point of the button.
+  async function disconnect(){
+    hidePicker();
+    try { localStorage.removeItem(WALLET_KEY); } catch (e) {}
+    if (activeProvider && wcPromise && activeProvider === await wcPromise.catch(() => null)) {
+      // WalletConnect: end the session so the next Connect offers the list again
+      try { await activeProvider.disconnect(); } catch (e) { /* already gone */ }
+    } else if (activeProvider) {
+      try {
+        await activeProvider.request({
+          method: 'wallet_revokePermissions',
+          params: [{ eth_accounts: {} }],
+        });
+      } catch (e) { /* not supported in every wallet — harmless */ }
+    }
+    activeProvider = null;
+    resetToGate();
+  }
+  function resetToGate(){
+    connectedAddr = null;
+    seatList = [];
+    selectedAddr = null;
+    currentAddr = null;
+    closeDetail();
+    closeRenamer();
+    closeReview();
+    adminToken = null;
+    $('reviewBtn').hidden = true;
+    if (constelAnim) { cancelAnimationFrame(constelAnim); constelAnim = null; }
+    hideTip();
+    dash.hidden = true; deniedPanel.hidden = true; gate.hidden = false;
+    arc.leave();
+    statusLine.textContent = '';
+    statusLine.className = 'status-line';
+  }
+
+  $('disconnectBtn').addEventListener('click', disconnect);
+
+  $('renameBtn').addEventListener('click', () => {
+    if ($('renameEditor').hidden) openRenamer(); else closeRenamer();
+  });
+  $('renameCancel').addEventListener('click', closeRenamer);
+  $('reviewBtn').addEventListener('click', () => {
+    if ($('reviewPanel').hidden) openReview(); else closeReview();
+  });
+  $('reviewClose').addEventListener('click', closeReview);
+  $('reviewFilter').addEventListener('input', () => { if (adminRows.length) paintAdminList(); });
+  $('renameSave').addEventListener('click', () => submitName(false));
+  $('renameClear').addEventListener('click', () => submitName(true));
+  $('renameInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); submitName(false); }
+    else if (e.key === 'Escape') closeRenamer();
+  });
+  $('connectBtn').addEventListener('click', connect);
+
+
+  // If you switch accounts in the wallet itself, follow along rather than
+  // showing stale data for a wallet that's no longer connected.
+  $('retryBtn').addEventListener('click', disconnect);
+
+  // Coming back: reconnect quietly to the wallet used last time (no popup).
+  setTimeout(async () => {
+    let last = null;
+    try { last = localStorage.getItem(WALLET_KEY); } catch (e) {}
+    const list = walletChoices();
+    if (!last && list.length === 1 && isPhone) last = list[0].info.rdns;   // wallet app browser
+    if (!last) return;
+    if (last === 'walletconnect') {
+      getWC().then(p => {
+        if (p.session && p.accounts && p.accounts[0] && !gate.hidden) { activeProvider = p; checkAndRender(p.accounts[0]); }
+      }).catch(() => {});
+      return;
+    }
+    const w = list.find(x => x.info.rdns === last);
+    if (!w) return;
+    try {
+      const accounts = await w.provider.request({ method: 'eth_accounts' });
+      if (accounts && accounts[0] && !gate.hidden) { activeProvider = w.provider; watch(w.provider); checkAndRender(accounts[0]); }
+    } catch (e) {}
+  }, 350);
+  /* ---------------- tabs ----------------
+     Three panes instead of one long scroll. The hash keeps the tab in the
+     URL, so a post can link straight to #pfp. */
+  const TABS = ['table', 'pieces', 'pfp', 'arcade'];
+  let piecesPainted = false;
+  function setTab(name, opts){
+    if (!TABS.includes(name)) name = 'table';
+    if (name === 'pfp' && $('tab-pfp').hidden) name = 'table';
+    for (const t of TABS) {
+      $('pane-' + t).hidden = t !== name;
+      $('tab-' + t).setAttribute('aria-selected', String(t === name));
+    }
+    hideTip();
+    // pieces drawn while their tab was hidden were sized blind — redraw once
+    if (name === 'pieces' && !piecesPainted && currentAddr) {
+      const m = metaFor(currentAddr);
+      renderPieces(m && m.rounds_token_ids);
+      piecesPainted = true;
+    }
+    if (name === 'pfp') pfpRender();
+    if (name === 'arcade') arc.enter(); else arc.leave();
+    const want = name === 'table' ? '' : '#' + name;
+    if (location.hash !== want) {
+      try { history.replaceState(null, '', location.pathname + location.search + want); } catch (e) {}
+    }
+    if (!(opts && opts.noScroll)) {
+      const nav = document.querySelector('.tabs');
+      if (nav && nav.getBoundingClientRect().top < 0) nav.scrollIntoView({ block: 'start' });
+    }
+  }
+  function tabFromHash(){ return (location.hash || '').replace('#', '') || 'table'; }
+  document.querySelector('.tabs-in').addEventListener('click', e => {
+    const b = e.target.closest('.tab');
+    if (b) setTab(b.dataset.tab);
+  });
+  // arrow keys move between tabs, as tablists should
+  document.querySelector('.tabs-in').addEventListener('keydown', e => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const vis = TABS.filter(t => !$('tab-' + t).hidden);
+    const cur = vis.findIndex(t => $('tab-' + t).getAttribute('aria-selected') === 'true');
+    const next = vis[(cur + (e.key === 'ArrowRight' ? 1 : vis.length - 1)) % vis.length];
+    setTab(next, { noScroll: true });
+    $('tab-' + next).focus();
+  });
+  window.addEventListener('hashchange', () => setTab(tabFromHash(), { noScroll: true }));
+
+  /* ---------------- round pfp ----------------
+     Swaps the background of any pfp for one of your Rounds. Everything runs
+     in the browser — the upload is never sent anywhere.
+
+     Two ways to cut the subject out:
+       flat — most NFT pfps sit on one solid colour. Flood-fill from the
+              edges with a colour tolerance. Instant, no download.
+       ai   — for photos and busy backgrounds: U²-Net-p (Apache-2.0,
+              4.6MB, models/u2netp.onnx) run with onnxruntime-web from
+              jsdelivr. Only fetched when someone taps the button.
+     Either way you can tap leftover background on the preview to erase it
+     (the gap under an arm, a second background colour). */
+
+  const PFP_OUT = 1000;                  // exported file is 1000×1000
+  const PFP_WORK = 1024;                 // cap on the working resolution
+  const ORT_BASE = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/';
+  const pfp = {
+    ids: [], token: null,                // your pieces, and which one is behind
+    src: null, S: 0,                     // square-cropped source, S×S RGBA ImageData
+    mask: null,                          // Uint8Array S*S, 255 = keep
+    base: null,                          // mask from flat/ai before any taps
+    undo: [],                            // mask snapshots before each tap
+    mode: 'flat', pixel: false, busy: false,
+    session: null,                       // onnx session, once loaded
+    bgShare: 1,                          // how much of the border is one colour
+  };
+
+  function pfpStatus(msg, cls){
+    const el = $('pfpStatus');
+    el.textContent = msg || '';
+    el.className = 'status-line' + (cls ? ' ' + cls : '');
+  }
+
+  // --- background picker: a strip of your own pieces ---------------------
+  function setupPfp(ids){
+    const sec = $('secPfp');
+    pfp.ids = (ids || []).map(Number).sort((a, b) => a - b);
+    sec.hidden = !pfp.ids.length;
+    $('tab-pfp').hidden = !pfp.ids.length;
+    if (!pfp.ids.length) return;
+    if (!pfp.ids.includes(pfp.token)) pfp.token = pfp.ids[0];
+    $('pfpRoundNote').textContent = '#' + pfp.token;
+    const strip = $('pfpRounds');
+    strip.innerHTML = '';
+    pfp.ids.forEach(id => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pfp-round';
+      b.title = 'Rounds #' + id;
+      b.setAttribute('aria-label', 'Use Rounds #' + id + ' as the background');
+      b.setAttribute('aria-pressed', String(id === pfp.token));
+      const cv = document.createElement('canvas');
+      b.appendChild(cv);
+      const tag = document.createElement('span');
+      tag.textContent = '#' + id;
+      b.appendChild(tag);
+      b.addEventListener('click', () => pfpSelect(id));
+      strip.appendChild(b);
+      drawPiece(cv, id);
+    });
+    pfpRender();
+  }
+
+  function pfpSelect(id){
+    id = Number(id);
+    if (!pfp.ids.includes(id)) return;
+    pfp.token = id;
+    document.querySelectorAll('#pfpRounds .pfp-round').forEach(x =>
+      x.setAttribute('aria-pressed', String(x.title === 'Rounds #' + id)));
+    $('pfpRoundNote').textContent = '#' + id;
+    pfpRender();
+  }
+
+  // --- loading an image ----------------------------------------------------
+  async function pfpLoad(file){
+    if (!file || !/^image\//.test(file.type)) { pfpStatus('That file isn\'t an image.', 'err'); return; }
+    let bmp;
+    try {
+      // from-image honours phone photo rotation (EXIF)
+      bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    } catch (e) {
+      pfpStatus('Couldn\'t read that image — try a PNG or JPG.', 'err');
+      return;
+    }
+    // centre-crop to a square: that's what every platform shows anyway
+    const side = Math.min(bmp.width, bmp.height);
+    const S = Math.min(PFP_WORK, side);
+    const cv = document.createElement('canvas');
+    cv.width = S; cv.height = S;
+    const c = cv.getContext('2d', { willReadFrequently: true });
+    c.imageSmoothingQuality = 'high';
+    c.drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, S, S);
+    bmp.close && bmp.close();
+    pfp.src = c.getImageData(0, 0, S, S);
+    pfp.S = S;
+    pfp.pixel = looksLikePixelArt(pfp.src);
+    pfp.undo = [];
+    $('pfpStage').classList.add('has-img');
+    $('pfpControls').hidden = false;
+    $('pfpTuneOff').hidden = true;
+    $('stepTune').classList.remove('off');
+    $('stepUpload').classList.add('done');
+    const th = $('pfpOrig');
+    th.hidden = false; $('pfpDropIco').hidden = true;
+    th.getContext('2d').drawImage(cv, 0, 0, th.width, th.height);
+    $('pfpDropTitle').textContent = file.name || 'Pasted image';
+    $('pfpDropSub').textContent = 'tap the preview to erase leftover bits';
+    $('pfpPick').textContent = 'Change';
+    $('pfpPick').classList.add('ghost');
+    $('pfpScale').value = 100;
+    if (pfp.mode === 'ai' && pfp.session) await pfpAI();
+    else { pfp.mode = 'flat'; pfpFlat(); }
+    paintPfpMode();
+  }
+
+  // Small image with few colours = pixel art. Scale those up with hard
+  // edges; smoothing turns a crisp 32px punk into mush.
+  function looksLikePixelArt(img){
+    if (img.width > 512) return false;
+    const d = img.data, seen = new Set();
+    for (let i = 0; i < d.length; i += 4) {
+      seen.add((d[i] << 16) | (d[i + 1] << 8) | d[i + 2]);
+      if (seen.size > 2048) return false;
+    }
+    return true;
+  }
+
+  const colorDist = (d, i, r, g, b) => {
+    const dr = d[i] - r, dg = d[i + 1] - g, db = d[i + 2] - b;
+    return Math.sqrt(dr * dr + dg * dg + db * db);
+  };
+
+  // --- flat background ----------------------------------------------------
+  // Find the border's dominant colour, then flood-fill inward from the edges
+  // through everything within tolerance of it. Compared against the
+  // background colour itself, not the neighbouring pixel, so it can't creep
+  // into the subject one slightly-different pixel at a time.
+  function pfpFlat(){
+    const { data: d } = pfp.src, S = pfp.S;
+    const tol = Number($('pfpTol').value);
+    const border = [];
+    for (let i = 0; i < S; i++) border.push(i, (S - 1) * S + i, i * S, i * S + S - 1);
+    const bins = new Map();
+    for (const p of border) {
+      const k = ((d[p * 4] >> 3) << 10) | ((d[p * 4 + 1] >> 3) << 5) | (d[p * 4 + 2] >> 3);
+      bins.set(k, (bins.get(k) || 0) + 1);
+    }
+    let bestK = 0, bestN = -1;
+    for (const [k, n] of bins) if (n > bestN) { bestN = n; bestK = k; }
+    // average the actual pixels in the winning bin for the true colour
+    let r = 0, g = 0, b = 0, n = 0;
+    for (const p of border) {
+      const k = ((d[p * 4] >> 3) << 10) | ((d[p * 4 + 1] >> 3) << 5) | (d[p * 4 + 2] >> 3);
+      if (k === bestK) { r += d[p * 4]; g += d[p * 4 + 1]; b += d[p * 4 + 2]; n++; }
+    }
+    r /= n; g /= n; b /= n;
+    let near = 0;
+    for (const p of border) if (colorDist(d, p * 4, r, g, b) <= tol) near++;
+    pfp.bgShare = near / border.length;
+
+    const mask = new Uint8Array(S * S).fill(255);
+    const stack = [];
+    for (const p of border) if (mask[p] && colorDist(d, p * 4, r, g, b) <= tol) { mask[p] = 0; stack.push(p); }
+    while (stack.length) {
+      const p = stack.pop(), x = p % S, y = (p / S) | 0;
+      if (x > 0)     tryFill(p - 1);
+      if (x < S - 1) tryFill(p + 1);
+      if (y > 0)     tryFill(p - S);
+      if (y < S - 1) tryFill(p + S);
+    }
+    function tryFill(q){
+      if (mask[q] && colorDist(d, q * 4, r, g, b) <= tol) { mask[q] = 0; stack.push(q); }
+    }
+    pfp.base = pfp.pixel ? mask : feather(mask, S);
+    pfp.mask = pfp.base.slice();
+    pfp.undo = [];
+    pfpRender();
+    if (pfp.bgShare < 0.55) {
+      pfpStatus('The background doesn\'t look like one color. Try AI cutout.', 'warn');
+      $('pfpAIBtn').classList.add('nudge');
+    } else {
+      pfpStatus('');
+      $('pfpAIBtn').classList.remove('nudge');
+    }
+  }
+
+  // one-pixel soft edge, so the cutout doesn't look like it was done with
+  // scissors (skipped for pixel art, which wants the hard edge)
+  function feather(mask, S){
+    const out = new Uint8Array(S * S);
+    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+      let sum = 0, n = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        const yy = y + dy; if (yy < 0 || yy >= S) continue;
+        for (let dx = -1; dx <= 1; dx++) {
+          const xx = x + dx; if (xx < 0 || xx >= S) continue;
+          sum += mask[yy * S + xx]; n++;
+        }
+      }
+      out[y * S + x] = Math.round(sum / n);
+    }
+    return out;
+  }
+
+  // --- AI cutout -----------------------------------------------------------
+  function loadScript(src){
+    return new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = src; s.async = true; s.crossOrigin = 'anonymous';
+      s.onload = res; s.onerror = () => rej(new Error('script ' + src));
+      document.head.appendChild(s);
+    });
+  }
+  async function pfpLoadModel(){
+    if (pfp.session) return pfp.session;
+    if (!window.ort) await loadScript(ORT_BASE + 'ort.wasm.min.js');
+    ort.env.wasm.wasmPaths = ORT_BASE;
+    // multi-threaded wasm needs cross-origin isolation, which a static
+    // Pages site doesn't have; one thread is plenty for a 320px model
+    ort.env.wasm.numThreads = 1;
+    pfp.session = await ort.InferenceSession.create('/models/u2netp.onnx', { executionProviders: ['wasm'] });
+    return pfp.session;
+  }
+  async function pfpAI(){
+    if (!pfp.src || pfp.busy) return;
+    pfp.busy = true;
+    paintPfpMode();
+    const first = !pfp.session;
+    pfpStatus(first ? 'Loading the cutout model (one time, ~15MB)…' : 'Cutting out…');
+    try {
+      const sess = await pfpLoadModel();
+      if (first) pfpStatus('Cutting out…');
+      const M = 320, S = pfp.S;
+      // the model wants 320×320, normalised the way U²-Net was trained
+      const small = document.createElement('canvas');
+      small.width = M; small.height = M;
+      const sc = small.getContext('2d', { willReadFrequently: true });
+      const tmp = document.createElement('canvas');
+      tmp.width = S; tmp.height = S;
+      tmp.getContext('2d').putImageData(pfp.src, 0, 0);
+      sc.drawImage(tmp, 0, 0, M, M);
+      const px = sc.getImageData(0, 0, M, M).data;
+      let mx = 1;
+      for (let i = 0; i < px.length; i += 4) mx = Math.max(mx, px[i], px[i + 1], px[i + 2]);
+      const mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225];
+      const t = new Float32Array(3 * M * M);
+      for (let i = 0; i < M * M; i++) for (let c = 0; c < 3; c++)
+        t[c * M * M + i] = (px[i * 4 + c] / mx - mean[c]) / std[c];
+      const out = await sess.run({ [sess.inputNames[0]]: new ort.Tensor('float32', t, [1, 3, M, M]) });
+      const m = out[sess.outputNames[0]].data;
+      let lo = Infinity, hi = -Infinity;
+      for (const v of m) { if (v < lo) lo = v; if (v > hi) hi = v; }
+      // back up to working size with smooth scaling
+      const mk = sc.createImageData(M, M);
+      for (let i = 0; i < M * M; i++) {
+        const a = Math.round((m[i] - lo) / ((hi - lo) || 1) * 255);
+        mk.data[i * 4] = mk.data[i * 4 + 1] = mk.data[i * 4 + 2] = a; mk.data[i * 4 + 3] = 255;
+      }
+      sc.putImageData(mk, 0, 0);
+      const big = tmp.getContext('2d', { willReadFrequently: true });
+      big.imageSmoothingQuality = 'high';
+      big.drawImage(small, 0, 0, S, S);
+      const up = big.getImageData(0, 0, S, S).data;
+      const mask = new Uint8Array(S * S);
+      for (let i = 0; i < S * S; i++) mask[i] = up[i * 4];
+      pfp.base = mask;
+      pfp.mask = mask.slice();
+      pfp.undo = [];
+      pfp.mode = 'ai';
+      pfpStatus('');
+    } catch (e) {
+      console.warn('pfp ai', e);
+      pfpStatus('AI cutout couldn\'t load here. Flat background still works.', 'err');
+    }
+    pfp.busy = false;
+    paintPfpMode();
+    pfpRender();
+  }
+
+  // --- tap to erase --------------------------------------------------------
+  // Flood-fill from the tapped pixel through similar colours, but only across
+  // pixels that are still visible — so it wipes the patch you meant and
+  // stops at the subject's edge.
+  function pfpErase(clientX, clientY){
+    if (!pfp.src || pfp.busy) return;
+    const r = $('pfpCanvas').getBoundingClientRect();
+    const scale = Number($('pfpScale').value) / 100;
+    // undo the size/position transform: subject is anchored bottom-centre
+    const fx = (clientX - r.left) / r.width, fy = (clientY - r.top) / r.height;
+    const sx = (fx - (1 - scale) / 2) / scale, sy = (fy - (1 - scale)) / scale;
+    if (sx < 0 || sx >= 1 || sy < 0 || sy >= 1) return;
+    const S = pfp.S, d = pfp.src.data;
+    const p0 = Math.floor(sy * S) * S + Math.floor(sx * S);
+    if (pfp.mask[p0] < 40) return; // already background
+    const tol = Math.max(18, Number($('pfpTol').value));
+    const r0 = d[p0 * 4], g0 = d[p0 * 4 + 1], b0 = d[p0 * 4 + 2];
+    pfp.undo.push(pfp.mask.slice());
+    if (pfp.undo.length > 12) pfp.undo.shift();
+    const mask = pfp.mask, seen = new Uint8Array(S * S), stack = [p0];
+    seen[p0] = 1;
+    const hit = [];
+    while (stack.length) {
+      const p = stack.pop();
+      hit.push(p);
+      const x = p % S, y = (p / S) | 0;
+      const nb = [x > 0 ? p - 1 : -1, x < S - 1 ? p + 1 : -1, y > 0 ? p - S : -1, y < S - 1 ? p + S : -1];
+      for (const q of nb) {
+        if (q < 0 || seen[q]) continue;
+        seen[q] = 1;
+        if (mask[q] > 0 && colorDist(d, q * 4, r0, g0, b0) <= tol) stack.push(q);
+      }
+    }
+    for (const p of hit) mask[p] = 0;
+    // soften only the edge this tap just made — re-feathering the whole mask
+    // on every tap would blur the cutout a little more each time
+    if (!pfp.pixel) {
+      for (const p of hit) {
+        const x = p % S;
+        for (const q of [x > 0 ? p - 1 : -1, x < S - 1 ? p + 1 : -1, p - S, p + S]) {
+          if (q >= 0 && q < S * S && mask[q] > 128) mask[q] = 128;
+        }
+      }
+    }
+    $('pfpUndo').disabled = false;
+    pfpRender();
+  }
+
+  // --- compose + preview ---------------------------------------------------
+  let pfpSubject = null; // cached subject canvas, rebuilt when the mask changes
+  function subjectCanvas(){
+    const S = pfp.S;
+    const cv = document.createElement('canvas');
+    cv.width = S; cv.height = S;
+    const c = cv.getContext('2d');
+    const img = new ImageData(new Uint8ClampedArray(pfp.src.data), S, S);
+    for (let i = 0; i < S * S; i++) img.data[i * 4 + 3] = Math.min(img.data[i * 4 + 3], pfp.mask[i]);
+    c.putImageData(img, 0, 0);
+    return cv;
+  }
+  function drawRoundInto(c, tokenId, O){
+    c.fillStyle = '#000';
+    c.fillRect(0, 0, O, O);
+    const rec = pieces && pieces[tokenId - 1];
+    if (!rec) return;
+    c.fillStyle = '#ccff00';
+    const k = O / 10000, circles = rec[3];
+    c.beginPath();
+    for (let i = 0; i < circles.length; i += 3) {
+      const x = circles[i] * k, y = circles[i + 1] * k, r = circles[i + 2] * k;
+      c.moveTo(x + r, y);
+      c.arc(x, y, r, 0, Math.PI * 2);
+    }
+    c.fill();
+  }
+  function pfpRender(){
+    const cv = $('pfpCanvas');
+    if (cv.width !== PFP_OUT) { cv.width = PFP_OUT; cv.height = PFP_OUT; }
+    const c = cv.getContext('2d');
+    c.imageSmoothingEnabled = true;
+    drawRoundInto(c, pfp.token, PFP_OUT);
+    $('pfpSave').disabled = !pfp.src;
+    if (!pfp.src) { drawPlaceholder(c, PFP_OUT); paintMinis(); return; }
+    const sub = subjectCanvas();
+    const scale = Number($('pfpScale').value) / 100;
+    const size = PFP_OUT * scale;
+    const x = (PFP_OUT - size) / 2, y = PFP_OUT - size; // bottom-centre
+    c.imageSmoothingEnabled = !pfp.pixel;
+    c.imageSmoothingQuality = 'high';
+    if ($('pfpOutline').checked) {
+      // A dark outline so the subject separates from bright lime circles.
+      // Stamp a black silhouette in a ring of offsets, then the subject on top.
+      const sil = document.createElement('canvas');
+      sil.width = sub.width; sil.height = sub.height;
+      const sc = sil.getContext('2d');
+      sc.drawImage(sub, 0, 0);
+      sc.globalCompositeOperation = 'source-in';
+      sc.fillStyle = '#000';
+      sc.fillRect(0, 0, sil.width, sil.height);
+      const w = Math.max(4, PFP_OUT * 0.008);
+      for (let a = 0; a < 16; a++) {
+        const t = a / 16 * Math.PI * 2;
+        c.drawImage(sil, x + Math.cos(t) * w, y + Math.sin(t) * w, size, size);
+      }
+    }
+    c.drawImage(sub, x, y, size, size);
+    paintMinis();
+  }
+
+  // Before anyone uploads, the preview shows their Round with a stand-in
+  // silhouette — so the first thing they see is the result, not an empty box.
+  function drawPlaceholder(c, O){
+    c.save();
+    c.fillStyle = 'rgba(8,10,6,.94)';
+    c.strokeStyle = 'rgba(204,255,0,.7)';
+    c.lineWidth = O * 0.005;
+    c.beginPath();
+    c.arc(O * 0.5, O * 0.40, O * 0.17, 0, Math.PI * 2);           // head
+    c.moveTo(O * 0.16, O * 1.02);
+    c.bezierCurveTo(O * 0.16, O * 0.70, O * 0.30, O * 0.62, O * 0.5, O * 0.62);
+    c.bezierCurveTo(O * 0.70, O * 0.62, O * 0.84, O * 0.70, O * 0.84, O * 1.02); // shoulders
+    c.closePath();
+    c.fill();
+    c.stroke();
+    c.restore();
+  }
+
+  // the same image at the sizes X actually shows it
+  function paintMinis(){
+    const src = $('pfpCanvas');
+    for (const id of ['pfpMiniA', 'pfpMiniB']) {
+      const m = $(id);
+      if (!m) continue;
+      const mc = m.getContext('2d');
+      mc.imageSmoothingEnabled = true;
+      mc.imageSmoothingQuality = 'high';
+      mc.clearRect(0, 0, m.width, m.height);
+      mc.drawImage(src, 0, 0, m.width, m.height);
+    }
+  }
+
+  function paintPfpMode(){
+    document.querySelectorAll('#pfpMode button').forEach(b => {
+      b.setAttribute('aria-pressed', String(b.dataset.m === pfp.mode));
+      b.disabled = pfp.busy;
+    });
+    $('pfpTolRow').hidden = pfp.mode !== 'flat';
+    $('pfpUndo').disabled = !pfp.undo.length;
+  }
+
+  // --- save ----------------------------------------------------------------
+  function pfpBlob(){
+    return new Promise(res => $('pfpCanvas').toBlob(res, 'image/png'));
+  }
+  async function pfpSave(){
+    const blob = await pfpBlob();
+    if (!blob) return;
+    const name = `rounds-pfp-${pfp.token}.png`;
+    const file = new File([blob], name, { type: 'image/png' });
+    // On a phone the share sheet is how you get an image into Photos;
+    // a download link just opens it in a new tab.
+    const touch = window.matchMedia('(pointer: coarse)').matches;
+    if (touch && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file] }); return; }
+      catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }
+
+  // --- wiring --------------------------------------------------------------
+  (function wirePfp(){
+    const drop = $('pfpStage'), input = $('pfpFile');
+    input.addEventListener('change', () => { pfpLoad(input.files[0]); input.value = ''; });
+    $('pfpPick').addEventListener('click', () => input.click());
+    // the preview and the upload card both take a dropped file
+    for (const zone of [drop, $('pfpDrop')]) {
+      ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => {
+        e.preventDefault(); zone.classList.add('drag');
+      }));
+      ['dragleave', 'drop'].forEach(ev => zone.addEventListener(ev, e => {
+        e.preventDefault(); zone.classList.remove('drag');
+      }));
+      zone.addEventListener('drop', e => {
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) pfpLoad(f);
+      });
+    }
+    // paste an image straight in (handy on desktop after "copy image")
+    document.addEventListener('paste', e => {
+      if ($('pane-pfp').hidden || $('dash').hidden) return;
+      const item = [...(e.clipboardData ? e.clipboardData.items : [])].find(i => i.type.startsWith('image/'));
+      if (item) pfpLoad(item.getAsFile());
+    });
+    $('pfpCanvas').addEventListener('click', e => { if (pfp.src) pfpErase(e.clientX, e.clientY); });
+    $('pfpMode').addEventListener('click', e => {
+      const b = e.target.closest('button[data-m]');
+      if (!b || !pfp.src || pfp.busy) return;
+      if (b.dataset.m === 'ai') pfpAI();
+      else { pfp.mode = 'flat'; pfpFlat(); paintPfpMode(); }
+    });
+    let tolTimer = null;
+    $('pfpTol').addEventListener('input', () => {
+      clearTimeout(tolTimer);
+      tolTimer = setTimeout(() => { if (pfp.src && pfp.mode === 'flat') { pfpFlat(); paintPfpMode(); } }, 60);
+    });
+    $('pfpScale').addEventListener('input', pfpRender);
+    $('pfpOutline').addEventListener('change', pfpRender);
+    $('pfpUndo').addEventListener('click', () => {
+      if (!pfp.undo.length) return;
+      pfp.mask = pfp.undo.pop();
+      paintPfpMode();
+      pfpRender();
+    });
+    $('pfpReset').addEventListener('click', () => {
+      if (!pfp.base) return;
+      pfp.mask = pfp.base.slice();
+      pfp.undo = [];
+      paintPfpMode();
+      pfpRender();
+    });
+    $('pfpSave').addEventListener('click', pfpSave);
+  })();
+
+
+  /* ---------------- arcade: Trail, scored ----------------
+     Same rules as the home page Trail, but the board comes from the server
+     (a seed) and the run is sent back as its turns, then replayed there to
+     check the score. Holders sign once a day to post; the wallet (or the
+     vault, through a delegation) is the entry. */
+  /* Trail engine — the rules, with nothing random left to chance.
+     The same code runs in the browser (to play) and on the server (to replay
+     a submitted run and check the score). A run is fully described by its
+     seed and the list of turns [tick, dir]; anything else the browser says
+     about the run is ignored.
+     dir: 0 up · 1 right · 2 down · 3 left */
+  const TRAIL = (() => {
+    const C = 18, ROWS = 27;
+    const DX = [0, 1, 0, -1], DY = [-1, 0, 1, 0];
+    const STEP0 = 0.13, STEP_MIN = 0.075, STEP_K = 0.965;
+
+    function rng(seed) {                     // mulberry32
+      let a = seed >>> 0;
+      return () => {
+        a = (a + 0x6D2B79F5) >>> 0;
+        let t = a;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function create(seed) {
+      const s = {
+        rand: rng(seed), tick: 0, dir: 1, score: 0, eaten: 0, over: false, step: STEP0,
+        body: [{ x: 9, y: 13 }, { x: 8, y: 13 }, { x: 7, y: 13 }, { x: 6, y: 13 }],
+        food: null, moves: [],
+      };
+      placeFood(s);
+      return s;
+    }
+
+    function placeFood(s) {
+      const taken = (x, y) => s.body.some((b) => b.x === x && b.y === y);
+      for (let k = 0; k < 500; k++) {
+        const x = (s.rand() * C) | 0, y = (s.rand() * ROWS) | 0;
+        if (!taken(x, y)) { s.food = { x, y }; return; }
+      }
+      for (let y = 0; y < ROWS; y++) for (let x = 0; x < C; x++) if (!taken(x, y)) { s.food = { x, y }; return; }
+      s.food = null; s.over = true;   // the board is full — nothing left to eat
+    }
+
+    // One step. `turn` (optional) is applied first; returns false if it's not a legal turn.
+    function advance(s, turn) {
+      if (s.over) return false;
+      if (turn !== undefined && turn !== null) {
+        if (!(turn >= 0 && turn <= 3) || turn === s.dir || (turn + 2) % 4 === s.dir) return false;
+        s.dir = turn;
+        s.moves.push([s.tick, turn]);
+      }
+      const h = { x: s.body[0].x + DX[s.dir], y: s.body[0].y + DY[s.dir] };
+      const eat = !!s.food && h.x === s.food.x && h.y === s.food.y;
+      const limit = eat ? s.body.length : s.body.length - 1;
+      s.tick++;
+      let hit = h.x < 0 || h.y < 0 || h.x >= C || h.y >= ROWS;
+      for (let i = 0; !hit && i < limit; i++) if (s.body[i].x === h.x && s.body[i].y === h.y) hit = true;
+      if (hit) { s.over = true; return true; }
+      s.body.unshift(h);
+      if (!eat) s.body.pop();
+      else { s.score += 10; s.eaten++; s.step = Math.max(STEP_MIN, s.step * STEP_K); placeFood(s); }
+      return true;
+    }
+
+    // Replay a submitted run. Returns { ok, score, ticks, seconds } or { ok:false, why }.
+    // `seconds` is the least real time the run can have taken at full speed.
+    function verify(seed, moves, ticks) {
+      if (!Array.isArray(moves) || moves.length > 20000) return { ok: false, why: "moves" };
+      if (!(Number.isInteger(ticks) && ticks > 0 && ticks <= 60000)) return { ok: false, why: "ticks" };
+      const s = create(seed);
+      let m = 0, seconds = 0, last = -1;
+      while (!s.over && s.tick < ticks) {
+        let turn;
+        if (m < moves.length && moves[m][0] === s.tick) {
+          if (moves[m][0] <= last) return { ok: false, why: "order" };
+          last = moves[m][0]; turn = moves[m][1]; m++;
+        }
+        seconds += s.step;
+        if (!advance(s, turn)) return { ok: false, why: "illegal turn at " + s.tick };
+      }
+      if (m !== moves.length) return { ok: false, why: "unused moves" };
+      if (!s.over || s.tick !== ticks) return { ok: false, why: "run didn't end where it says" };
+      return { ok: true, score: s.score, ticks: s.tick, seconds };
+    }
+
+    return { C, ROWS, DX, DY, create, advance, verify };
+  })();
+  const ARC_PRIZE = 'Top score each week wins a Round.';
+  const arc = (() => {
+    const LW = 360, LH = 540, S = 20, TAU = Math.PI * 2, LIME = '#ccff00', MUTED = '#8a9752';
+    const cv = $('arcCanvas'), ctx = cv.getContext('2d');
+    const FONT_M = '600 12px "JetBrains Mono",ui-monospace,Menlo,monospace';
+    const FONT_D = '800 34px "Bricolage Grotesque","Helvetica Neue",Arial,sans-serif';
+    let s = null, prev = [], queue = [], started = false, acc = 0, t = 0, parts = [];
+    let runTicket = null, spare = null, mode = 'play', replayMoves = null, replayWho = '', posted = false;
+    let running = false, last = 0, active = false;
+
+    function fit(){
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      cv.width = Math.round(LW * dpr); cv.height = Math.round(LH * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    fit();
+    function round(x, y, r){
+      ctx.beginPath(); ctx.arc(x, y, Math.max(r, 0.1), 0, TAU); ctx.fillStyle = LIME; ctx.fill();
+      if (r > 6) {
+        ctx.lineWidth = 2; ctx.strokeStyle = '#000'; ctx.stroke();
+        ctx.beginPath(); ctx.arc(x, y, r * 0.68, 0, TAU); ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(0,0,0,.22)'; ctx.stroke();
+      }
+    }
+    function label(text, x, y, align){
+      ctx.save(); ctx.font = FONT_M; ctx.fillStyle = MUTED; ctx.textAlign = align || 'left'; ctx.fillText(text, x, y); ctx.restore();
+    }
+    function overlay(title, sub){
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,.74)'; ctx.fillRect(0, 0, LW, LH);
+      ctx.textAlign = 'center'; ctx.fillStyle = LIME; ctx.font = FONT_D; ctx.fillText(title, LW / 2, LH / 2 - 4);
+      ctx.fillStyle = MUTED; ctx.font = FONT_M; ctx.fillText(sub, LW / 2, LH / 2 + 24);
+      ctx.restore();
+    }
+    function burst(x, y, n, sp){
+      for (let i = 0; i < n; i++) { const a = Math.random() * TAU, v = sp * (0.4 + Math.random()); parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, r: 1.5 + Math.random() * 2.5 }); }
+      if (parts.length > 160) parts.splice(0, parts.length - 160);
+    }
+
+    // A ticket is the server's seed for one run. Keep one spare so the next
+    // game starts on a server board instantly.
+    async function getTicket(){
+      if (!NAMES_API) return null;
+      try {
+        const r = await fetch(NAMES_API + '/game/start', { method: 'POST' });
+        return r.ok ? await r.json() : null;
+      } catch (e) { return null; }   // practice mode: plays fine, just can't post
+    }
+    const fresh = (tk) => tk && Date.now() - tk.got < 20 * 60 * 1000;
+    function refill(){ getTicket().then(tk => { if (tk) { tk.got = Date.now(); spare = tk; } }); }
+    function reset(){
+      mode = 'play'; replayMoves = null; runTicket = null;
+      if (fresh(spare)) { runTicket = spare; spare = null; s = TRAIL.create(runTicket.seed); }
+      else s = TRAIL.create((Math.random() * 4294967296) >>> 0);   // placeholder until a ticket lands
+      prev = s.body.map(b => ({ ...b })); queue = []; started = false; acc = 0; parts = []; posted = false;
+      $('arcResult').hidden = true;
+      const mine = s;
+      if (runTicket) refill();
+      else getTicket().then(tk => {
+        // swap in the server's board, unless the player already started on the placeholder
+        if (tk && s === mine && !started) { runTicket = tk; s = TRAIL.create(tk.seed); prev = s.body.map(b => ({ ...b })); draw(); }
+        refill();
+      });
+      draw(); kick();
+    }
+    function turn(d){
+      if (mode === 'replay') { reset(); return; }
+      if (s.over) return;
+      const lastDir = queue.length ? queue[queue.length - 1] : s.dir;
+      if (d === lastDir || (d + 2) % 4 === lastDir) { if (!started) started = true; return; }
+      if (queue.length < 3) queue.push(d);
+      started = true;
+    }
+    function step(){
+      prev = s.body.map(b => ({ ...b }));
+      const before = s.score;
+      let d;
+      if (mode === 'replay') d = replayMoves.get(s.tick);
+      else d = queue.length ? queue.shift() : undefined;
+      TRAIL.advance(s, d);
+      if (s.body.length > prev.length) prev.push({ ...prev[prev.length - 1] });
+      if (s.score > before) burst((s.body[0].x + 0.5) * S, (s.body[0].y + 0.5) * S, 8, 110);
+      if (s.over) { acc = 0; if (mode === 'play') finished(); }
+    }
+    function update(dt){
+      t += dt;
+      if (started && !s.over) {
+        acc += dt; let n = 0;
+        while (acc >= s.step && n < 4) { acc -= s.step; step(); n++; if (s.over) break; }
+      }
+      for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 480 * dt; p.life -= dt * 1.8; }
+      parts = parts.filter(p => p.life > 0);
+    }
+    function draw(){
+      cv.classList.toggle('live', started && !s.over && mode === 'play');
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, LW, LH);
+      const k = started && !s.over ? Math.min(acc / s.step, 1) : 1, n = s.body.length;
+      if (s.food) {
+        const fx = (s.food.x + 0.5) * S, fy = (s.food.y + 0.5) * S, pulse = Math.sin(t * 5);
+        ctx.strokeStyle = 'rgba(204,255,0,.45)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(fx, fy, 11 + pulse * 1.5, 0, TAU); ctx.stroke();
+        round(fx, fy, 7);
+      }
+      for (let i = n - 1; i >= 0; i--) {
+        const a = prev[i] || s.body[i], b = s.body[i];
+        round((a.x + (b.x - a.x) * k + 0.5) * S, (a.y + (b.y - a.y) * k + 0.5) * S, 9.6 - (n > 1 ? i / (n - 1) : 0) * 5.4);
+      }
+      label('SCORE ' + s.score, 14, 18, 'left');
+      if (mode === 'replay') label('REPLAY · ' + replayWho, LW - 14, 18, 'right');
+      ctx.fillStyle = LIME;
+      for (const p of parts) { ctx.globalAlpha = Math.max(p.life, 0); ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill(); }
+      ctx.globalAlpha = 1;
+      if (s.over) overlay(mode === 'replay' ? 'End of replay.' : 'Tied in a knot.', 'Tap or press space to play');
+      else if (!started) label(mode === 'replay' ? 'LOADING REPLAY' : 'ARROWS, WASD OR SWIPE TO START', LW / 2, LH - 22, 'center');
+    }
+    function frame(now){
+      if (!active || document.hidden) { running = false; return; }
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      update(dt); draw(); requestAnimationFrame(frame);
+    }
+    function kick(){ if (!running && active && !document.hidden) { running = true; last = performance.now(); requestAnimationFrame(frame); } }
+    document.addEventListener('visibilitychange', kick);
+
+    /* ---- input ---- */
+    const KEYS = { ArrowUp: 0, w: 0, W: 0, ArrowRight: 1, d: 1, D: 1, ArrowDown: 2, s: 2, S: 2, ArrowLeft: 3, a: 3, A: 3 };
+    document.addEventListener('keydown', (e) => {
+      if (!active || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+      if (e.key in KEYS) { e.preventDefault(); turn(KEYS[e.key]); }
+      else if ((e.key === ' ' || e.key === 'Enter') && (s.over || mode === 'replay')) { e.preventDefault(); reset(); }
+    });
+    let touch = null;
+    cv.addEventListener('touchstart', (e) => { const p = e.touches[0]; touch = { x: p.clientX, y: p.clientY }; }, { passive: true });
+    cv.addEventListener('touchmove', (e) => { if (touch && started && !s.over) e.preventDefault(); }, { passive: false });
+    cv.addEventListener('touchend', (e) => {
+      if (!touch) return;
+      const p = e.changedTouches[0], dx = p.clientX - touch.x, dy = p.clientY - touch.y; touch = null;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+      turn(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : 3) : (dy > 0 ? 2 : 0));
+    });
+    cv.addEventListener('click', () => { cv.focus({ preventScroll: true }); if (s.over || mode === 'replay') reset(); });
+    document.querySelectorAll('#arcPad button').forEach(b => b.addEventListener('click', () => turn(+b.dataset.d)));
+
+    /* ---- posting ---- */
+    const sessKey = (a) => 'rounds.arcade.' + a;
+    function getSession(a){
+      try { const j = JSON.parse(localStorage.getItem(sessKey(a)) || 'null'); if (j && j.expires > Date.now() + 60000) return j.token; } catch (e) {}
+      return null;
+    }
+    function setSession(a, v){ try { if (v) localStorage.setItem(sessKey(a), JSON.stringify(v)); else localStorage.removeItem(sessKey(a)); } catch (e) {} }
+    function arcMessage(address, issued){
+      return 'Rounds — arcade sign-in\n\n' + 'Wallet: ' + address + '\n' + 'Issued: ' + issued + '\n\n'
+        + 'Signing this posts your Trail scores to the Rounds leaderboard for 24 hours. '
+        + 'It is not a transaction and cannot move anything.';
+    }
+    async function signIn(){
+      const issued = new Date().toISOString();
+      const signature = await prov().request({ method: 'personal_sign', params: [toHexUtf8(arcMessage(currentAddr, issued)), connectedAddr || currentAddr] });
+      const r = await fetch(NAMES_API + '/game/session', { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ address: currentAddr, issued, signature,
+          tokenIds: connectedAddr && connectedAddr !== currentAddr ? ((findHolder(currentAddr) || {}).rounds_token_ids || []).slice(0, 20) : undefined }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || 'Sign-in failed.');
+      setSession(currentAddr, j);
+      return j.token;
+    }
+
+    let lastRun = null;
+    function finished(){
+      lastRun = { score: s.score, ticket: runTicket, moves: s.moves.slice(), ticks: s.tick, who: currentAddr };
+      showResult(null);
+      if (!s.score) return;
+      if (lastRun.ticket && getSession(currentAddr)) post();
+    }
+    function fmtN(n){ return Number(n || 0).toLocaleString(); }
+    // "Your score: 1,230 · Rounds #240 · add name"
+    function showResult(status){
+      const box = $('arcResult'); box.hidden = false;
+      const named = !!NAMES[currentAddr];
+      let h = `<div class="ar-line"><span>Your score: <b>${fmtN(lastRun.score)}</b></span><span class="ar-dot">·</span>`
+        + `<span class="ar-name">${esc(displayName(currentAddr))}</span>`
+        + (NAMES_API && !named ? `<button type="button" class="ar-link" id="arcName">add name</button>` : '') + `</div>`;
+      if (status) h += `<div class="ar-status">${status}</div>`;
+      else if (!lastRun.score) h += `<div class="ar-status">Eat a round to get on the board.</div>`;
+      else if (!NAMES_API || !lastRun.ticket) h += `<div class="ar-status">Practice run — couldn't reach the leaderboard.</div>`;
+      else if (!getSession(currentAddr)) h += `<div class="ar-status"><button type="button" class="connect-btn" id="arcPost">Post score</button><span class="ar-sub">one signature, good for 24 hours</span></div>`;
+      else h += `<div class="ar-status">Posting…</div>`;
+      box.innerHTML = h;
+      const nb = $('arcName');
+      if (nb) nb.addEventListener('click', () => { openRenamer(); $('renameEditor').scrollIntoView({ block: 'center', behavior: 'smooth' }); });
+      const pb = $('arcPost');
+      if (pb) pb.addEventListener('click', post);
+    }
+    async function post(){
+      if (posted || !lastRun || !lastRun.ticket) return;
+      const run = lastRun;
+      try {
+        let token = getSession(run.who);
+        if (!token) { showResult('Check your wallet for the signature…'); token = await signIn(); }
+        showResult('Posting…');
+        const r = await fetch(NAMES_API + '/game/submit', { method: 'POST',
+          headers: { 'content-type': 'application/json', Authorization: 'Bearer ' + token },
+          body: JSON.stringify({ seed: run.ticket.seed, t: run.ticket.t, sig: run.ticket.sig, moves: run.moves, ticks: run.ticks }) });
+        const j = await r.json().catch(() => ({}));
+        if (r.status === 401) { setSession(run.who, null); showResult(null); return; }
+        if (!r.ok) { showResult(esc(j.error || 'Couldn\'t post that run.')); return; }
+        posted = true;
+        if (lastRun !== run) return;
+        showResult(j.pb
+          ? `New best — <b>#${j.rank}</b> this week.`
+          : `Your best this week: <b>${fmtN(j.best)}</b>` + (j.rank ? ` · #${j.rank}` : ''));
+        loadBoard();
+      } catch (e) {
+        const msg = (e && e.message) || '';
+        showResult(/reject|denied|cancel|user/i.test(msg) ? 'Not posted — the signature was cancelled. <button type="button" class="ar-link" id="arcRetry">try again</button>' : esc(msg || 'Couldn\'t post that run.'));
+        const rb = $('arcRetry'); if (rb) rb.addEventListener('click', post);
+      }
+    }
+
+    /* ---- leaderboard ---- */
+    let board = null;
+    function until(iso){
+      const ms = Date.parse(iso) - Date.now();
+      if (!(ms > 0)) return 'soon';
+      const h = Math.floor(ms / 3600e3), d = Math.floor(h / 24);
+      return d ? d + 'd ' + (h % 24) + 'h' : h ? h + 'h' : Math.max(1, Math.round(ms / 60000)) + 'm';
+    }
+    async function loadBoard(){
+      if (!NAMES_API) { $('arcBoard').innerHTML = '<li class="lb-empty">Leaderboard is offline.</li>'; return; }
+      try {
+        board = await fetch(NAMES_API + '/game/board', { cache: 'no-store' }).then(r => r.ok ? r.json() : null);
+      } catch (e) { board = null; }
+      paintBoard();
+    }
+    function paintBoard(){
+      const ol = $('arcBoard');
+      if (!board) { ol.innerHTML = '<li class="lb-empty">Leaderboard is offline right now.</li>'; return; }
+      $('arcEnds').textContent = 'resets in ' + until(board.ends_at);
+      ol.innerHTML = board.top.length ? '' : '<li class="lb-empty">No scores yet this week. First one sets the bar.</li>';
+      board.top.forEach((r, i) => {
+        const li = document.createElement('li');
+        li.className = 'lb-row' + (r.a === currentAddr ? ' me' : '') + (i < 3 ? ' top' : '');
+        li.innerHTML = `<span class="lb-rk">${i + 1}</span><span class="lb-nm">${esc(displayName(r.a))}${r.a === currentAddr ? ' <i>you</i>' : ''}</span>`
+          + `<span class="lb-sc">${fmtN(r.s)}</span><button type="button" class="lb-play" title="Watch this run" aria-label="Watch this run">&#9654;</button>`;
+        li.querySelector('.lb-play').addEventListener('click', () => watch(board.season, r.a));
+        ol.appendChild(li);
+      });
+      const lastTop = (board.last && board.last.top) || [];
+      $('arcLast').innerHTML = lastTop.length
+        ? '<span class="lb-lastk">Last week</span> ' + lastTop.map((r, i) => `${i + 1}. ${esc(displayName(r.a))} <b>${fmtN(r.s)}</b>`).join(' &nbsp;·&nbsp; ')
+        : '';
+      $('arcCount').textContent = board.players ? board.players + (board.players === 1 ? ' player' : ' players') + ' this week' : '';
+    }
+    async function watch(season, a){
+      try {
+        const r = await fetch(NAMES_API + '/game/replay?season=' + season + '&a=' + a, { cache: 'no-store' });
+        const j = await r.json();
+        if (!r.ok) return;
+        mode = 'replay'; replayWho = displayName(a);
+        replayMoves = new Map(j.moves.map(([k, d]) => [k, d]));
+        s = TRAIL.create(j.seed); prev = s.body.map(b => ({ ...b })); queue = []; acc = 0; parts = []; started = true;
+        $('arcResult').hidden = true;
+        cv.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        kick();
+      } catch (e) {}
+    }
+
+    return {
+      enter(){
+        active = true; fit();
+        if (!s) reset(); else { draw(); kick(); }
+        $('arcPad').hidden = !matchMedia('(pointer: coarse)').matches;
+        $('arcPrize').textContent = ARC_PRIZE;
+        loadBoard();
+      },
+      leave(){ active = false; },
+      refreshNames(){ if (board) paintBoard(); if (lastRun && !$('arcResult').hidden && lastRun.who === currentAddr) { const st = $('arcResult').querySelector('.ar-status'); const keep = st ? st.innerHTML : null; showResult(keep); } },
+    };
+  })();
+
+  // a random Round, faint, behind the connect screen
+  loadPieces().then(() => drawBackdrop($('gateBackdrop'), 1 + Math.floor(Math.random() * 888))).catch(() => {});
+})();
+</script>
+</body>
+</html>
