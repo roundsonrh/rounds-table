@@ -251,6 +251,29 @@
   .arc-last{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--text-dim);line-height:1.8}
   .arc-last:empty{display:none}
   .arc-last b{color:var(--accent)}
+  .arc-side{display:grid;gap:18px;align-content:start}
+  .arc-camp{border-color:rgba(204,255,0,.35);background:linear-gradient(180deg,rgba(204,255,0,.06),transparent 60%),var(--surface)}
+  .arc-camp .lb-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .arc-camp .lb-head > b{font-family:var(--display);font-size:18px;color:var(--text);font-weight:700}
+  .arc-camp .lb-head span{font-family:var(--mono);font-size:12px;color:var(--text-dim)}
+  .arc-camp .lb-head span b{font-family:var(--mono);font-size:18px;color:var(--accent)}
+  .camp-how{font-family:var(--mono);font-size:12px;color:var(--text-dim);margin:0 0 12px;line-height:1.6}
+  .camp-line{font-family:var(--mono);font-size:12px;color:var(--text);line-height:1.6}
+  .camp-line b{color:var(--accent)}
+  .camp-form{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .camp-form input{flex:1;min-width:200px;font-family:var(--mono);font-size:12px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+  .camp-form input:focus{outline:none;border-color:var(--accent)}
+  .camp-form .connect-btn{padding:9px 14px;font-size:12px}
+  .camp-note{font-family:var(--mono);font-size:11px;color:var(--text-faint);margin-top:8px;min-height:14px}
+  .camp-note.bad{color:#FF6B6B}.camp-note.good{color:var(--accent)}
+  .nom{border-top:1px solid var(--line-soft);padding:10px 0;font-family:var(--mono);font-size:12px}
+  .nom-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .nom-top .st{font-size:10px;text-transform:uppercase;letter-spacing:.08em;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--text-dim)}
+  .nom-top .st.sent{background:var(--accent);color:#0a0d07;border-color:var(--accent)}
+  .nom-top a{color:var(--accent);text-decoration:none}
+  .nom-acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .nom-hold{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .lb-nm i.tre{background:transparent;color:var(--accent);border:1px solid var(--accent)}
   .lb-lastk{color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;margin-right:6px}
   .pane > .sec:first-child{margin-top:22px}
 
@@ -768,10 +791,19 @@
           </div>
           <div class="arc-result" id="arcResult" hidden></div>
         </div>
+        <div class="arc-side">
+        <div class="panel arc-camp" id="arcCamp" hidden>
+          <div class="lb-head"><b>Beat the treasury</b><span id="campTarget"></span></div>
+          <p class="camp-how">Top the treasury's best Trail score and pass a Round to a friend who doesn't have one yet. One friend per player per week.</p>
+          <div id="campMine"></div>
+          <div id="campAdmin"></div>
+          <div class="arc-last" id="campWall"></div>
+        </div>
         <div class="panel arc-lb">
           <div class="lb-head"><b>This week</b><span><span id="arcCount"></span> · <span id="arcEnds"></span></span></div>
           <ol id="arcBoard"></ol>
           <div class="arc-last" id="arcLast"></div>
+        </div>
         </div>
       </div>
     </div>
@@ -3680,7 +3712,7 @@
 
     return { C, ROWS, DX, DY, create, advance, verify };
   })();
-  const ARC_PRIZE = 'Top score each week wins a Round.';
+  const ARC_PRIZE = 'Beat the treasury and pass a Round to a friend.';
   const arc = (() => {
     const LW = 360, LH = 540, S = 20, TAU = Math.PI * 2, LIME = '#ccff00', MUTED = '#8a9752';
     const cv = $('arcCanvas'), ctx = cv.getContext('2d');
@@ -3886,10 +3918,15 @@
         if (!r.ok) { showResult(esc(j.error || 'Couldn\'t post that run.')); return; }
         posted = true;
         if (lastRun !== run) return;
-        showResult(j.pb
+        const beat = camp && camp.target != null && j.best > camp.target && !camp.nominated && currentAddr !== ADMIN_ADDR;
+        showResult((j.pb
           ? `New best — <b>#${j.rank}</b> this week.`
-          : `Your best this week: <b>${fmtN(j.best)}</b>` + (j.rank ? ` · #${j.rank}` : ''));
+          : `Your best this week: <b>${fmtN(j.best)}</b>` + (j.rank ? ` · #${j.rank}` : ''))
+          + (beat ? ` You beat the treasury — <button type="button" class="ar-link" id="arcNominate">pass a Round to a friend</button>` : ''));
+        const nb = $('arcNominate');
+        if (nb) nb.addEventListener('click', () => { const i = $('campTo'); if (i) { i.scrollIntoView({ block: 'center', behavior: 'smooth' }); i.focus({ preventScroll: true }); } });
         loadBoard();
+        loadCampaign();
       } catch (e) {
         const msg = (e && e.message) || '';
         showResult(/reject|denied|cancel|user/i.test(msg) ? 'Not posted — the signature was cancelled. <button type="button" class="ar-link" id="arcRetry">try again</button>' : esc(msg || 'Couldn\'t post that run.'));
@@ -3920,7 +3957,7 @@
       board.top.forEach((r, i) => {
         const li = document.createElement('li');
         li.className = 'lb-row' + (r.a === currentAddr ? ' me' : '') + (i < 3 ? ' top' : '');
-        li.innerHTML = `<span class="lb-rk">${i + 1}</span><span class="lb-nm">${esc(displayName(r.a))}${r.a === currentAddr ? ' <i>you</i>' : ''}</span>`
+        li.innerHTML = `<span class="lb-rk">${i + 1}</span><span class="lb-nm">${esc(displayName(r.a))}${r.a === currentAddr ? ' <i>you</i>' : ''}${ADMIN_ADDR && r.a === ADMIN_ADDR ? ' <i class="tre">treasury</i>' : ''}</span>`
           + `<span class="lb-sc">${fmtN(r.s)}</span><button type="button" class="lb-play" title="Watch this run" aria-label="Watch this run">&#9654;</button>`;
         li.querySelector('.lb-play').addEventListener('click', () => watch(board.season, r.a));
         ol.appendChild(li);
@@ -3945,6 +3982,135 @@
       } catch (e) {}
     }
 
+    /* ---- beat the treasury ---- */
+    let camp = null;
+    const shortA = (a) => a.slice(0, 6) + '…' + a.slice(-4);
+    async function loadCampaign(){
+      if (!NAMES_API) return;
+      try { camp = await fetch(NAMES_API + '/game/campaign?a=' + currentAddr, { cache: 'no-store' }).then(r => r.ok ? r.json() : null); } catch (e) { camp = null; }
+      paintCampaign();
+    }
+    function campNote(text, kind){ const n = $('campNote'); if (n) { n.textContent = text; n.className = 'camp-note' + (kind ? ' ' + kind : ''); } }
+    function paintCampaign(){
+      const box = $('arcCamp');
+      if (!camp) { box.hidden = true; return; }
+      box.hidden = false;
+      const isTreasury = ADMIN_ADDR && currentAddr === ADMIN_ADDR;
+      $('campTarget').innerHTML = camp.target != null ? `to beat: <b>${fmtN(camp.target)}</b>` : '';
+      const mine = $('campMine');
+      if (isTreasury) {
+        mine.innerHTML = `<div class="camp-line">${camp.target != null ? `Your best sets the bar: <b>${fmtN(camp.target)}</b>. Play again to raise it.` : 'Post a score to set the bar.'}</div>`;
+        if (!$('campReview')) {
+          $('campAdmin').innerHTML = `<div class="camp-form"><button type="button" class="connect-btn" id="campReview"></button></div><div id="campList"></div>`;
+          $('campReview').addEventListener('click', reviewNominations);
+        }
+        $('campReview').textContent = 'Review nominations' + (camp.waiting ? ` · ${camp.waiting} waiting` : '');
+      } else {
+        $('campAdmin').innerHTML = '';
+        if (camp.target == null) mine.innerHTML = `<div class="camp-line">The treasury hasn't set a score yet. Check back soon.</div>`;
+        else if (camp.nominated) {
+          const sent = (camp.passed || []).some(p => p.to === camp.nominated);
+          mine.innerHTML = `<div class="camp-line">You passed one on to <b>${esc(shortA(camp.nominated))}</b> this week. ${sent ? 'It\'s been sent.' : 'The treasury is reviewing it.'}</div>`;
+        } else if (camp.mybest > camp.target) {
+          mine.innerHTML = `<div class="camp-line">You beat it with <b>${fmtN(camp.mybest)}</b>. Pass a Round to a friend who doesn't hold one:</div>
+            <div class="camp-form"><input id="campTo" placeholder="friend's wallet 0x…" autocomplete="off" spellcheck="false" aria-label="Friend's wallet">
+            <button type="button" class="connect-btn" id="campGo">Nominate</button></div><div class="camp-note" id="campNote"></div>`;
+          $('campGo').addEventListener('click', nominate);
+          $('campTo').addEventListener('keydown', e => { if (e.key === 'Enter') nominate(); });
+        } else {
+          mine.innerHTML = `<div class="camp-line">${camp.mybest ? `Your best this week: <b>${fmtN(camp.mybest)}</b>. ` : ''}Beat <b>${fmtN(camp.target)}</b> to unlock a nomination.</div>`;
+        }
+      }
+      const wall = (camp.passed || []);
+      $('campWall').innerHTML = wall.length
+        ? '<span class="lb-lastk">Passed on</span> ' + wall.slice(0, 12).map(p => `${esc(displayName(p.from))} → ${esc(shortA(p.to))}`).join(' &nbsp;·&nbsp; ')
+        : '';
+    }
+    async function nominate(){
+      const to = ($('campTo').value || '').trim();
+      if (!/^0x[0-9a-fA-F]{40}$/.test(to)) { campNote('Paste a full wallet address (0x… 42 characters).', 'bad'); return; }
+      $('campGo').disabled = true;
+      try {
+        let token = getSession(currentAddr);
+        if (!token) { campNote('Check your wallet for the signature…'); token = await signIn(); }
+        const r = await fetch(NAMES_API + '/game/nominate', { method: 'POST',
+          headers: { 'content-type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ to }) });
+        const j = await r.json().catch(() => ({}));
+        if (r.status === 401) { setSession(currentAddr, null); campNote('Sign in again and retry.', 'bad'); return; }
+        if (!r.ok) { campNote(j.error || 'Couldn\'t nominate that wallet.', 'bad'); return; }
+        await loadCampaign();
+      } catch (e) {
+        const m = (e && e.message) || '';
+        campNote(/reject|denied|cancel|user/i.test(m) ? 'Signature cancelled.' : (m || 'Couldn\'t nominate.'), 'bad');
+      } finally { const g = $('campGo'); if (g) g.disabled = false; }
+    }
+    // treasury: review, look at holdings, mark sent
+    async function reviewNominations(){
+      const list = $('campList');
+      list.innerHTML = '<div class="camp-note">Check your wallet for the moderator signature…</div>';
+      try {
+        const token = await adminSignIn();
+        const r = await fetch(NAMES_API + '/game/admin/nominations', { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) { if (r.status === 401) adminToken = null; list.innerHTML = `<div class="camp-note bad">${esc(j.error || 'Couldn\'t load nominations.')}</div>`; return; }
+        const noms = j.nominations || [];
+        list.innerHTML = noms.length ? '' : '<div class="camp-note">No nominations yet.</div>';
+        for (const n of noms) list.appendChild(nomRow(n, token));
+      } catch (e) {
+        const m = (e && e.message) || '';
+        list.innerHTML = `<div class="camp-note bad">${esc(/reject|denied|4001/i.test(m) ? 'Signature cancelled.' : (m || 'Couldn\'t sign in.'))}</div>`;
+      }
+    }
+    function nomRow(n, token){
+      const el = document.createElement('div');
+      el.className = 'nom';
+      const paint = () => {
+        el.innerHTML = `<div class="nom-top"><span class="st ${n.status}">${n.status}</span>
+            <b>${esc(displayName(n.from))}</b> <span>${fmtN(n.score)}</span> → <a href="https://opensea.io/${n.to}" target="_blank" rel="noopener noreferrer">${esc(shortA(n.to))} ↗</a></div>
+          <div class="nom-acts">
+            <button type="button" class="dclose" data-a="watch">watch run</button>
+            <button type="button" class="dclose" data-a="hold">their holdings</button>
+            <button type="button" class="dclose" data-a="copy">copy wallet</button>
+            ${n.status !== 'sent' ? '<button type="button" class="dclose" data-a="sent">mark sent</button>' : ''}
+            ${n.status === 'pending' ? '<button type="button" class="dclose" data-a="passed">pass</button>' : ''}
+          </div><div class="nom-hold"></div>`;
+        el.querySelector('[data-a="watch"]').addEventListener('click', () => watch(n.season, n.from));
+        el.querySelector('[data-a="copy"]').addEventListener('click', (e) => { try { navigator.clipboard.writeText(n.to); e.target.textContent = 'copied'; } catch (x) {} });
+        el.querySelector('[data-a="hold"]').addEventListener('click', () => holdings(n.to, el.querySelector('.nom-hold'), token));
+        for (const st of ['sent', 'passed']) {
+          const b = el.querySelector(`[data-a="${st}"]`);
+          if (b) b.addEventListener('click', async () => {
+            b.disabled = true;
+            const r = await fetch(NAMES_API + '/game/admin/nomination', { method: 'POST',
+              headers: { 'content-type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ to: n.to, status: st }) });
+            if (r.ok) { n.status = st; paint(); loadCampaign(); } else b.disabled = false;
+          });
+        }
+      };
+      paint();
+      return el;
+    }
+    async function holdings(a, box, token){
+      box.innerHTML = '<span class="camp-note">loading…</span>';
+      try {
+        const j = await fetch(NAMES_API + '/game/admin/wallet?a=' + a, { headers: { Authorization: 'Bearer ' + token } }).then(r => r.json());
+        if (!j.collections) { box.innerHTML = `<span class="camp-note bad">${esc(j.error || 'Couldn\'t load.')}</span>`; return; }
+        const byAddr = new Map(COLS.map(c => [String(c.a).toLowerCase(), c]));
+        box.innerHTML = j.collections.length ? '' : '<span class="camp-note">No NFTs on Robinhood Chain.</span>';
+        j.collections.slice(0, 40).forEach(c => {
+          const col = byAddr.get(c.contract), f = floorOf({ a: c.contract });
+          const chip = document.createElement('span');
+          chip.className = 'cw-chip';
+          chip.innerHTML = `${esc((col && col.name) || c.slug || shortA(c.contract))}<span>×${c.count}${f && f.floor_usd != null ? ' · ' + fmtUsd(f.floor_usd) : ''}</span>`;
+          box.appendChild(chip);
+        });
+        const t = document.createElement('span');
+        t.className = 'camp-note';
+        t.textContent = `${j.total}${j.more ? '+' : ''} NFTs across ${j.collections.length} collections`;
+        box.appendChild(t);
+      } catch (e) { box.innerHTML = '<span class="camp-note bad">Couldn\'t load.</span>'; }
+    }
+
     return {
       enter(){
         active = true; fit();
@@ -3952,6 +4118,7 @@
         $('arcPad').hidden = !matchMedia('(pointer: coarse)').matches;
         $('arcPrize').textContent = ARC_PRIZE;
         loadBoard();
+        loadCampaign();
       },
       leave(){ active = false; },
       // the tab only shows once the leaderboard service answers
