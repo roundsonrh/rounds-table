@@ -150,6 +150,27 @@ for (const ids of owners.values()) ids.sort((x, y) => Number(y) - Number(x));
 log(`  ${chain.transfers} transfers · ${Object.keys(chain.holds).length} Rounds · ${owners.size} holders`);
 if (Object.keys(chain.holds).length < 800) throw new Error("Fewer than 800 Rounds found on-chain — refusing to continue.");
 
+// QUICK mode (between full runs): owners and hold times only. Collections
+// stay as the last full run left them; sold-out wallets drop, new buyers join.
+if (process.env.MODE === "quick" && prevTree && prevTree.holders) {
+  const tree = prevTree;
+  const gone = new Set(Object.keys(tree.meta || {}).filter((a) => !owners.has(a)));
+  for (const a of gone) { delete tree.meta[a]; delete tree.holders[a]; }
+  for (const h of Object.values(tree.holders)) h.connections = (h.connections || []).filter((c) => !gone.has(c.addr));
+  for (const [a, ids] of owners) tree.meta[a] = { ens: (tree.meta[a] && tree.meta[a].ens) || null, rounds_token_ids: ids };
+  const now = new Date().toISOString();
+  tree.holder_count = owners.size;
+  tree.owners_synced_at = now;
+  fs.mkdirSync(DATA, { recursive: true });
+  fs.writeFileSync(path.join(DATA, "family_tree.json"), JSON.stringify(tree));
+  fs.writeFileSync(path.join(DATA, "holds.json"), JSON.stringify({ generated_at: now, contract: ROUNDS, transfers_scanned: chain.transfers, pages_scanned: chain.calls, truncated: false, holds: chain.holds }));
+  if (prevTargets) fs.writeFileSync(path.join(DATA, "floor-targets.json"), JSON.stringify(prevTargets));
+  if (prevFloors) fs.writeFileSync(path.join(DATA, "floors.json"), JSON.stringify(prevFloors));
+  fs.writeFileSync(path.join(ROOT, "holders.json"), JSON.stringify([...owners.keys()]));
+  log(`Quick refresh done: ${owners.size} holders (${gone.size} sold out since last run)`);
+  process.exit(0);
+}
+
 // previous data, for fallbacks
 const prevCols = (prevTree && prevTree.collections) || [];
 const nameOf = new Map(prevCols.map((c) => [c.a.toLowerCase(), c.name]));

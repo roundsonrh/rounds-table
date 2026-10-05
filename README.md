@@ -1,6 +1,6 @@
 # Rounds — holder table automation
 
-Every 6 hours GitHub runs `.github/workflows/refresh.yml`:
+Every 2 hours GitHub runs (full at 00/06/12/18 UTC, quick otherwise) `.github/workflows/refresh.yml`:
 
 1. `scripts/refresh.mjs` reads every Rounds transfer from Robinhood Chain (owners + hold times),
    asks OpenSea what each holder collects, and rebuilds `site/data/` (the same family-tree math as the old Mac batch).

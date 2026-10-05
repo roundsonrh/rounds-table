@@ -1,4 +1,4 @@
-// Publishes ./site to the Rounds Cloudflare Pages project and updates the
+// Publishes ./site to the Worker that serves roundsonrh.com and updates the
 // name service's holder list. Finds the account and project on its own.
 //   CLOUDFLARE_API_TOKEN=… node scripts/deploy.mjs
 import { execFileSync } from "child_process";
@@ -21,16 +21,21 @@ if (!account) {
   account = accts[0].id;
   console.log("Account:", accts[0].name);
 }
-const projects = await cf(`/accounts/${account}/pages/projects`);
-const want = (process.env.PAGES_PROJECT || "").trim();
-const project = want ? projects.find((p) => p.name === want)
-  : projects.find((p) => (p.domains || []).some((d) => /roundsonrh\.com$/.test(d))) || (projects.length === 1 ? projects[0] : null);
-if (!project) throw new Error(`Couldn't tell which Pages project is the site (found: ${projects.map((p) => p.name).join(", ") || "none"}). Set the PAGES_PROJECT variable.`);
-console.log(`Deploying to ${project.name} (${project.production_branch})…`);
-
 const env = { ...process.env, CLOUDFLARE_ACCOUNT_ID: account, CLOUDFLARE_API_TOKEN: TOKEN };
 const run = (args) => execFileSync("npx", ["--yes", "wrangler@3", ...args], { stdio: "inherit", env });
-run(["pages", "deploy", "site", "--project-name", project.name, "--branch", project.production_branch, "--commit-dirty=true"]);
+
+// roundsonrh.com is served by a Worker with static assets (the dashboard's
+// "upload files" flow): little-king-16c2. Found by its custom domain so a
+// rename doesn't break this; SITE_WORKER overrides.
+let worker = (process.env.SITE_WORKER || "").trim();
+if (!worker) {
+  const domains = await cf(`/accounts/${account}/workers/domains`);
+  const hit = domains.find((d) => /(^|\.)roundsonrh\.com$/.test(d.hostname));
+  if (!hit) throw new Error("No Worker is attached to roundsonrh.com — set the SITE_WORKER variable.");
+  worker = hit.service;
+}
+console.log(`Publishing site/ to the ${worker} Worker…`);
+run(["deploy", "--name", worker, "--assets", "site", "--compatibility-date", "2026-10-01"]);
 console.log("Updating the name service's holder list…");
 run(["kv", "key", "put", "config:holders", "--path", "holders.json", "--namespace-id", KV_NAMESPACE]);
 console.log("Live.");

@@ -1,10 +1,16 @@
 name: Refresh holders
 
-# Every 6 hours, plus a "Run workflow" button on the Actions tab.
+# Every 2 hours. Runs at 00/06/12/18 UTC are full (who holds what + what they
+# collect, ~25 min); the rest are quick (owners and hold times, ~4 min).
+# "Run workflow" on the Actions tab runs one by hand.
 on:
   schedule:
-    - cron: "17 */6 * * *"
-  workflow_dispatch: {}
+    - cron: "7 */2 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "full or quick"
+        default: full
 
 permissions:
   contents: write
@@ -24,6 +30,15 @@ jobs:
         with:
           node-version: 22
 
+      - name: Pick full or quick
+        run: |
+          MODE="${{ github.event.inputs.mode }}"
+          if [ -z "$MODE" ]; then
+            H=$(date -u +%H); if [ $((10#$H % 6)) -eq 0 ]; then MODE=full; else MODE=quick; fi
+          fi
+          echo "MODE=$MODE" >> "$GITHUB_ENV"
+          echo "Mode: $MODE"
+
       - name: Pull holder data (chain + OpenSea)
         env:
           OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
@@ -32,11 +47,11 @@ jobs:
       - name: Publish to roundsonrh.com
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          PAGES_PROJECT: ${{ vars.PAGES_PROJECT }}
+          SITE_WORKER: ${{ vars.SITE_WORKER }}
         run: node scripts/deploy.mjs
 
       - name: Keep today's snapshot (for the holder update tweet)
+        if: env.MODE == 'full'
         run: |
           git config user.name "rounds-bot"
           git config user.email "rounds-bot@users.noreply.github.com"

@@ -667,7 +667,7 @@
         <button type="button" class="tab" role="tab" id="tab-table" data-tab="table" aria-controls="pane-table" aria-selected="true">Your Table</button>
         <button type="button" class="tab" role="tab" id="tab-pieces" data-tab="pieces" aria-controls="pane-pieces" aria-selected="false">Your Rounds<span class="ct" id="tabPiecesCt"></span></button>
         <button type="button" class="tab" role="tab" id="tab-pfp" data-tab="pfp" aria-controls="pane-pfp" aria-selected="false">PFP studio</button>
-        <button type="button" class="tab" role="tab" id="tab-arcade" data-tab="arcade" aria-controls="pane-arcade" aria-selected="false">Arcade<span class="new" aria-hidden="true"></span></button>
+        <button type="button" class="tab" role="tab" id="tab-arcade" data-tab="arcade" aria-controls="pane-arcade" aria-selected="false" hidden>Arcade<span class="new" aria-hidden="true"></span></button>
       </div>
     </nav>
 
@@ -2638,7 +2638,7 @@
     if (!treeData) {
       await loadTree();
       // loadNames needs the config first; the rest are independent.
-      await Promise.all([loadLogos(), loadFeatured(), loadHolds(), loadConfig().then(() => Promise.all([loadNames(), loadFloors()]))]);
+      await Promise.all([loadLogos(), loadFeatured(), loadHolds(), loadConfig().then(() => Promise.all([loadNames(), loadFloors(), arc.probe()]))]);
     }
     const vaults = (await vaultsP).filter(v => findHolder(v) && roundsCount(v) > 0);
     seatList = [];
@@ -2919,6 +2919,7 @@
   function setTab(name, opts){
     if (!TABS.includes(name)) name = 'table';
     if (name === 'pfp' && $('tab-pfp').hidden) name = 'table';
+    if (name === 'arcade' && $('tab-arcade').hidden) name = 'table';
     for (const t of TABS) {
       $('pane-' + t).hidden = t !== name;
       $('tab-' + t).setAttribute('aria-selected', String(t === name));
@@ -3831,6 +3832,11 @@
         loadBoard();
       },
       leave(){ active = false; },
+      // the tab only shows once the leaderboard service answers
+      async probe(){
+        if (!NAMES_API) return;
+        try { const r = await fetch(NAMES_API + '/game/board', { cache: 'no-store' }); if (r.ok) $('tab-arcade').hidden = false; } catch (e) {}
+      },
       refreshNames(){ if (board) paintBoard(); if (lastRun && !$('arcResult').hidden && lastRun.who === currentAddr) { const st = $('arcResult').querySelector('.ar-status'); const keep = st ? st.innerHTML : null; showResult(keep); } },
     };
   })();
