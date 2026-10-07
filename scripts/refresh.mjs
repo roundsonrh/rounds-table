@@ -124,6 +124,27 @@ async function scanOwners() {
     holds: Object.fromEntries([...holds.entries()].sort((a, b) => Number(a[0]) - Number(b[0]))) };
 }
 
+// Fallback: the public RPC sometimes puts GitHub's servers behind a
+// Cloudflare challenge. OpenSea's transfer history gives the same answer
+// (owner + last transfer time for every token), ~30 requests.
+async function scanOwnersOpenSea() {
+  const holds = new Map();
+  let next = null, pages = 0, n = 0;
+  do {
+    const j = await opensea("/events/collection/roundsonrh?event_type=transfer&event_type=mint&limit=50" + (next ? "&next=" + encodeURIComponent(next) : ""));
+    if (!j) break;
+    for (const e of j.asset_events || []) {
+      n++;
+      const id = e.nft && e.nft.identifier;
+      if (id && !holds.has(id)) holds.set(String(id), { since: e.event_timestamp, owner: String(e.to_address || "").toLowerCase() });
+    }
+    next = j.next; pages++;
+  } while (next && pages < 400);
+  for (const [id, h] of holds) if (/^0x0{40}$/.test(h.owner)) holds.delete(id);
+  return { head: null, calls: pages, transfers: n, source: "opensea",
+    holds: Object.fromEntries([...holds.entries()].sort((a, b) => Number(a[0]) - Number(b[0]))) };
+}
+
 /* -------------------------------------- 2. holdings from OpenSea */
 async function walletNfts(addr) {
   const out = [];
@@ -143,7 +164,12 @@ const [prevTree, prevTargets, prevFloors] = await Promise.all([prevJson("family_
 if (!prevTree) log("  (no previous family tree — starting clean)");
 
 log("Reading Rounds transfers from Robinhood Chain…");
-const chain = await scanOwners();
+let chain;
+try { chain = await scanOwners(); }
+catch (e) {
+  log(`  chain RPC unavailable (${String(e && e.message || e).slice(0, 80)}…) — using OpenSea's transfer history`);
+  chain = await scanOwnersOpenSea();
+}
 const owners = new Map();
 for (const [id, h] of Object.entries(chain.holds)) { if (!owners.has(h.owner)) owners.set(h.owner, []); owners.get(h.owner).push(id); }
 for (const ids of owners.values()) ids.sort((x, y) => Number(y) - Number(x));
