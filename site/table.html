@@ -77,6 +77,13 @@
   .status-line{font-family:var(--mono);font-size:12px;color:var(--text-faint);margin-top:16px;min-height:16px}
   .status-line.err{color:#FF6B6B}
   .denied{border:1px solid rgba(255,107,107,.25);background:rgba(255,107,107,.06)}
+  .claim{position:relative;overflow:hidden;border-color:rgba(204,255,0,.4)}
+  .claim > *:not(.backdrop){position:relative}
+  .claim-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  .claim h1{color:var(--accent)}
+  .claim p b{color:var(--accent)}
+  .claim-slot{display:flex;justify-content:center;margin-top:8px}
+  .claim-slot .arc-board{width:100%;max-width:min(380px,calc((100vh - 220px)*2/3));text-align:left}
   /* wallet picker: every wallet the browser has, plus WalletConnect */
   .wallet-pick{display:grid;gap:8px;max-width:340px;margin:18px auto 0;text-align:left}
   .wallet-pick[hidden]{display:none}
@@ -627,6 +634,18 @@
     <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
       <button id="retryBtn" class="connect-btn">Try Another Wallet</button>
       <a class="connect-btn ghost" href="https://opensea.io/collection/roundsonrh" style="text-decoration:none;display:inline-block">View on OpenSea</a>
+    </div>
+  </section>
+
+  <section id="claimPanel" class="gate claim" hidden>
+    <canvas class="backdrop" id="claimBackdrop" width="1240" height="1240" aria-hidden="true"></canvas>
+    <div class="claim-kicker">#CCFF00 Circle checker</div>
+    <h1>Congrats #CCFF00 Circle holder!</h1>
+    <p id="claimLead"></p>
+    <div class="claim-slot" id="claimSlot"></div>
+    <div id="claimStatus" class="status-line"></div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">
+      <button id="claimLeave" class="connect-btn ghost">Use another wallet</button>
     </div>
   </section>
 
@@ -2277,6 +2296,7 @@
   async function renderDashboard(addr, viaAddr){
     gate.hidden = true; deniedPanel.hidden = true; dash.hidden = false;
     currentAddr = addr;
+    arcTabVisibility();
     closeDetail();
 
     const meta = findHolder(addr);
@@ -2700,6 +2720,35 @@
   }
   function closeReview(){ $('reviewPanel').hidden = true; }
 
+  /* #CCFF00 Circle checker: a Circle holder with no Round gets a shot at one */
+  async function tryClaim(addr){
+    if (!NAMES_API) return false;
+    let st = null;
+    try { st = await fetch(NAMES_API + '/claim/check?a=' + addr, { cache: 'no-store' }).then(r => r.ok ? r.json() : null); } catch (e) {}
+    if (!st || !(st.eligible || st.reason === 'claimed')) return false;
+    statusLine.textContent = '';
+    gate.hidden = true; dash.hidden = true; deniedPanel.hidden = true; $('claimPanel').hidden = false;
+    currentAddr = addr;
+    drawBackdrop($('claimBackdrop'), 1 + Math.floor(Math.random() * 888));
+    if (st.reason === 'claimed') {
+      const sent = st.claim && st.claim.status === 'sent', passed = st.claim && st.claim.status === 'passed';
+      $('claimLead').innerHTML = sent ? 'Your Round is on its way — check your wallet. Welcome to the table.'
+        : passed ? 'This claim was reviewed and not approved.'
+        : `You scored <b>${Number(st.claim.score).toLocaleString()}</b> and claimed a Round. The treasury is sending it — check back soon.`;
+      $('claimSlot').hidden = true;
+      return true;
+    }
+    $('claimLead').innerHTML = `Score <b>${Number(st.target).toLocaleString()}</b> in Trail and a Round is yours. Arrow keys or WASD, or swipe on a phone. Eat the rounds, don't hit the wall or your tail.`;
+    $('claimSlot').hidden = false;
+    arc.startClaim(st.target);
+    return true;
+  }
+  function claimSigned(address, issued){
+    return 'Rounds — claim\n\n' + 'Wallet: ' + address + '\n' + 'Issued: ' + issued + '\n\n'
+      + 'Signing this claims the Round you won as a #CCFF00 Circle holder. It is not a transaction and cannot move anything.';
+  }
+  $('claimLeave').addEventListener('click', () => disconnect());
+
   function renderDenied(addr){
     gate.hidden = true; dash.hidden = true; deniedPanel.hidden = false;
     $('deniedAddr').textContent = short(addr);
@@ -2805,6 +2854,7 @@
         statusLine.className = 'status-line err';
         return;
       }
+      if (await tryClaim(addr)) return;
       renderDenied(addr); return;
     }
     await renderDashboard(seatList[0], addr);
@@ -3016,6 +3066,8 @@
     if (constelAnim) { cancelAnimationFrame(constelAnim); constelAnim = null; }
     hideTip();
     dash.hidden = true; deniedPanel.hidden = true; gate.hidden = false;
+    $('claimPanel').hidden = true;
+    arc.endClaim();
     arc.leave();
     statusLine.textContent = '';
     statusLine.className = 'status-line';
@@ -3713,6 +3765,14 @@
     return { C, ROWS, DX, DY, create, advance, verify };
   })();
   const ARC_PRIZE = 'Beat the treasury and pass a Round to a friend.';
+  // The holder Arcade (Trail leaderboard + Beat the treasury) is paused while
+  // the #CCFF00 Circle claim runs. The treasury still sees the tab, for
+  // reviewing Circle claims. Flip to true to bring it back for everyone.
+  const ARCADE_PUBLIC = false;
+  let arcLive = false;
+  function arcTabVisibility(){
+    $('tab-arcade').hidden = !(arcLive && (ARCADE_PUBLIC || isAdmin()));
+  }
   const arc = (() => {
     const LW = 360, LH = 540, S = 20, TAU = Math.PI * 2, LIME = '#ccff00', MUTED = '#8a9752';
     const cv = $('arcCanvas'), ctx = cv.getContext('2d');
@@ -3878,8 +3938,11 @@
     }
 
     let lastRun = null;
+    let claim = null;            // { target } while a Circle holder plays for a Round
+    let boardHome = null;
     function finished(){
       lastRun = { score: s.score, ticket: runTicket, moves: s.moves.slice(), ticks: s.tick, who: currentAddr };
+      if (claim) { claimResult(); return; }
       showResult(null);
       if (!s.score) return;
       if (lastRun.ticket && getSession(currentAddr)) post();
@@ -3934,6 +3997,41 @@
       }
     }
 
+    /* ---- #CCFF00 Circle claim ---- */
+    function claimResult(status){
+      const box = $('arcResult'); box.hidden = false;
+      const won = lastRun.score >= claim.target;
+      let h = `<div class="ar-line"><span>Your score: <b>${fmtN(lastRun.score)}</b></span><span class="ar-dot">·</span><span class="ar-name">${won ? 'that\'s a Round!' : 'need ' + fmtN(claim.target)}</span></div>`;
+      if (status) h += `<div class="ar-status">${status}</div>`;
+      else if (claim.done) h += `<div class="ar-status"><b>Claimed.</b> Your Round is in the queue — play for fun meanwhile.</div>`;
+      else if (won && !lastRun.ticket) h += `<div class="ar-status">Couldn't reach the server for that run — play again to claim.</div>`;
+      else if (won) h += `<div class="ar-status"><button type="button" class="connect-btn" id="claimGo">Claim your Round</button><span class="ar-sub">one signature, no transaction</span></div>`;
+      else h += `<div class="ar-status">So close. Tap the board or press space to go again.</div>`;
+      box.innerHTML = h;
+      const g = $('claimGo'); if (g) g.addEventListener('click', submitClaim);
+    }
+    async function submitClaim(){
+      const run = lastRun;
+      try {
+        claimResult('Check your wallet for the signature…');
+        const issued = new Date().toISOString();
+        const signature = await prov().request({ method: 'personal_sign', params: [toHexUtf8(claimSigned(currentAddr, issued)), currentAddr] });
+        claimResult('Claiming…');
+        const r = await fetch(NAMES_API + '/claim/submit', { method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ address: currentAddr, issued, signature, seed: run.ticket.seed, t: run.ticket.t, sig: run.ticket.sig, moves: run.moves, ticks: run.ticks }) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) { claimResult(esc(j.error || 'Couldn\'t claim.')); return; }
+        claim.done = true;
+        $('claimLead').innerHTML = `Claimed with <b>${fmtN(run.score)}</b>. The treasury sends Rounds by hand — yours is in the queue. Welcome to the table.`;
+        claimResult('<b>Claimed.</b> Watch your wallet.');
+        $('claimStatus').textContent = '';
+      } catch (e) {
+        const m = (e && e.message) || '';
+        claimResult(/reject|denied|cancel|user|4001/i.test(m) ? 'Signature cancelled. <button type="button" class="ar-link" id="claimRetry">try again</button>' : esc(m || 'Couldn\'t claim.'));
+        const rb = $('claimRetry'); if (rb) rb.addEventListener('click', submitClaim);
+      }
+    }
+
     /* ---- leaderboard ---- */
     let board = null;
     function until(iso){
@@ -3968,12 +4066,13 @@
         : '';
       $('arcCount').textContent = board.players ? board.players + (board.players === 1 ? ' player' : ' players') + ' this week' : '';
     }
-    async function watch(season, a){
+    function watch(season, a){ return watchUrl('/game/replay?season=' + season + '&a=' + a, displayName(a)); }
+    async function watchUrl(path, who){
       try {
-        const r = await fetch(NAMES_API + '/game/replay?season=' + season + '&a=' + a, { cache: 'no-store' });
+        const r = await fetch(NAMES_API + path, { cache: 'no-store' });
         const j = await r.json();
         if (!r.ok) return;
-        mode = 'replay'; replayWho = displayName(a);
+        mode = 'replay'; replayWho = who;
         replayMoves = new Map(j.moves.map(([k, d]) => [k, d]));
         s = TRAIL.create(j.seed); prev = s.body.map(b => ({ ...b })); queue = []; acc = 0; parts = []; started = true;
         $('arcResult').hidden = true;
@@ -4001,8 +4100,10 @@
       if (isTreasury) {
         mine.innerHTML = `<div class="camp-line">${camp.target != null ? `Your best sets the bar: <b>${fmtN(camp.target)}</b>. Play again to raise it.` : 'Post a score to set the bar.'}</div>`;
         if (!$('campReview')) {
-          $('campAdmin').innerHTML = `<div class="camp-form"><button type="button" class="connect-btn" id="campReview"></button></div><div id="campList"></div>`;
+          $('campAdmin').innerHTML = `<div class="camp-form"><button type="button" class="connect-btn" id="campReview"></button>
+            <button type="button" class="connect-btn ghost" id="campClaims">Circle claims</button></div><div id="campList"></div>`;
           $('campReview').addEventListener('click', reviewNominations);
+          $('campClaims').addEventListener('click', reviewClaims);
         }
         $('campReview').textContent = 'Review nominations' + (camp.waiting ? ` · ${camp.waiting} waiting` : '');
       } else {
@@ -4090,6 +4191,52 @@
       paint();
       return el;
     }
+    // treasury: #CCFF00 Circle claims (holders without a Round who hit the score)
+    async function reviewClaims(){
+      const list = $('campList');
+      list.innerHTML = '<div class="camp-note">Check your wallet for the moderator signature…</div>';
+      try {
+        const token = await adminSignIn();
+        const r = await fetch(NAMES_API + '/game/admin/claims', { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) { if (r.status === 401) adminToken = null; list.innerHTML = `<div class="camp-note bad">${esc(j.error || 'Couldn\'t load claims.')}</div>`; return; }
+        const claims = j.claims || [];
+        list.innerHTML = `<div class="camp-note">Circle claims · score to claim: ${fmtN(j.target)}</div>` + (claims.length ? '' : '<div class="camp-note">No claims yet.</div>');
+        for (const c of claims) list.appendChild(claimRow(c, token));
+      } catch (e) {
+        const m = (e && e.message) || '';
+        list.innerHTML = `<div class="camp-note bad">${esc(/reject|denied|4001/i.test(m) ? 'Signature cancelled.' : (m || 'Couldn\'t sign in.'))}</div>`;
+      }
+    }
+    function claimRow(c, token){
+      const el = document.createElement('div');
+      el.className = 'nom';
+      const paint = () => {
+        el.innerHTML = `<div class="nom-top"><span class="st ${c.status}">${c.status}</span>
+            <b>#CCFF00 Circle</b> <span>${fmtN(c.score)}</span> → <a href="https://opensea.io/${c.to}" target="_blank" rel="noopener noreferrer">${esc(shortA(c.to))} ↗</a></div>
+          <div class="nom-acts">
+            <button type="button" class="dclose" data-a="watch">watch run</button>
+            <button type="button" class="dclose" data-a="hold">their holdings</button>
+            <button type="button" class="dclose" data-a="copy">copy wallet</button>
+            ${c.status !== 'sent' ? '<button type="button" class="dclose" data-a="sent">mark sent</button>' : ''}
+            ${c.status === 'pending' ? '<button type="button" class="dclose" data-a="passed">pass</button>' : ''}
+          </div><div class="nom-hold"></div>`;
+        el.querySelector('[data-a="watch"]').addEventListener('click', () => watchUrl('/claim/replay?a=' + c.to, shortA(c.to)));
+        el.querySelector('[data-a="copy"]').addEventListener('click', (e) => { try { navigator.clipboard.writeText(c.to); e.target.textContent = 'copied'; } catch (x) {} });
+        el.querySelector('[data-a="hold"]').addEventListener('click', () => holdings(c.to, el.querySelector('.nom-hold'), token));
+        for (const st of ['sent', 'passed']) {
+          const b = el.querySelector(`[data-a="${st}"]`);
+          if (b) b.addEventListener('click', async () => {
+            b.disabled = true;
+            const r = await fetch(NAMES_API + '/game/admin/claim', { method: 'POST',
+              headers: { 'content-type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ to: c.to, status: st }) });
+            if (r.ok) { c.status = st; paint(); } else b.disabled = false;
+          });
+        }
+      };
+      paint();
+      return el;
+    }
     async function holdings(a, box, token){
       box.innerHTML = '<span class="camp-note">loading…</span>';
       try {
@@ -4121,10 +4268,23 @@
         loadCampaign();
       },
       leave(){ active = false; },
+      startClaim(target){
+        claim = { target };
+        const board = cv.closest('.arc-board');
+        if (!boardHome) boardHome = { parent: board.parentNode, next: board.nextSibling };
+        $('claimSlot').appendChild(board);
+        active = true; fit(); reset();
+        $('arcPad').hidden = !matchMedia('(pointer: coarse)').matches;
+      },
+      endClaim(){
+        claim = null;
+        if (boardHome) { boardHome.parent.insertBefore(cv.closest('.arc-board'), boardHome.next); boardHome = null; }
+      },
       // the tab only shows once the leaderboard service answers
       async probe(){
         if (!NAMES_API) return;
-        try { const r = await fetch(NAMES_API + '/game/board', { cache: 'no-store' }); if (r.ok) $('tab-arcade').hidden = false; } catch (e) {}
+        try { const r = await fetch(NAMES_API + '/game/board', { cache: 'no-store' }); arcLive = r.ok; } catch (e) {}
+        arcTabVisibility();
       },
       refreshNames(){ if (board) paintBoard(); if (lastRun && !$('arcResult').hidden && lastRun.who === currentAddr) { const st = $('arcResult').querySelector('.ar-status'); const keep = st ? st.innerHTML : null; showResult(keep); } },
     };
