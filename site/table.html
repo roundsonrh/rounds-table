@@ -83,6 +83,8 @@
   .claim h1{color:var(--accent)}
   .claim p b{color:var(--accent)}
   .claim-slot{display:flex;justify-content:center;margin-top:8px}
+  .claim-left{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--text-dim);border:1px solid var(--line);border-radius:999px;padding:6px 14px;margin:0 0 14px}
+  .claim-left b{color:var(--accent);font-size:14px}
   .claim-slot .arc-board{width:100%;max-width:min(380px,calc((100vh - 220px)*2/3));text-align:left}
   /* wallet picker: every wallet the browser has, plus WalletConnect */
   .wallet-pick{display:grid;gap:8px;max-width:340px;margin:18px auto 0;text-align:left}
@@ -642,6 +644,7 @@
     <div class="claim-kicker">#CCFF00 Circle checker</div>
     <h1>Congrats #CCFF00 Circle holder!</h1>
     <p id="claimLead"></p>
+    <div class="claim-left" id="claimLeft"></div>
     <div class="claim-slot" id="claimSlot"></div>
     <div id="claimStatus" class="status-line"></div>
     <div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">
@@ -2725,23 +2728,33 @@
     if (!NAMES_API) return false;
     let st = null;
     try { st = await fetch(NAMES_API + '/claim/check?a=' + addr, { cache: 'no-store' }).then(r => r.ok ? r.json() : null); } catch (e) {}
-    if (!st || !(st.eligible || st.reason === 'claimed')) return false;
+    if (!st || !(st.eligible || st.reason === 'claimed' || st.reason === 'full')) return false;
     statusLine.textContent = '';
     gate.hidden = true; dash.hidden = true; deniedPanel.hidden = true; $('claimPanel').hidden = false;
     currentAddr = addr;
     drawBackdrop($('claimBackdrop'), 1 + Math.floor(Math.random() * 888));
-    if (st.reason === 'claimed') {
-      const sent = st.claim && st.claim.status === 'sent', passed = st.claim && st.claim.status === 'passed';
-      $('claimLead').innerHTML = sent ? 'Your Round is on its way — check your wallet. Welcome to the table.'
-        : passed ? 'This claim was reviewed and not approved.'
-        : `You scored <b>${Number(st.claim.score).toLocaleString()}</b> and claimed a Round. The treasury is sending it — check back soon.`;
+    claimLeft(st.left, st.cap);
+    if (st.reason === 'full') {
+      $('claimLead').innerHTML = `All ${st.cap} free Rounds have been claimed. Thanks for playing — watch <a href="https://x.com/RoundsOnRH" target="_blank" rel="noopener noreferrer">@RoundsOnRH</a> for the next one.`;
       $('claimSlot').hidden = true;
       return true;
     }
-    $('claimLead').innerHTML = `Score <b>${Number(st.target).toLocaleString()}</b> in Trail and a Round is yours. Arrow keys or WASD, or swipe on a phone. Eat the rounds, don't hit the wall or your tail.`;
+    if (st.reason === 'claimed') {
+      const sent = st.claim && st.claim.status === 'sent', passed = st.claim && st.claim.status === 'passed';
+      $('claimLead').innerHTML = sent ? 'Your Rounds is on its way — check your wallet. Welcome to the table.'
+        : passed ? 'This claim was reviewed and not approved.'
+        : `You scored <b>${Number(st.claim.score).toLocaleString()}</b> and claimed a Rounds. The treasury is sending it — check back soon.`;
+      $('claimSlot').hidden = true;
+      return true;
+    }
+    $('claimLead').innerHTML = `First ${st.cap} to score <b>${Number(st.target).toLocaleString()}</b> in Trail win a Rounds. Arrow keys or WASD, or swipe on a phone. Eat the rounds, don't hit the wall or your tail.`;
     $('claimSlot').hidden = false;
     arc.startClaim(st.target);
     return true;
+  }
+  function claimLeft(left, cap){
+    $('claimLeft').hidden = left == null;
+    if (left != null) $('claimLeft').innerHTML = `Free Rounds remaining: <b>${left}/${cap}</b>`;
   }
   function claimSigned(address, issued){
     return 'Rounds — claim\n\n' + 'Wallet: ' + address + '\n' + 'Issued: ' + issued + '\n\n'
@@ -4001,11 +4014,11 @@
     function claimResult(status){
       const box = $('arcResult'); box.hidden = false;
       const won = lastRun.score >= claim.target;
-      let h = `<div class="ar-line"><span>Your score: <b>${fmtN(lastRun.score)}</b></span><span class="ar-dot">·</span><span class="ar-name">${won ? 'that\'s a Round!' : 'need ' + fmtN(claim.target)}</span></div>`;
+      let h = `<div class="ar-line"><span>Your score: <b>${fmtN(lastRun.score)}</b></span><span class="ar-dot">·</span><span class="ar-name">${won ? 'you won a Rounds!' : 'need ' + fmtN(claim.target)}</span></div>`;
       if (status) h += `<div class="ar-status">${status}</div>`;
-      else if (claim.done) h += `<div class="ar-status"><b>Claimed.</b> Your Round is in the queue — play for fun meanwhile.</div>`;
+      else if (claim.done) h += `<div class="ar-status"><b>Claimed.</b> Your Rounds is in the queue — play for fun meanwhile.</div>`;
       else if (won && !lastRun.ticket) h += `<div class="ar-status">Couldn't reach the server for that run — play again to claim.</div>`;
-      else if (won) h += `<div class="ar-status"><button type="button" class="connect-btn" id="claimGo">Claim your Round</button><span class="ar-sub">one signature, no transaction</span></div>`;
+      else if (won) h += `<div class="ar-status"><button type="button" class="connect-btn" id="claimGo">Claim your Rounds</button><span class="ar-sub">one signature, no transaction</span></div>`;
       else h += `<div class="ar-status">So close. Tap the board or press space to go again.</div>`;
       box.innerHTML = h;
       const g = $('claimGo'); if (g) g.addEventListener('click', submitClaim);
@@ -4022,6 +4035,7 @@
         const j = await r.json().catch(() => ({}));
         if (!r.ok) { claimResult(esc(j.error || 'Couldn\'t claim.')); return; }
         claim.done = true;
+        if (j.left != null) claimLeft(j.left, j.cap);
         $('claimLead').innerHTML = `Claimed with <b>${fmtN(run.score)}</b>. The treasury sends Rounds by hand — yours is in the queue. Welcome to the table.`;
         claimResult('<b>Claimed.</b> Watch your wallet.');
         $('claimStatus').textContent = '';
