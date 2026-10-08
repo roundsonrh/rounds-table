@@ -55,6 +55,9 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: node scripts/moving.mjs compute || echo "moving list skipped"
 
+      - name: Holiday art (site/art, built fresh each run)
+        run: node scripts/build-themes.mjs
+
       - name: Publish to roundsonrh.com
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -65,6 +68,12 @@ jobs:
         env:
           OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
         run: node scripts/moving.mjs refresh || echo "refresh skipped"
+
+      - name: Holiday colors (only does anything if the theme changed)
+        env:
+          OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/theme.mjs || echo "theme sync skipped"
 
       - name: Keep today's snapshot (for the holder update tweet)
         if: env.MODE == 'full'

@@ -1,0 +1,33 @@
+name: Holiday colors
+
+# The site flips Rounds to a holiday's colors at midnight Pacific and back the
+# next midnight (site/data/themes.json). This tells OpenSea to re-read all
+# 888 right after. 07:03 UTC = midnight PDT, 08:03 UTC = midnight PST; the
+# run that isn't the boundary finds nothing changed and stops.
+on:
+  schedule:
+    - cron: "3 7,8 * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Refresh all 888 even if nothing changed (yes/no)"
+        default: "no"
+
+concurrency:
+  group: theme
+  cancel-in-progress: false
+
+jobs:
+  theme:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Push the live theme to OpenSea
+        env:
+          OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/theme.mjs ${{ github.event.inputs.force == 'yes' && '--force' || '' }}

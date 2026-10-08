@@ -1,0 +1,86 @@
+{
+ "note": "Holiday color swaps. Each runs midnight to midnight Pacific (start/end are UTC). The site worker switches /meta at start and back at end; .github/workflows/theme.yml asks OpenSea to re-read all 888 right after. Edit here, run node scripts/build-themes.mjs, push.",
+ "themes": [
+  {
+   "id": "halloween",
+   "name": "Halloween",
+   "day": "2026-10-31",
+   "fill": "#ff7a00",
+   "bg": "#000000",
+   "start": "2026-10-31T07:00:00Z",
+   "end": "2026-11-01T07:00:00Z"
+  },
+  {
+   "id": "muertos",
+   "name": "Día de los Muertos",
+   "day": "2026-11-02",
+   "fill": "#ffb000",
+   "bg": "#000000",
+   "start": "2026-11-02T08:00:00Z",
+   "end": "2026-11-03T08:00:00Z"
+  },
+  {
+   "id": "diwali",
+   "name": "Diwali",
+   "day": "2026-11-08",
+   "fill": "#ffc83d",
+   "bg": "#000000",
+   "start": "2026-11-08T08:00:00Z",
+   "end": "2026-11-09T08:00:00Z"
+  },
+  {
+   "id": "blackout",
+   "name": "Black Friday",
+   "day": "2026-11-27",
+   "fill": "#000000",
+   "bg": "#ccff00",
+   "start": "2026-11-27T08:00:00Z",
+   "end": "2026-11-28T08:00:00Z"
+  },
+  {
+   "id": "hanukkah",
+   "name": "Hanukkah",
+   "day": "2026-12-04",
+   "fill": "#1f6fff",
+   "bg": "#000000",
+   "start": "2026-12-04T08:00:00Z",
+   "end": "2026-12-05T08:00:00Z"
+  },
+  {
+   "id": "christmas",
+   "name": "Christmas",
+   "day": "2026-12-25",
+   "fill": "#d62828",
+   "bg": "#000000",
+   "start": "2026-12-25T08:00:00Z",
+   "end": "2026-12-26T08:00:00Z"
+  },
+  {
+   "id": "kwanzaa",
+   "name": "Kwanzaa",
+   "day": "2026-12-26",
+   "fill": "#1a9b3c",
+   "bg": "#000000",
+   "start": "2026-12-26T08:00:00Z",
+   "end": "2026-12-27T08:00:00Z"
+  },
+  {
+   "id": "nye",
+   "name": "New Year's Eve",
+   "day": "2026-12-31",
+   "fill": "#d4af37",
+   "bg": "#000000",
+   "start": "2026-12-31T08:00:00Z",
+   "end": "2027-01-01T08:00:00Z"
+  },
+  {
+   "id": "genesis",
+   "name": "Bitcoin Genesis Day",
+   "day": "2027-01-03",
+   "fill": "#f7931a",
+   "bg": "#000000",
+   "start": "2027-01-03T08:00:00Z",
+   "end": "2027-01-04T08:00:00Z"
+  }
+ ]
+}
