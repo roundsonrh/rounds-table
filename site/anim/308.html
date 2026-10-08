@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rounds #308</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}</style></head>
+<body><canvas id="c"></canvas><script>
+// Rounds #308, moving. Same circles as the still, each drifting on its own
+// small orbit; the loop repeats every 16 seconds.
+const D=[3397,330,86,3583,3980,133,8106,7502,173,7642,4502,167,6779,5064,98,4276,8385,91,3684,5264,160,5615,8721,163,8120,1521,67,3069,5763,112,7785,733,81,6716,5943,129,1320,2935,130,5484,6101,58,7296,2664,129,8184,9663,158,5776,8426,63,3340,7478,75,3506,1835,74,7251,8806,101,4316,4892,107,621,3970,141,2440,2539,115,2031,2687,107,2942,7536,65,9234,3655,76,4704,9880,137,7587,8008,79,2998,7058,120,1363,6978,95,8159,2823,144,4225,8943,103,4265,3920,85,3941,8452,90,560,4973,121,747,330,172,6686,4029,94,768,2494,100,1909,5839,148,2384,4641,142,2086,947,106,5438,4694,92,2888,700,73,7175,5681,136,155,4898,100],ID=308,P=16;
+let s=ID*9301+49297;const rnd=()=>((s=(s*233280+12345)%2147483647)/2147483647);
+const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(520,90+38000/(r+40));
+C.push({x:D[i],y:D[i+1],r,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),fx:1+(rnd()*2|0),fy:1+(rnd()*2|0),px:rnd()*6.283,py:rnd()*6.283,pb:rnd()*6.283});}
+const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
+function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);}
+addEventListener("resize",fit);fit();
+function frame(t){const T=(t/1000%P)/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
+for(const c of C){const x=(c.x+c.ax*Math.sin(T*c.fx+c.px))*k,y=(c.y+c.ay*Math.cos(T*c.fy+c.py))*k,r=c.r*(1+.035*Math.sin(T*2+c.pb))*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
+g.fill();requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+</script></body></html>

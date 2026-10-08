@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rounds #864</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}</style></head>
+<body><canvas id="c"></canvas><script>
+// Rounds #864, moving. Same circles as the still, each drifting on its own
+// small orbit; the loop repeats every 16 seconds.
+const D=[6857,8332,1157,7206,1777,50,217,8948,973,2009,1293,326,4169,8822,117,6481,233,66,4962,1380,64,7816,2515,151,5067,9530,836,2810,710,111,8985,514,871,4330,2781,934,9304,2840,633,5583,8082,55,6075,741,323,2682,9049,122,3155,9511,50,5516,498,50,9439,9134,822,6088,1477,57,506,7110,704,3729,492,492,320,828,543,6745,9871,227,4668,210,95,8104,1728,217,5498,2345,50,4303,1448,50,1443,15,521,9655,7837,431,4535,8146,50,2489,7504,931,9017,7936,51,3136,119,49,3904,7347,50,2105,9739,597,7330,9801,49,1339,2100,567,6966,1094,469,1321,1396,50,9622,1748,50,6535,2499,283,8017,7113,309,3059,1930,492,4482,7358,494,320,2608,489,3261,1099,113,5243,1842,358,3554,8295,374,2262,2583,378,5465,7445,370,8232,8770,50,4636,842,50,7875,2908,165,5615,8786,50,2957,1214,75,4482,8465,63,9241,7373,49,1544,7179,48,8161,7496,50,3404,9806,49,3493,1355,55,7471,50,635,8635,8160,368,7187,2645,383,5924,2793,285,8147,1009,47,5126,851,254,8336,9264,124,8268,9869,203,7403,2005,149,1042,7794,50,7605,2167,49,4037,1755,50,3976,9640,234,3712,8982,49,5723,1902,106,6270,1217,80,135,1895,49,4416,263,50,2008,685,185,1090,9885,114,5244,8055,161,660,1465,96,9150,7943,48,5230,51,478,1844,8755,244,1097,1471,93,8890,1916,366,1525,2802,78,7647,1414,248,2462,165,53,2575,8661,227,6423,9544,82,4727,8112,49,8425,2632,168,6874,522,50,6635,1524,50,1370,950,218,6863,2005,179,8696,7565,222,9703,1626,52,416,1744,245,4313,1613,64,5243,1308,55,884,1415,46,7588,974,116],ID=864,P=16;
+let s=ID*9301+49297;const rnd=()=>((s=(s*233280+12345)%2147483647)/2147483647);
+const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(520,90+38000/(r+40));
+C.push({x:D[i],y:D[i+1],r,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),fx:1+(rnd()*2|0),fy:1+(rnd()*2|0),px:rnd()*6.283,py:rnd()*6.283,pb:rnd()*6.283});}
+const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
+function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);}
+addEventListener("resize",fit);fit();
+function frame(t){const T=(t/1000%P)/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
+for(const c of C){const x=(c.x+c.ax*Math.sin(T*c.fx+c.px))*k,y=(c.y+c.ay*Math.cos(T*c.fy+c.py))*k,r=c.r*(1+.035*Math.sin(T*2+c.pb))*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
+g.fill();requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+</script></body></html>

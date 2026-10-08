@@ -1,0 +1,12 @@
+# Deploy config for the site Worker (name is passed in by scripts/deploy.mjs).
+main = "scripts/site-worker.js"
+compatibility_date = "2026-10-01"
+
+[assets]
+directory = "site"
+binding = "ASSETS"
+
+# shared with the name service: connected:<wallet> flags
+[[kv_namespaces]]
+binding = "NAMES"
+id = "c72b23c212a64457aa6e1d29967a90bf"

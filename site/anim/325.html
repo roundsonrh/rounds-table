@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rounds #325</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}</style></head>
+<body><canvas id="c"></canvas><script>
+// Rounds #325, moving. Same circles as the still, each drifting on its own
+// small orbit; the loop repeats every 16 seconds.
+const D=[7467,8713,154,4161,5395,195,5344,5327,101,7361,2452,113,4563,4602,188,671,5589,125,5694,5813,131,4686,6884,148,2766,6052,99,4812,5861,69,5437,6470,193,8795,5937,190,5444,2565,129,702,3603,170,5015,5020,83,6990,4233,184,4818,3660,87,2600,3062,92,6409,5823,73,3907,5821,195,5792,5099,119,2436,5299,59,5542,4681,158,3704,1645,95,3946,3821,120,7397,3466,120,3354,4054,80,4294,7458,118,2776,3755,154,4089,6330,181,4327,6687,103,3733,4616,190,4031,7972,153,8487,1142,77,7183,2746,173,6546,7178,90,7938,3002,138,6507,2641,97,867,5843,78,4236,5031,155,4585,4937,110,3524,3000,164,6306,5238,172,5542,3952,149,7055,6645,144,5392,7856,102,7096,7017,153,8772,6723,99,5249,3874,120,4974,2639,135,5860,3185,175,1531,4073,105,8077,8584,159,3520,4956,53,4375,8215,191,2780,7844,125,5315,4222,113,6251,1539,189,7025,8414,83,4628,5629,156,5257,2930,165,6192,6206,59,4591,7444,83,6521,7924,67,8547,4810,53,5043,5823,64,3790,9141,174,4354,6169,61,1692,3664,170,7775,7674,153,6250,4848,143,3033,6509,153,1793,8560,76,2704,1489,121,2890,5105,175,6363,3547,57,7396,3888,142,5380,6955,131,2637,5477,141,6714,3726,173,408,7627,71,7827,5374,177,3820,423,177,4203,104,187,3097,4873,70,6088,5645,111,2613,4450,158,3127,5621,53,964,5350,93,6900,7764,99,3026,8155,129],ID=325,P=16;
+let s=ID*9301+49297;const rnd=()=>((s=(s*233280+12345)%2147483647)/2147483647);
+const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(520,90+38000/(r+40));
+C.push({x:D[i],y:D[i+1],r,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),fx:1+(rnd()*2|0),fy:1+(rnd()*2|0),px:rnd()*6.283,py:rnd()*6.283,pb:rnd()*6.283});}
+const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
+function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);}
+addEventListener("resize",fit);fit();
+function frame(t){const T=(t/1000%P)/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
+for(const c of C){const x=(c.x+c.ax*Math.sin(T*c.fx+c.px))*k,y=(c.y+c.ay*Math.cos(T*c.fy+c.py))*k,r=c.r*(1+.035*Math.sin(T*2+c.pb))*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
+g.fill();requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+</script></body></html>

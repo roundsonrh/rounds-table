@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rounds #625</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}</style></head>
+<body><canvas id="c"></canvas><script>
+// Rounds #625, moving. Same circles as the still, each drifting on its own
+// small orbit; the loop repeats every 16 seconds.
+const D=[4301,7538,645,7435,930,284,9269,5695,629,5792,4264,390,5831,9294,539,4210,4279,405,799,886,710,876,9076,970,9025,9124,888,2548,5951,642,751,5825,505,843,2594,902,7431,9107,137,7462,2379,993,5983,5953,651,4298,9120,287,5882,2495,308,7419,7373,532,2434,4220,614,4241,5891,714,9118,857,557,2540,7358,465,5714,871,166,9176,7584,311,9142,2463,579,5932,7421,797,2576,9178,240,2481,2361,569,7356,5923,611,2364,752,671,4149,824,403,4148,2628,621,9054,4085,491,7531,4231,849,833,7428,319,706,4185,341,7631,9077,49,7477,9276,24,7639,9292,106,5937,980,67,5920,686,88,5941,829,34,7425,9308,17,7361,9310,25,7649,694,21,7578,9014,8,5817,686,8,5702,680,16,2372,9021,16,4025,9304,17,7348,9274,4,5882,799,9,4063,9317,13,7411,9280,7,5974,876,10,7615,9165,22,7442,9272,12,7390,9251,8,5924,897,13,5788,697,16,7387,9280,13,7496,9300,5,5754,684,9,4016,9247,10,7652,728,11,5910,859,5],ID=625,P=16;
+let s=ID*9301+49297;const rnd=()=>((s=(s*233280+12345)%2147483647)/2147483647);
+const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(520,90+38000/(r+40));
+C.push({x:D[i],y:D[i+1],r,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),fx:1+(rnd()*2|0),fy:1+(rnd()*2|0),px:rnd()*6.283,py:rnd()*6.283,pb:rnd()*6.283});}
+const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
+function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);}
+addEventListener("resize",fit);fit();
+function frame(t){const T=(t/1000%P)/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
+for(const c of C){const x=(c.x+c.ax*Math.sin(T*c.fx+c.px))*k,y=(c.y+c.ay*Math.cos(T*c.fy+c.py))*k,r=c.r*(1+.035*Math.sin(T*2+c.pb))*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
+g.fill();requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+</script></body></html>

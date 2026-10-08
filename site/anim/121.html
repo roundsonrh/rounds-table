@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rounds #121</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}</style></head>
+<body><canvas id="c"></canvas><script>
+// Rounds #121, moving. Same circles as the still, each drifting on its own
+// small orbit; the loop repeats every 16 seconds.
+const D=[6111,5083,483,2838,5048,571,4766,3029,373,5834,6440,518,3750,3991,280,6875,4190,411,2809,7055,484,5298,4271,501,4455,6295,358,6359,3342,415,3305,5885,248,3629,2848,358,2349,3321,334,4713,7361,337,3863,7275,347,1795,5211,300,5334,5524,234,6888,5765,367,2088,4428,252,3230,3471,224,3874,5051,256,1757,6300,326,5424,2450,251,2734,5930,149,6970,7432,388,3688,6574,196,7457,5050,141,4541,5498,291,4851,4962,110,1417,4312,213,4420,3951,147,4281,2361,123,3023,4081,208,2535,3908,152,2350,6180,134,2939,2951,97,5483,3149,204,4289,3488,151,5270,7019,117,5629,7219,128,4720,3633,97,5067,6041,140,4062,5730,114,4826,6779,99,5774,3598,92,2249,2738,135,4845,2412,114,6126,4032,172,1583,4752,80,4312,7832,100,4434,4699,181,3543,5433,86,945,5356,334,3560,4573,118,3847,3430,97,1925,5729,97,3301,2083,259],ID=121,P=16;
+let s=ID*9301+49297;const rnd=()=>((s=(s*233280+12345)%2147483647)/2147483647);
+const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(520,90+38000/(r+40));
+C.push({x:D[i],y:D[i+1],r,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),fx:1+(rnd()*2|0),fy:1+(rnd()*2|0),px:rnd()*6.283,py:rnd()*6.283,pb:rnd()*6.283});}
+const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
+function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);}
+addEventListener("resize",fit);fit();
+function frame(t){const T=(t/1000%P)/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
+for(const c of C){const x=(c.x+c.ax*Math.sin(T*c.fx+c.px))*k,y=(c.y+c.ay*Math.cos(T*c.fy+c.py))*k,r=c.r*(1+.035*Math.sin(T*2+c.pb))*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
+g.fill();requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+</script></body></html>

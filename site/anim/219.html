@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rounds #219</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}</style></head>
+<body><canvas id="c"></canvas><script>
+// Rounds #219, moving. Same circles as the still, each drifting on its own
+// small orbit; the loop repeats every 16 seconds.
+const D=[4311,5048,389,6420,4857,897,4089,6683,686,5703,2969,521,7095,6823,733,5472,7358,280,4823,4126,563,3780,3595,572,7351,3169,758,3290,4992,528,4404,2536,600,2899,2816,527,2744,6312,399,5189,5204,350,3488,8041,408,4577,5742,263,1902,4415,547,2023,5618,271,5350,5881,205,6079,1700,340,2881,4109,272,5132,6698,317,2280,3649,223,5861,8018,371,8236,5836,284,6564,2265,353,3918,5590,203,5722,6769,219,6297,6131,165,1441,2451,544,5101,1839,263,7480,5263,185,7726,4222,229,4147,1281,416,6582,8422,208,6210,3670,252,5679,6250,240,2029,6784,197,4856,7782,318,5534,4264,108,4971,3167,204,3158,5782,191,5594,3915,191,6108,7218,270,4020,4419,200,5938,5870,190,4826,6102,138],ID=219,P=16;
+let s=ID*9301+49297;const rnd=()=>((s=(s*233280+12345)%2147483647)/2147483647);
+const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(520,90+38000/(r+40));
+C.push({x:D[i],y:D[i+1],r,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),fx:1+(rnd()*2|0),fy:1+(rnd()*2|0),px:rnd()*6.283,py:rnd()*6.283,pb:rnd()*6.283});}
+const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
+function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);}
+addEventListener("resize",fit);fit();
+function frame(t){const T=(t/1000%P)/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
+for(const c of C){const x=(c.x+c.ax*Math.sin(T*c.fx+c.px))*k,y=(c.y+c.ay*Math.cos(T*c.fy+c.py))*k,r=c.r*(1+.035*Math.sin(T*2+c.pb))*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
+g.fill();requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+</script></body></html>

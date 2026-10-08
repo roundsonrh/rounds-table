@@ -50,11 +50,21 @@ jobs:
           OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
         run: node scripts/floors.mjs || echo "floors skipped — keeping the last ones"
 
+      - name: Moving Rounds (who's held 20+ days and connected)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/moving.mjs compute || echo "moving list skipped"
+
       - name: Publish to roundsonrh.com
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           SITE_WORKER: ${{ vars.SITE_WORKER }}
         run: node scripts/deploy.mjs
+
+      - name: Tell OpenSea which Rounds started or stopped moving
+        env:
+          OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
+        run: node scripts/moving.mjs refresh || echo "refresh skipped"
 
       - name: Keep today's snapshot (for the holder update tweet)
         if: env.MODE == 'full'

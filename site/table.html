@@ -220,6 +220,10 @@
     .tab .ct{display:none}
   }
   .pane[hidden]{display:none!important}
+  .moving{font-family:var(--mono);font-size:12px;color:var(--text-dim);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:-6px 0 16px;line-height:1.6}
+  .moving[hidden]{display:none}
+  .moving b{color:var(--accent)}
+  .moving a{color:var(--accent);text-decoration:none}
   /* arcade */
   .arc{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:clamp(18px,3vw,32px);align-items:start}
   @media (max-width:820px){.arc{grid-template-columns:1fr}}
@@ -791,6 +795,7 @@
         <h2>Your Rounds</h2>
         <div class="note" id="piecesNote"></div>
       </div>
+      <div class="moving" id="movingNote" hidden></div>
       <div class="pieces" id="piecesGrid"></div>
       <div class="pieces-more" id="piecesMore"></div>
     </div>
@@ -1212,6 +1217,28 @@
       const j = await fetch('/data/holds.json').then(r => r.ok ? r.json() : null);
       if (j && j.holds && typeof j.holds === 'object') HOLDS = j.holds;
     } catch (e) { /* optional */ }
+  }
+  /* Moving Rounds: held 20+ days by a wallet that has connected here →
+     the NFT itself starts moving (animation_url in its metadata). Connecting
+     is what flips it on, so tell the name service, then say what moved. */
+  const MOVE_DAYS = 20;
+  async function markConnected(addr){
+    const el = $('movingNote');
+    const ids = ((metaFor(addr) || {}).rounds_token_ids || []).map(String);
+    if (!ids.length) { el.hidden = true; return; }
+    const now = Date.now() / 1000;
+    const ages = ids.map(id => { const s = heldSince(id); return s ? (now - s) / 86400 : null; }).filter(d => d != null);
+    const moving = ids.filter(id => { const s = heldSince(id); return s && (now - s) / 86400 >= MOVE_DAYS; });
+    if (NAMES_API) fetch(NAMES_API + '/meta/connect', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ address: addr }) }).catch(() => {});
+    if (moving.length) {
+      const one = moving.length === 1;
+      el.innerHTML = `<b>${moving.length}</b> of your Rounds ${one ? 'has' : 'have'} been held ${MOVE_DAYS}+ days, so ${one ? 'it\'s' : 'they\'re'} <b>moving</b> now. `
+        + `<a href="https://opensea.io/assets/robinhood/0x8cd655173351c6f619acb907ba08bf920b736d1c/${moving[0]}" target="_blank" rel="noopener noreferrer">See it on OpenSea ↗</a>`;
+    } else if (ages.length) {
+      const left = Math.max(1, Math.ceil(MOVE_DAYS - Math.max(...ages)));
+      el.innerHTML = `Hold a Round ${MOVE_DAYS} days and it starts <b>moving</b>. Your longest-held gets there in <b>${left} day${left === 1 ? '' : 's'}</b>.`;
+    } else { el.hidden = true; return; }
+    el.hidden = false;
   }
   function heldSince(tokenId){
     const h = HOLDS && HOLDS[String(tokenId)];
@@ -2300,6 +2327,7 @@
     gate.hidden = true; deniedPanel.hidden = true; dash.hidden = false;
     currentAddr = addr;
     arcTabVisibility();
+    markConnected(addr);
     closeDetail();
 
     const meta = findHolder(addr);

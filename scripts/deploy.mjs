@@ -35,7 +35,8 @@ if (!worker) {
   worker = hit.service;
 }
 console.log(`Publishing site/ to the ${worker} Worker…`);
-run(["deploy", "--name", worker, "--assets", "site", "--compatibility-date", "2026-10-01"]);
+// site-wrangler.toml: static site + the /meta/<id> route (scripts/site-worker.js)
+run(["deploy", "--config", "site-wrangler.toml", "--name", worker]);
 console.log("Updating the name service's holder list…");
 run(["kv", "key", "put", "config:holders", "--path", "holders.json", "--namespace-id", KV_NAMESPACE]);
 console.log("Live.");

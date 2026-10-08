@@ -2,3 +2,4 @@ holders.json
 run.log
 node_modules/
 .DS_Store
+moving-diff.json

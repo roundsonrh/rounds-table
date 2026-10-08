@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rounds #362</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}</style></head>
+<body><canvas id="c"></canvas><script>
+// Rounds #362, moving. Same circles as the still, each drifting on its own
+// small orbit; the loop repeats every 16 seconds.
+const D=[2527,4259,254,8158,3439,409,4358,6724,276,3941,7455,333,2886,5642,407,4566,5408,452,5124,4642,325,3921,6099,261,3143,7085,364,2979,3470,382,4207,4366,371,1960,2543,485,4011,3029,225,2268,7271,330,4752,3489,249,5254,6494,428,9147,6151,212,7378,6200,474,8145,8525,498,7239,2653,443,6139,4632,369,10000,7814,341,6451,7268,233,5889,8429,215,5920,1126,404,2074,5740,254,9094,5159,366,8208,4650,237,8823,4178,400,7176,622,367,5991,2324,383,6176,6666,249,9735,2199,367,8509,2019,241,5009,7633,278,2837,369,377,4305,1279,425,6991,3865,215,4780,2133,417,6157,9747,489,5874,3380,396,847,5138,272,5726,7847,250,3921,8391,329,7565,5065,198,5038,311,291,4154,9688,492,6762,5613,245,1684,6540,307,7496,7407,349,6864,4586,183,3347,4541,204,6821,8774,459,3442,1731,405,726,2295,364,2072,3616,349,9730,3609,489,8026,6827,213,1948,1506,344,482,6226,364,5391,3970,227,2329,4908,176,6644,7984,225,8007,5414,192,100,9384,351,7702,4134,269,5146,9269,282],ID=362,P=16;
+let s=ID*9301+49297;const rnd=()=>((s=(s*233280+12345)%2147483647)/2147483647);
+const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(520,90+38000/(r+40));
+C.push({x:D[i],y:D[i+1],r,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),fx:1+(rnd()*2|0),fy:1+(rnd()*2|0),px:rnd()*6.283,py:rnd()*6.283,pb:rnd()*6.283});}
+const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
+function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);}
+addEventListener("resize",fit);fit();
+function frame(t){const T=(t/1000%P)/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
+for(const c of C){const x=(c.x+c.ax*Math.sin(T*c.fx+c.px))*k,y=(c.y+c.ay*Math.cos(T*c.fy+c.py))*k,r=c.r*(1+.035*Math.sin(T*2+c.pb))*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
+g.fill();requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+</script></body></html>
