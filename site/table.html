@@ -1218,9 +1218,8 @@
       if (j && j.holds && typeof j.holds === 'object') HOLDS = j.holds;
     } catch (e) { /* optional */ }
   }
-  /* Moving Rounds: held 20+ days by a wallet that has connected here →
-     the NFT itself starts moving (animation_url in its metadata). Connecting
-     is what flips it on, so tell the name service, then say what moved. */
+  /* Moving Rounds: held 20+ days by the same wallet → the NFT itself starts
+     moving (animation_url in its metadata). Say which of theirs move. */
   const MOVE_DAYS = 20;
   async function markConnected(addr){
     const el = $('movingNote');
@@ -1229,7 +1228,6 @@
     const now = Date.now() / 1000;
     const ages = ids.map(id => { const s = heldSince(id); return s ? (now - s) / 86400 : null; }).filter(d => d != null);
     const moving = ids.filter(id => { const s = heldSince(id); return s && (now - s) / 86400 >= MOVE_DAYS; });
-    if (NAMES_API) fetch(NAMES_API + '/meta/connect', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ address: addr }) }).catch(() => {});
     if (moving.length) {
       const one = moving.length === 1;
       el.innerHTML = `<b>${moving.length}</b> of your Rounds ${one ? 'has' : 'have'} been held ${MOVE_DAYS}+ days, so ${one ? 'it\'s' : 'they\'re'} <b>moving</b> now. `

@@ -4,9 +4,9 @@
 //   GET /anim/<theme>/<id>  the moving version, in a holiday's colors
 //
 // /meta is the original IPFS metadata, byte for byte, except:
-//  · held 20+ days by a wallet that connected to roundsonrh.com/table →
-//    adds animation_url (/anim/<id>), the moving version. Sell it and the
-//    clock (and the motion) starts over with the new owner.
+//  · held 20+ days by the same wallet → adds animation_url (/anim/<id>),
+//    the moving version. Sell it and the clock (and the motion) starts over
+//    with the new owner.
 //  · on a holiday in data/themes.json (midnight to midnight Pacific) →
 //    image is that day's recolor (/art/<theme>/<id>.svg), and a moving
 //    Round moves in the same colors. Next day it's back to the original.
@@ -61,9 +61,7 @@ export default {
     try {
       const holds = await asset(env, url.origin, "/data/holds.json");
       const h = holds && holds.holds && holds.holds[id];
-      if (h && Date.now() / 1000 - Number(h.since) >= HOLD_DAYS * 86400 && env.NAMES) {
-        moving = !!(await env.NAMES.get("connected:" + String(h.owner).toLowerCase()));
-      }
+      moving = !!h && Date.now() / 1000 - Number(h.since) >= HOLD_DAYS * 86400;
     } catch { /* any trouble: serve the still, never break metadata */ }
     try { theme = await activeTheme(env, url.origin, url.searchParams.get("theme")); } catch { theme = null; }
     let out = meta;

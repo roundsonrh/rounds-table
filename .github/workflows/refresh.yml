@@ -50,7 +50,7 @@ jobs:
           OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
         run: node scripts/floors.mjs || echo "floors skipped — keeping the last ones"
 
-      - name: Moving Rounds (who's held 20+ days and connected)
+      - name: Moving Rounds (held 20+ days)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: node scripts/moving.mjs compute || echo "moving list skipped"
