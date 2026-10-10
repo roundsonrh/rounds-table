@@ -1,17 +1,23 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Rounds #165</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}</style></head>
 <body><canvas id="c"></canvas><script>
-// Rounds #165, moving. Same circles as the still, each drifting on its own
-// small orbit; the loop repeats every 16 seconds.
-const D=[1281,1785,226,5327,7843,541,6223,4231,842,2447,5955,762,7563,6153,208,4635,1811,1160,7478,5174,528,3005,9768,927,2109,3263,305,7895,896,1066,1879,2482,295,2950,7798,692,0,4471,208,1107,695,687,4853,3242,171,4109,8594,367,3872,4392,836,952,7283,748,6377,6825,215,0,8793,663,965,5676,312,6249,9201,925,5633,6408,598,8066,3935,505,1558,4495,571,888,3214,526,6612,2515,610,4153,5936,617,1742,8438,569,5128,5149,510,2172,7248,169,6224,41,732,8153,8516,885,320,2224,400,4372,7377,444,4964,10000,557,4708,6686,243,6611,7636,559,1011,10000,544,1920,1237,195,2786,2786,438,8021,6786,535,643,6156,186,9278,5826,212,2567,2060,258,7525,2843,305,9532,3727,523,2232,428,265,6331,5705,251,3232,1031,394,7016,5969,316,2772,4983,232,2566,3800,361,8278,9780,270,229,5344,430,7646,9728,254,5133,8676,252,3345,6786,346,13,1246,380,3175,3406,249,8766,4805,323,5448,3124,343,1499,3682,182,0,3291,235,1897,7631,182,2314,4932,172,6842,6612,199,8456,6018,270,8596,5394,185,1811,9961,145,555,4441,226,3769,0,504,4594,9121,236,0,6883,214,205,4024,226,9987,7420,140,4020,3243,205,1728,6717,170,2639,4462,203,9248,1382,236,6154,1620,298],ID=165,P=16;
+// Rounds #165, breathing. Same circles as the still. Every 8 seconds the
+// whole piece inhales (circles swell and spread from its center) and
+// exhales; the breath ripples outward, so the middle moves first. A small
+// drift keeps it alive between breaths. Loops every 16 seconds.
+const D=[1281,1785,226,5327,7843,541,6223,4231,842,2447,5955,762,7563,6153,208,4635,1811,1160,7478,5174,528,3005,9768,927,2109,3263,305,7895,896,1066,1879,2482,295,2950,7798,692,0,4471,208,1107,695,687,4853,3242,171,4109,8594,367,3872,4392,836,952,7283,748,6377,6825,215,0,8793,663,965,5676,312,6249,9201,925,5633,6408,598,8066,3935,505,1558,4495,571,888,3214,526,6612,2515,610,4153,5936,617,1742,8438,569,5128,5149,510,2172,7248,169,6224,41,732,8153,8516,885,320,2224,400,4372,7377,444,4964,10000,557,4708,6686,243,6611,7636,559,1011,10000,544,1920,1237,195,2786,2786,438,8021,6786,535,643,6156,186,9278,5826,212,2567,2060,258,7525,2843,305,9532,3727,523,2232,428,265,6331,5705,251,3232,1031,394,7016,5969,316,2772,4983,232,2566,3800,361,8278,9780,270,229,5344,430,7646,9728,254,5133,8676,252,3345,6786,346,13,1246,380,3175,3406,249,8766,4805,323,5448,3124,343,1499,3682,182,0,3291,235,1897,7631,182,2314,4932,172,6842,6612,199,8456,6018,270,8596,5394,185,1811,9961,145,555,4441,226,3769,0,504,4594,9121,236,0,6883,214,205,4024,226,9987,7420,140,4020,3243,205,1728,6717,170,2639,4462,203,9248,1382,236,6154,1620,298],ID=165,P=16,B=8;
 let s=ID*9301+49297;const rnd=()=>((s=(s*233280+12345)%2147483647)/2147483647);
-const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(520,90+38000/(r+40));
-C.push({x:D[i],y:D[i+1],r,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),fx:1+(rnd()*2|0),fy:1+(rnd()*2|0),px:rnd()*6.283,py:rnd()*6.283,pb:rnd()*6.283});}
+let cx=0,cy=0,w=0;for(let i=0;i<D.length;i+=3){const a=D[i+2]*D[i+2];cx+=D[i]*a;cy+=D[i+1]*a;w+=a;}cx/=w;cy/=w;
+let far=1;for(let i=0;i<D.length;i+=3)far=Math.max(far,Math.hypot(D[i]-cx,D[i+1]-cy));
+const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(160,30+12000/(r+40));
+C.push({x:D[i],y:D[i+1],r,d:Math.hypot(D[i]-cx,D[i+1]-cy)/far,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),px:rnd()*6.283,py:rnd()*6.283});}
 const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
 function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);}
 addEventListener("resize",fit);fit();
-function frame(t){const T=(t/1000%P)/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
-for(const c of C){const x=(c.x+c.ax*Math.sin(T*c.fx+c.px))*k,y=(c.y+c.ay*Math.cos(T*c.fy+c.py))*k,r=c.r*(1+.035*Math.sin(T*2+c.pb))*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
+const ease=(u)=>u*u*(3-2*u);
+function frame(t){const sec=t/1000%P,T=sec/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
+for(const c of C){const b=ease((1-Math.cos(sec/B*6.283-c.d*1.2))/2),sp=1+.07*b;
+const x=(cx+(c.x-cx)*sp+c.ax*Math.sin(T+c.px))*k,y=(cy+(c.y-cy)*sp+c.ay*Math.cos(T+c.py))*k,r=c.r*(.94+.2*b)*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
 g.fill();requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
 </script></body></html>

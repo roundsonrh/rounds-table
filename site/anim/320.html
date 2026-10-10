@@ -1,17 +1,23 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Rounds #320</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}</style></head>
 <body><canvas id="c"></canvas><script>
-// Rounds #320, moving. Same circles as the still, each drifting on its own
-// small orbit; the loop repeats every 16 seconds.
-const D=[4925,5339,55,2422,9764,150,2861,2543,120,2633,9268,140,3743,9266,158,8599,1886,121,8241,3274,179,7982,1124,256,2036,5292,76,9016,7815,115,998,7396,247,5954,6912,204,1117,5794,95,1553,1735,239,7356,1468,156,1291,742,275,754,309,136,6915,7898,96,4964,991,102,5668,9928,166,985,3301,258,4722,7243,268,7318,5487,122,6264,6509,145,5816,7428,156,6439,3401,262,7687,2964,191,3458,8100,112,7472,8061,145,5078,2004,97,4737,1312,168,5871,5100,199,4162,127,199,1666,3784,272,389,8844,90,3430,1131,211,3039,44,243,8953,9330,53,9813,3684,164,1902,9983,238,5775,2652,272,3128,6646,205,3161,9888,189,9922,5202,116,1863,6464,202,5344,7881,119,8585,7341,200,4770,4492,95,4993,8753,153,9290,1431,141,9174,4212,88,7122,2320,73],ID=320,P=16;
+// Rounds #320, breathing. Same circles as the still. Every 8 seconds the
+// whole piece inhales (circles swell and spread from its center) and
+// exhales; the breath ripples outward, so the middle moves first. A small
+// drift keeps it alive between breaths. Loops every 16 seconds.
+const D=[4925,5339,55,2422,9764,150,2861,2543,120,2633,9268,140,3743,9266,158,8599,1886,121,8241,3274,179,7982,1124,256,2036,5292,76,9016,7815,115,998,7396,247,5954,6912,204,1117,5794,95,1553,1735,239,7356,1468,156,1291,742,275,754,309,136,6915,7898,96,4964,991,102,5668,9928,166,985,3301,258,4722,7243,268,7318,5487,122,6264,6509,145,5816,7428,156,6439,3401,262,7687,2964,191,3458,8100,112,7472,8061,145,5078,2004,97,4737,1312,168,5871,5100,199,4162,127,199,1666,3784,272,389,8844,90,3430,1131,211,3039,44,243,8953,9330,53,9813,3684,164,1902,9983,238,5775,2652,272,3128,6646,205,3161,9888,189,9922,5202,116,1863,6464,202,5344,7881,119,8585,7341,200,4770,4492,95,4993,8753,153,9290,1431,141,9174,4212,88,7122,2320,73],ID=320,P=16,B=8;
 let s=ID*9301+49297;const rnd=()=>((s=(s*233280+12345)%2147483647)/2147483647);
-const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(520,90+38000/(r+40));
-C.push({x:D[i],y:D[i+1],r,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),fx:1+(rnd()*2|0),fy:1+(rnd()*2|0),px:rnd()*6.283,py:rnd()*6.283,pb:rnd()*6.283});}
+let cx=0,cy=0,w=0;for(let i=0;i<D.length;i+=3){const a=D[i+2]*D[i+2];cx+=D[i]*a;cy+=D[i+1]*a;w+=a;}cx/=w;cy/=w;
+let far=1;for(let i=0;i<D.length;i+=3)far=Math.max(far,Math.hypot(D[i]-cx,D[i+1]-cy));
+const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(160,30+12000/(r+40));
+C.push({x:D[i],y:D[i+1],r,d:Math.hypot(D[i]-cx,D[i+1]-cy)/far,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),px:rnd()*6.283,py:rnd()*6.283});}
 const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
 function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);}
 addEventListener("resize",fit);fit();
-function frame(t){const T=(t/1000%P)/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
-for(const c of C){const x=(c.x+c.ax*Math.sin(T*c.fx+c.px))*k,y=(c.y+c.ay*Math.cos(T*c.fy+c.py))*k,r=c.r*(1+.035*Math.sin(T*2+c.pb))*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
+const ease=(u)=>u*u*(3-2*u);
+function frame(t){const sec=t/1000%P,T=sec/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
+for(const c of C){const b=ease((1-Math.cos(sec/B*6.283-c.d*1.2))/2),sp=1+.07*b;
+const x=(cx+(c.x-cx)*sp+c.ax*Math.sin(T+c.px))*k,y=(cy+(c.y-cy)*sp+c.ay*Math.cos(T+c.py))*k,r=c.r*(.94+.2*b)*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
 g.fill();requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
 </script></body></html>

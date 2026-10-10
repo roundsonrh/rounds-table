@@ -1,17 +1,23 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Rounds #688</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}</style></head>
 <body><canvas id="c"></canvas><script>
-// Rounds #688, moving. Same circles as the still, each drifting on its own
-// small orbit; the loop repeats every 16 seconds.
-const D=[3645,3157,454,6900,3972,92,4679,4382,363,3271,81,272,9202,6012,538,1540,6833,105,4453,2097,266,2005,4060,595,7889,5361,155,6942,5103,519,5417,5517,541,5691,8819,529,3116,7451,122,3247,4640,143,5885,4640,138,1284,5072,361,5460,3335,275,4596,2665,233,6698,2562,511,2214,5184,464,2745,6149,256,6142,4119,361,7689,791,381,1893,7556,617,7590,8633,491,3507,5877,447,6027,4887,75,5775,7097,119,7194,7382,92,3016,948,203,4352,5122,173,4340,6980,83,5071,8005,365,959,5860,279,9526,4449,173,3757,4100,417,4565,8175,73,3773,4841,182,6590,6388,358,4048,7771,241,8498,4873,461,5624,4045,94,8130,6116,209,8224,3210,91,7746,2460,264,2368,549,116,2922,1787,451,6716,7605,337,8985,4285,75,3829,1726,221,5128,1499,430,5905,3567,131,9550,4956,130,3242,8671,378,1368,3353,190,8543,1713,362,4182,9487,590,7059,9392,127,2535,2643,384],ID=688,P=16;
+// Rounds #688, breathing. Same circles as the still. Every 8 seconds the
+// whole piece inhales (circles swell and spread from its center) and
+// exhales; the breath ripples outward, so the middle moves first. A small
+// drift keeps it alive between breaths. Loops every 16 seconds.
+const D=[3645,3157,454,6900,3972,92,4679,4382,363,3271,81,272,9202,6012,538,1540,6833,105,4453,2097,266,2005,4060,595,7889,5361,155,6942,5103,519,5417,5517,541,5691,8819,529,3116,7451,122,3247,4640,143,5885,4640,138,1284,5072,361,5460,3335,275,4596,2665,233,6698,2562,511,2214,5184,464,2745,6149,256,6142,4119,361,7689,791,381,1893,7556,617,7590,8633,491,3507,5877,447,6027,4887,75,5775,7097,119,7194,7382,92,3016,948,203,4352,5122,173,4340,6980,83,5071,8005,365,959,5860,279,9526,4449,173,3757,4100,417,4565,8175,73,3773,4841,182,6590,6388,358,4048,7771,241,8498,4873,461,5624,4045,94,8130,6116,209,8224,3210,91,7746,2460,264,2368,549,116,2922,1787,451,6716,7605,337,8985,4285,75,3829,1726,221,5128,1499,430,5905,3567,131,9550,4956,130,3242,8671,378,1368,3353,190,8543,1713,362,4182,9487,590,7059,9392,127,2535,2643,384],ID=688,P=16,B=8;
 let s=ID*9301+49297;const rnd=()=>((s=(s*233280+12345)%2147483647)/2147483647);
-const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(520,90+38000/(r+40));
-C.push({x:D[i],y:D[i+1],r,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),fx:1+(rnd()*2|0),fy:1+(rnd()*2|0),px:rnd()*6.283,py:rnd()*6.283,pb:rnd()*6.283});}
+let cx=0,cy=0,w=0;for(let i=0;i<D.length;i+=3){const a=D[i+2]*D[i+2];cx+=D[i]*a;cy+=D[i+1]*a;w+=a;}cx/=w;cy/=w;
+let far=1;for(let i=0;i<D.length;i+=3)far=Math.max(far,Math.hypot(D[i]-cx,D[i+1]-cy));
+const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(160,30+12000/(r+40));
+C.push({x:D[i],y:D[i+1],r,d:Math.hypot(D[i]-cx,D[i+1]-cy)/far,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),px:rnd()*6.283,py:rnd()*6.283});}
 const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
 function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);}
 addEventListener("resize",fit);fit();
-function frame(t){const T=(t/1000%P)/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
-for(const c of C){const x=(c.x+c.ax*Math.sin(T*c.fx+c.px))*k,y=(c.y+c.ay*Math.cos(T*c.fy+c.py))*k,r=c.r*(1+.035*Math.sin(T*2+c.pb))*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
+const ease=(u)=>u*u*(3-2*u);
+function frame(t){const sec=t/1000%P,T=sec/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
+for(const c of C){const b=ease((1-Math.cos(sec/B*6.283-c.d*1.2))/2),sp=1+.07*b;
+const x=(cx+(c.x-cx)*sp+c.ax*Math.sin(T+c.px))*k,y=(cy+(c.y-cy)*sp+c.ay*Math.cos(T+c.py))*k,r=c.r*(.94+.2*b)*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
 g.fill();requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
 </script></body></html>

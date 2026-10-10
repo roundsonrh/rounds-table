@@ -1,17 +1,23 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Rounds #868</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}</style></head>
 <body><canvas id="c"></canvas><script>
-// Rounds #868, moving. Same circles as the still, each drifting on its own
-// small orbit; the loop repeats every 16 seconds.
-const D=[90,3480,301,8444,5479,301,966,1102,301,1713,101,301,1527,8184,297,8118,8283,301,8467,9397,301,3666,484,301,8348,6943,301,6037,9830,301,55,7431,301,5294,9090,301,9969,8358,301,4367,281,301,51,4827,301,9502,243,301,393,2880,292,4100,7458,297,7046,9862,301,2007,1284,297,9709,5128,301,1075,9590,297,8393,1389,297,5079,9950,297,5166,7909,297,3916,9620,301,5650,1128,297,627,2166,301,8331,2836,301,9784,7650,301,9225,4552,284,9859,3172,301,6092,2075,292,1744,2303,297,9563,9333,297,1073,4965,292,9353,2624,297,7822,3487,297,8274,4392,263,1763,9800,275,3323,8847,288,9001,7371,301,2440,380,271,8733,1987,292,9026,6492,288,9254,8494,301,38,752,292,4774,2224,271,1586,7083,279,2357,9393,284,4908,1162,297,435,9440,297,9177,3874,301,6893,6770,292,7623,9493,288,566,232,292],ID=868,P=16;
+// Rounds #868, breathing. Same circles as the still. Every 8 seconds the
+// whole piece inhales (circles swell and spread from its center) and
+// exhales; the breath ripples outward, so the middle moves first. A small
+// drift keeps it alive between breaths. Loops every 16 seconds.
+const D=[90,3480,301,8444,5479,301,966,1102,301,1713,101,301,1527,8184,297,8118,8283,301,8467,9397,301,3666,484,301,8348,6943,301,6037,9830,301,55,7431,301,5294,9090,301,9969,8358,301,4367,281,301,51,4827,301,9502,243,301,393,2880,292,4100,7458,297,7046,9862,301,2007,1284,297,9709,5128,301,1075,9590,297,8393,1389,297,5079,9950,297,5166,7909,297,3916,9620,301,5650,1128,297,627,2166,301,8331,2836,301,9784,7650,301,9225,4552,284,9859,3172,301,6092,2075,292,1744,2303,297,9563,9333,297,1073,4965,292,9353,2624,297,7822,3487,297,8274,4392,263,1763,9800,275,3323,8847,288,9001,7371,301,2440,380,271,8733,1987,292,9026,6492,288,9254,8494,301,38,752,292,4774,2224,271,1586,7083,279,2357,9393,284,4908,1162,297,435,9440,297,9177,3874,301,6893,6770,292,7623,9493,288,566,232,292],ID=868,P=16,B=8;
 let s=ID*9301+49297;const rnd=()=>((s=(s*233280+12345)%2147483647)/2147483647);
-const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(520,90+38000/(r+40));
-C.push({x:D[i],y:D[i+1],r,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),fx:1+(rnd()*2|0),fy:1+(rnd()*2|0),px:rnd()*6.283,py:rnd()*6.283,pb:rnd()*6.283});}
+let cx=0,cy=0,w=0;for(let i=0;i<D.length;i+=3){const a=D[i+2]*D[i+2];cx+=D[i]*a;cy+=D[i+1]*a;w+=a;}cx/=w;cy/=w;
+let far=1;for(let i=0;i<D.length;i+=3)far=Math.max(far,Math.hypot(D[i]-cx,D[i+1]-cy));
+const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(160,30+12000/(r+40));
+C.push({x:D[i],y:D[i+1],r,d:Math.hypot(D[i]-cx,D[i+1]-cy)/far,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),px:rnd()*6.283,py:rnd()*6.283});}
 const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
 function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);}
 addEventListener("resize",fit);fit();
-function frame(t){const T=(t/1000%P)/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
-for(const c of C){const x=(c.x+c.ax*Math.sin(T*c.fx+c.px))*k,y=(c.y+c.ay*Math.cos(T*c.fy+c.py))*k,r=c.r*(1+.035*Math.sin(T*2+c.pb))*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
+const ease=(u)=>u*u*(3-2*u);
+function frame(t){const sec=t/1000%P,T=sec/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
+for(const c of C){const b=ease((1-Math.cos(sec/B*6.283-c.d*1.2))/2),sp=1+.07*b;
+const x=(cx+(c.x-cx)*sp+c.ax*Math.sin(T+c.px))*k,y=(cy+(c.y-cy)*sp+c.ay*Math.cos(T+c.py))*k,r=c.r*(.94+.2*b)*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
 g.fill();requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
 </script></body></html>
