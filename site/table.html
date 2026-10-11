@@ -1230,11 +1230,11 @@
     const moving = ids.filter(id => { const s = heldSince(id); return s && (now - s) / 86400 >= MOVE_DAYS; });
     if (moving.length) {
       const one = moving.length === 1;
-      el.innerHTML = `<b>${moving.length}</b> of your Rounds ${one ? 'has' : 'have'} been held ${MOVE_DAYS}+ days, so ${one ? 'it\'s' : 'they\'re'} <b>moving</b> now. `
+      el.innerHTML = `<b>${moving.length}</b> of your Rounds ${one ? 'has' : 'have'} been held ${MOVE_DAYS}+ days, so ${one ? 'it\'s' : 'they\'re'} <b>breathing</b> now. `
         + `<a href="https://opensea.io/assets/robinhood/0x8cd655173351c6f619acb907ba08bf920b736d1c/${moving[0]}" target="_blank" rel="noopener noreferrer">See it on OpenSea ↗</a>`;
     } else if (ages.length) {
       const left = Math.max(1, Math.ceil(MOVE_DAYS - Math.max(...ages)));
-      el.innerHTML = `Hold a Round ${MOVE_DAYS} days and it starts <b>moving</b>. Your longest-held gets there in <b>${left} day${left === 1 ? '' : 's'}</b>.`;
+      el.innerHTML = `Hold a Round ${MOVE_DAYS} days and it starts <b>breathing</b>. Your longest-held gets there in <b>${left} day${left === 1 ? '' : 's'}</b>.`;
     } else { el.hidden = true; return; }
     el.hidden = false;
   }
@@ -1363,24 +1363,61 @@
   function drawPiece(canvas, tokenId){
     const rec = pieces && pieces[tokenId - 1];
     if (!rec) return null;
-    const circles = rec[3];
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const size = canvas.clientWidth || 160;
     canvas.width = size * dpr; canvas.height = size * dpr;
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
+    const job = { ctx, size, circles: rec[3], ...breathCenter(rec[3]) };
+    paintBreath(job, 0);
+    // held 20+ days → it breathes here too, same breath as on OpenSea
+    if (isBreathing(tokenId)) { BREATHERS.set(canvas, job); startBreathing(); }
+    else BREATHERS.delete(canvas);
+    return rec;
+  }
+
+  /* Breathing Rounds: an 8s inhale/exhale that ripples out from the piece's
+     center (circles swell ~20% and spread 7%), matching /anim and the GIFs. */
+  const BREATH_S = 8;
+  const BREATHERS = new Map();
+  let breathRaf = 0;
+  function isBreathing(tokenId){
+    const s = heldSince(tokenId);
+    return !!s && (Date.now() / 1000 - s) / 86400 >= MOVE_DAYS;
+  }
+  function breathCenter(c){
+    let cx = 0, cy = 0, w = 0, far = 1;
+    for (let i = 0; i < c.length; i += 3) { const a = c[i+2] * c[i+2]; cx += c[i] * a; cy += c[i+1] * a; w += a; }
+    if (w) { cx /= w; cy /= w; } else { cx = cy = 5000; }
+    for (let i = 0; i < c.length; i += 3) far = Math.max(far, Math.hypot(c[i] - cx, c[i+1] - cy));
+    return { cx, cy, far };
+  }
+  function paintBreath(j, sec){
+    const { ctx, size, circles: c, cx, cy, far } = j, k = size / 10000;
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, size, size);
     ctx.fillStyle = '#ccff00';
-    const k = size / 10000;
     ctx.beginPath();
-    for (let i = 0; i < circles.length; i += 3) {
-      const x = circles[i] * k, y = circles[i+1] * k, r = circles[i+2] * k;
+    for (let i = 0; i < c.length; i += 3) {
+      let x = c[i], y = c[i+1], r = c[i+2];
+      if (sec !== null && sec !== 0) {
+        const u = (1 - Math.cos(sec / BREATH_S * 6.283 - Math.hypot(x - cx, y - cy) / far * 1.2)) / 2;
+        const b = u * u * (3 - 2 * u), sp = 1 + .07 * b;
+        x = cx + (x - cx) * sp; y = cy + (y - cy) * sp; r = r * (.94 + .2 * b);
+      }
+      x *= k; y *= k; r *= k;
       ctx.moveTo(x + r, y);
       ctx.arc(x, y, r, 0, Math.PI * 2);
     }
     ctx.fill();
-    return rec;
+  }
+  function startBreathing(){
+    if (breathRaf || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    const tick = (t) => {
+      for (const [cv, j] of BREATHERS) { if (!cv.isConnected) BREATHERS.delete(cv); else paintBreath(j, t / 1000 % BREATH_S || 1e-6); }
+      breathRaf = BREATHERS.size ? requestAnimationFrame(tick) : 0;
+    };
+    breathRaf = requestAnimationFrame(tick);
   }
 
   function renderPieces(ids){
