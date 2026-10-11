@@ -4,8 +4,8 @@
 //   GET /anim/<theme>/<id>  the moving version, in a holiday's colors
 //
 // /meta is the original IPFS metadata, byte for byte, except:
-//  · held 20+ days by the same wallet → adds animation_url (/anim/<id>),
-//    the moving version. Sell it and the clock (and the motion) starts over
+//  · held 20+ days by the same wallet → image becomes a breathing GIF
+//    (/gif/<id>.gif) and animation_url the full animation (/anim/<id>). Sell it and the clock (and the motion) starts over
 //    with the new owner.
 //  · on a holiday in data/themes.json (midnight to midnight Pacific) →
 //    image is that day's recolor (/art/<theme>/<id>.svg), and a moving
@@ -65,7 +65,12 @@ export default {
     } catch { /* any trouble: serve the still, never break metadata */ }
     try { theme = await activeTheme(env, url.origin, url.searchParams.get("theme")); } catch { theme = null; }
     let out = meta;
-    if (moving) out = { image: meta.image, animation_url: `${SITE}/anim/${id}`, ...meta };
+    // breathing GIF as the image so it moves in marketplace grids too; the
+    // full animation plays when the NFT is opened
+    if (moving) {
+      const gif = await env.ASSETS.fetch(new Request(`${url.origin}/gif/${id}.gif`, { method: "HEAD" })).catch(() => null);
+      out = { ...meta, image: gif && gif.ok ? `${SITE}/gif/${id}.gif` : meta.image, animation_url: `${SITE}/anim/${id}` };
+    }
     if (theme) {
       out = { ...out, image: `${SITE}/art/${theme.id}/${id}.svg` };
       if (moving) out.animation_url = `${SITE}/anim/${theme.id}/${id}`;

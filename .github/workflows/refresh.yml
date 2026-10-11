@@ -55,6 +55,15 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: node scripts/moving.mjs compute || echo "moving list skipped"
 
+      - name: Breathing GIFs (cached; only built when the art changes)
+        uses: actions/cache@v4
+        with:
+          path: site/gif
+          key: gif-${{ hashFiles('scripts/build-gif.py', 'site/data/pieces.json') }}
+
+      - name: Build any missing breathing GIFs
+        run: pip install --quiet pillow && python3 scripts/build-gif.py
+
       - name: Holiday art (site/art, built fresh each run)
         run: node scripts/build-themes.mjs
 
