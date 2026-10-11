@@ -117,6 +117,27 @@ html,body{overflow-anchor:none;height:auto;min-height:0}
   .facts div:nth-child(3){border-left:0;padding-left:0}
   .facts div:nth-child(n+3){border-top:1px solid var(--line)}
 }
+.lt{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;counter-reset:lt}
+.lt-card{border:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column}
+.lt-media{position:relative;aspect-ratio:1;overflow:hidden;background:#000}
+.lt-media img,.lt-media svg{display:block;width:100%;height:100%;object-fit:cover}
+.lt-card.tba .lt-media img,.lt-card.beyond .lt-media img{filter:blur(16px) brightness(.8);transform:scale(1.18)}
+.lt-media .q{position:absolute;inset:0;display:grid;place-items:center;font:800 clamp(56px,8vw,96px)/1 var(--display);color:var(--bg);opacity:.92;text-shadow:0 0 2px var(--lime),0 0 22px rgba(204,255,0,.55)}
+.lt-cap{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:12px 14px 14px;align-items:baseline}
+.lt-cap b{font-weight:800;font-size:22px;letter-spacing:-.02em}
+.lt-cap span{color:var(--muted);text-align:right}
+.lt-cap em{grid-column:1/-1;font-style:normal;font-size:11px;display:flex;align-items:center;gap:6px}
+.lt-card.live{border-color:var(--lime)}
+.lt-card.live .lt-cap span{color:var(--lime)}
+.lt-card.live em{color:var(--lime)}
+.lt-card .dot{width:8px;height:8px;border-radius:50%;background:var(--lime);display:inline-block;animation:ltpulse 2s ease-in-out infinite}
+@keyframes ltpulse{50%{opacity:.25;transform:scale(.7)}}
+@media (prefers-reduced-motion:reduce){.lt-card .dot{animation:none}}
+@media (max-width:820px){.lt{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.lt-cap{padding:10px 10px 12px}.lt-cap b{font-size:18px}.lt-cap em{font-size:10px;letter-spacing:.03em;white-space:nowrap}}
+
+.sec-tabs{display:flex;gap:8px;margin-bottom:28px}
+.sec-tabs button{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;background:transparent;color:var(--lime);border:1px solid var(--lime);padding:0 18px;min-height:44px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.sec-tabs button[aria-selected="true"]{background:var(--lime);color:#000}
 </style>
 </head>
 <body>
@@ -146,6 +167,7 @@ html,body{overflow-anchor:none;height:auto;min-height:0}
 
   <div class="facts" id="facts"></div>
 
+
   <section id="traits">
     <h2>Ten layouts. Six scales. One color.</h2>
     
@@ -153,6 +175,29 @@ html,body{overflow-anchor:none;height:auto;min-height:0}
   </section>
 
   <section id="arcade" class="arcade">
+    <div class="sec-tabs" role="tablist" aria-label="Rounds">
+      <button type="button" role="tab" id="st-living" aria-controls="living" aria-selected="true">Timeline</button>
+      <button type="button" role="tab" id="st-arcade" aria-controls="arcadePane" aria-selected="false">Arcade</button>
+    </div>
+    <div id="living" role="tabpanel" aria-labelledby="st-living">
+    <h2>It lives as long as you hold it.</h2>
+    <p class="sub">Every 20 days a Round stays in the same wallet, it wakes up a little more. Sell it and it goes back to sleep. The clock starts over for the next owner.</p>
+    <ol class="lt">
+      <li class="lt-card done"><div class="lt-media"><svg viewBox="0 0 10000 10000" aria-hidden="true"><rect width="10000" height="10000" fill="#000"/><g fill="#ccff00"><circle cx="3261" cy="5885" r="143"/><circle cx="8324" cy="3370" r="410"/><circle cx="4474" cy="4835" r="195"/><circle cx="5373" cy="5413" r="75"/><circle cx="5870" cy="6964" r="50"/><circle cx="7318" cy="3935" r="681"/><circle cx="4523" cy="2161" r="1018"/><circle cx="6712" cy="5599" r="50"/><circle cx="4308" cy="5887" r="503"/><circle cx="4813" cy="8540" r="1031"/><circle cx="5142" cy="3274" r="50"/><circle cx="6321" cy="6845" r="50"/><circle cx="3206" cy="7730" r="467"/><circle cx="5915" cy="4575" r="50"/><circle cx="6346" cy="773" r="1108"/><circle cx="4631" cy="3999" r="622"/><circle cx="3091" cy="3395" r="642"/><circle cx="2528" cy="5812" r="50"/><circle cx="4175" cy="7088" r="282"/><circle cx="5795" cy="3711" r="319"/><circle cx="3137" cy="4889" r="679"/><circle cx="7441" cy="5928" r="702"/><circle cx="1893" cy="5088" r="131"/><circle cx="2229" cy="6574" r="365"/><circle cx="5704" cy="6208" r="50"/><circle cx="2399" cy="2367" r="375"/><circle cx="5872" cy="5160" r="450"/><circle cx="8442" cy="8002" r="729"/><circle cx="5363" cy="4853" r="112"/><circle cx="6331" cy="3822" r="165"/><circle cx="4993" cy="6882" r="309"/><circle cx="3497" cy="173" r="719"/><circle cx="8849" cy="4534" r="752"/><circle cx="6280" cy="7192" r="199"/><circle cx="8068" cy="2460" r="391"/><circle cx="852" cy="3337" r="1048"/><circle cx="4767" cy="5082" r="100"/><circle cx="660" cy="5553" r="625"/><circle cx="5543" cy="6363" r="50"/><circle cx="3676" cy="8980" r="64"/><circle cx="3722" cy="9979" r="49"/><circle cx="5216" cy="5936" r="269"/><circle cx="8059" cy="9214" r="333"/><circle cx="6944" cy="2421" r="476"/><circle cx="603" cy="1507" r="407"/><circle cx="5558" cy="7113" r="48"/><circle cx="9775" cy="6532" r="696"/><circle cx="2145" cy="6005" r="49"/><circle cx="3320" cy="6135" r="50"/><circle cx="5740" cy="2957" r="387"/><circle cx="2501" cy="1032" r="480"/><circle cx="9241" cy="2653" r="326"/><circle cx="6612" cy="5095" r="70"/><circle cx="2623" cy="4080" r="92"/><circle cx="591" cy="8396" r="1075"/><circle cx="5372" cy="7246" r="49"/><circle cx="3093" cy="1115" r="59"/><circle cx="6393" cy="6208" r="350"/><circle cx="2960" cy="5810" r="50"/><circle cx="1068" cy="9721" r="289"/><circle cx="1359" cy="6714" r="438"/><circle cx="8443" cy="6078" r="108"/><circle cx="9074" cy="1496" r="361"/><circle cx="7173" cy="8096" r="180"/><circle cx="3571" cy="6490" r="336"/><circle cx="5548" cy="4320" r="112"/><circle cx="4496" cy="7422" r="63"/><circle cx="7378" cy="4947" r="50"/><circle cx="3040" cy="9319" r="616"/><circle cx="5779" cy="4522" r="45"/><circle cx="2486" cy="7732" r="204"/><circle cx="6431" cy="8758" r="502"/><circle cx="9411" cy="1008" r="174"/><circle cx="3119" cy="6941" r="266"/><circle cx="6121" cy="2185" r="260"/><circle cx="6553" cy="4687" r="261"/><circle cx="7564" cy="7109" r="282"/><circle cx="3825" cy="3785" r="53"/><circle cx="4628" cy="607" r="122"/><circle cx="6621" cy="7816" r="388"/><circle cx="9234" cy="5561" r="287"/><circle cx="7164" cy="4893" r="50"/><circle cx="2215" cy="4163" r="60"/><circle cx="9600" cy="8042" r="91"/><circle cx="1517" cy="5566" r="70"/><circle cx="264" cy="4529" r="236"/><circle cx="5776" cy="4337" r="49"/><circle cx="167" cy="6510" r="163"/><circle cx="7799" cy="3112" r="50"/><circle cx="6355" cy="3071" r="158"/><circle cx="9324" cy="3456" r="373"/><circle cx="3878" cy="4334" r="49"/><circle cx="8472" cy="6512" r="272"/><circle cx="4285" cy="9984" r="244"/></g></svg></div><div class="lt-cap"><b>Day 1</b><span>Minted. Still.</span><em class="mono">Sep 20</em></div></li>
+      <li class="lt-card live"><div class="lt-media"><img src="/gif/49.gif" alt="Rounds #49 breathing" loading="lazy" width="360" height="360"></div><div class="lt-cap"><b>Day 20</b><span>Breathing</span><em class="mono"><i class="dot"></i>Live<span id="ltBreathing"></span></em></div></li>
+      <li class="lt-card tba"><div class="lt-media"><img src="/gif/159.gif" alt="" loading="lazy" width="360" height="360"><span class="q">?</span></div><div class="lt-cap"><b>Day 40</b><span>TBA</span><em class="mono">Earliest Oct 30</em></div></li>
+      <li class="lt-card tba"><div class="lt-media"><img src="/gif/128.gif" alt="" loading="lazy" width="360" height="360"><span class="q">?</span></div><div class="lt-cap"><b>Day 60</b><span>TBA</span><em class="mono">Earliest Nov 19</em></div></li>
+      <li class="lt-card tba"><div class="lt-media"><img src="/gif/48.gif" alt="" loading="lazy" width="360" height="360"><span class="q">?</span></div><div class="lt-cap"><b>Day 80</b><span>TBA</span><em class="mono">Earliest Dec 9</em></div></li>
+      <li class="lt-card tba"><div class="lt-media"><img src="/gif/420.gif" alt="" loading="lazy" width="360" height="360"><span class="q">?</span></div><div class="lt-cap"><b>Day 100</b><span>TBA</span><em class="mono">Earliest Dec 29</em></div></li>
+      <li class="lt-card tba"><div class="lt-media"><img src="/gif/463.gif" alt="" loading="lazy" width="360" height="360"><span class="q">?</span></div><div class="lt-cap"><b>Day 120</b><span>TBA</span><em class="mono">Earliest Jan 18</em></div></li>
+      <li class="lt-card tba"><div class="lt-media"><img src="/gif/226.gif" alt="" loading="lazy" width="360" height="360"><span class="q">?</span></div><div class="lt-cap"><b>Day 140</b><span>TBA</span><em class="mono">Earliest Feb 7</em></div></li>
+      <li class="lt-card tba"><div class="lt-media"><img src="/gif/362.gif" alt="" loading="lazy" width="360" height="360"><span class="q">?</span></div><div class="lt-cap"><b>Day 160</b><span>TBA</span><em class="mono">Earliest Feb 27</em></div></li>
+      <li class="lt-card tba"><div class="lt-media"><img src="/gif/22.gif" alt="" loading="lazy" width="360" height="360"><span class="q">?</span></div><div class="lt-cap"><b>Day 180</b><span>TBA</span><em class="mono">Earliest Mar 19</em></div></li>
+      <li class="lt-card tba"><div class="lt-media"><img src="/gif/531.gif" alt="" loading="lazy" width="360" height="360"><span class="q">?</span></div><div class="lt-cap"><b>Day 200</b><span>TBA</span><em class="mono">Earliest Apr 8</em></div></li>
+      <li class="lt-card beyond"><div class="lt-media"><img src="/gif/216.gif" alt="" loading="lazy" width="360" height="360"><span class="q">&infin;</span></div><div class="lt-cap"><b>Day 200+</b><span>And beyond</span><em class="mono">It keeps going</em></div></li>
+    </ol>
+    </div>
+    <div id="arcadePane" role="tabpanel" aria-labelledby="st-arcade" hidden>
     <h2>Rounds Arcade</h2>
     <p class="sub">No scoreboard, no promises.</p>
     <div class="arcade-grid">
@@ -173,6 +218,7 @@ html,body{overflow-anchor:none;height:auto;min-height:0}
           <button type="button" data-d="right" aria-label="Right" style="grid-column:3;grid-row:2">&rarr;</button>
         </div>
       </div>
+    </div>
     </div>
   </section>
 
@@ -714,5 +760,16 @@ $("shuffle").addEventListener("click", sample);
 
 </script>
 
+<script>
+// live count of breathing Rounds on the timeline
+fetch('/data/moving.json?t='+Date.now()).then(r=>r.ok?r.json():null).then(d=>{const n=d&&d.ids&&d.ids.length;const el=document.getElementById('ltBreathing');if(n&&el)el.textContent=' · '+n+' breathing';}).catch(()=>{});
+</script>
+<script>
+// Timeline / Arcade tabs (#arcade or #timeline in the URL opens that tab)
+(function(){const tl=document.getElementById('st-living'),ar=document.getElementById('st-arcade'),pl=document.getElementById('living'),pa=document.getElementById('arcadePane');
+function show(which){const a=which==='arcade';tl.setAttribute('aria-selected',String(!a));ar.setAttribute('aria-selected',String(a));pl.hidden=a;pa.hidden=!a;if(a)requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));}
+tl.addEventListener('click',()=>show('timeline'));ar.addEventListener('click',()=>show('arcade'));
+if(/arcade/i.test(location.hash))show('arcade');})();
+</script>
 </body>
 </html>
