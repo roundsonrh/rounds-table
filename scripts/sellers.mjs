@@ -52,13 +52,18 @@ const rev = [];
 function summarize(sales) {
   const by = new Map();
   for (const s of sales) (by.get(s.a) || by.set(s.a, []).get(s.a)).push(s);
+  const since30 = Date.now() / 1000 - 30 * 86400;
   const sellers = [...by].map(([a, xs]) => {
     const hs = xs.map((s) => s.h).filter((h) => h != null);
-    return { a, n: xs.length, vol: r6(xs.reduce((v, s) => v + (s.p || 0), 0)), med: med(hs), min: hs.length ? Math.min(...hs) : null, cols: new Set(xs.map((s) => s.c)).size, last: Math.max(...xs.map((s) => s.t)) };
+    // 30-day realized PnL: sale price minus what they paid, on sales in the
+    // last 30 days where the buy price is known (mints/transfers are left out)
+    const recent = xs.filter((s) => s.t >= since30), priced = recent.filter((s) => s.cost != null && s.p != null);
+    return { a, n: xs.length, vol: r6(xs.reduce((v, s) => v + (s.p || 0), 0)), med: med(hs), min: hs.length ? Math.min(...hs) : null, cols: new Set(xs.map((s) => s.c)).size, last: Math.max(...xs.map((s) => s.t)),
+      n30: recent.length, pnl30: priced.length ? r6(priced.reduce((v, s) => v + (s.p - s.cost), 0)) : null, priced30: priced.length };
   }).sort((x, y) => (y.n - x.n) || ((x.med ?? 1e12) - (y.med ?? 1e12)));
   const holds = sales.map((s) => s.h).filter((h) => h != null);
   return { sales: sales.length, sellers_count: sellers.length, median_hold: med(holds), within_day: holds.filter((h) => h < 86400).length, held_known: holds.length, sellers: sellers.slice(0, 300),
-    fastest: sales.filter((s) => s.h != null).sort((x, y) => (x.h - y.h) || (y.t - x.t)).slice(0, 150) };
+    fastest: sales.filter((s) => s.h != null).sort((x, y) => (x.h - y.h) || (y.t - x.t)).slice(0, 150).map((s) => ({ ...s, cost: s.cost == null ? null : r6(s.cost) })) };
 }
 function holdsFrom(events, keyOf) {
   const into = new Map();
@@ -71,17 +76,26 @@ function holdsFrom(events, keyOf) {
 let rounds = null;
 {
   const into = holdsFrom(rev, (e) => e.nft.identifier);
+  const bought = new Map();   // token:buyer → [[t, price]]
+  for (const e of rev) if (e.event_type === "sale" && e.nft) {
+    const k = e.nft.identifier + ":" + String(e.buyer).toLowerCase();
+    (bought.get(k) || bought.set(k, []).get(k)).push([e.event_timestamp, toEth(e.payment)]);
+  }
   const sales = rev.filter((e) => e.event_type === "sale" && e.nft).map((e) => {
     const a = String(e.seller).toLowerCase(), t = e.event_timestamp;
     const got = (into.get(e.nft.identifier + ":" + a) || []).filter((x) => x <= t);
-    return { c: "roundsonrh", id: e.nft.identifier, a, t, h: got.length ? t - Math.max(...got) : null, p: r6(toEth(e.payment)) };
+    const acq = got.length ? Math.max(...got) : null;
+    const buy = (bought.get(e.nft.identifier + ":" + a) || []).filter(([bt]) => bt <= t).sort((x, y) => y[0] - x[0])[0];
+    return { c: "roundsonrh", id: e.nft.identifier, a, t, h: acq != null ? t - acq : null, p: r6(toEth(e.payment)), cost: buy && buy[0] === acq ? buy[1] : null };
   });
   if (sales.length) rounds = summarize(sales);
 }
 
 /* ---------------- Chain: what Rounds holders sell everywhere ---------------- */
-let state = { accounts: {} };
+const STATE_VERSION = 2;   // 2: also keeps buys (for PnL)
+let state = { v: STATE_VERSION, accounts: {} };
 try { state = JSON.parse(fs.readFileSync(STATE, "utf8")); } catch {}
+if (state.v !== STATE_VERSION) state = { v: STATE_VERSION, accounts: {} };
 const holds = await fetch(SITE + "/data/holds.json").then((r) => r.json()).then((j) => j.holds).catch(() => null);
 const holders = holds ? [...new Set(Object.values(holds).map((h) => String(h.owner).toLowerCase()))] : Object.keys(state.accounts);
 // oldest-refreshed first, so a run that runs out of time picks up where the last one stopped
@@ -89,7 +103,8 @@ holders.sort((a, b) => ((state.accounts[a] || {}).at || 0) - ((state.accounts[b]
 let done = 0;
 for (const a of holders) {
   if ((Date.now() - t0) / 60000 > BUDGET_MIN) break;
-  const st = state.accounts[a] || { ins: [], sells: [], newest: 0, at: 0 };
+  const st = state.accounts[a] || { ins: [], sells: [], buys: [], newest: 0, at: 0 };
+  st.buys = st.buys || [];
   let next = null, pages = 0, newest = st.newest;
   const cap = st.newest ? 40 : FIRST_PAGES;
   outer: do {
@@ -102,6 +117,7 @@ for (const a of holders) {
       const k = String(e.nft.contract).toLowerCase() + ":" + e.nft.identifier;
       if (e.event_type === "transfer" && String(e.to_address).toLowerCase() === a) st.ins.push([k, e.event_timestamp]);
       if (e.event_type === "sale" && String(e.seller).toLowerCase() === a) st.sells.push([k, e.nft.collection, e.event_timestamp, r6(toEth(e.payment))]);
+      if (e.event_type === "sale" && String(e.buyer).toLowerCase() === a) st.buys.push([k, e.event_timestamp, r6(toEth(e.payment))]);
     }
     next = j.next; pages++;
   } while (next && pages < cap);
@@ -115,9 +131,13 @@ const chainSales = [];
 for (const [a, st] of Object.entries(state.accounts)) {
   const into = new Map();
   for (const [k, t] of st.ins) (into.get(k) || into.set(k, []).get(k)).push(t);
+  const buys = new Map();
+  for (const [k, t, p] of st.buys || []) (buys.get(k) || buys.set(k, []).get(k)).push([t, p]);
   for (const [k, c, t, p] of st.sells) {
     const got = (into.get(k) || []).filter((x) => x <= t);
-    chainSales.push({ c, id: k.split(":")[1], a, t, h: got.length ? t - Math.max(...got) : null, p });
+    const acq = got.length ? Math.max(...got) : null;
+    const buy = (buys.get(k) || []).filter(([bt]) => bt <= t).sort((x, y) => y[0] - x[0])[0];
+    chainSales.push({ c, id: k.split(":")[1], a, t, h: acq != null ? t - acq : null, p, cost: buy && buy[0] === acq ? buy[1] : null });
   }
 }
 let chain = null;

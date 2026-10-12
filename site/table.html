@@ -607,6 +607,15 @@
     .bar-fill{transition:none}
   }
 
+  .sell-head{padding:6px 4px 8px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint)}
+  .sell-head span:nth-child(n+3){text-align:right}
+  .sell-row .pnl{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--text-dim)}
+  .sell-row .pnl.up{color:var(--accent)}
+  .sell-row .pnl.dn{color:#ff6b6b}
+  .sell-row .pnl small{display:block;color:var(--text-faint);font-size:11px;margin-top:3px}
+  .sell-list.nopnl .sell-row,.sell-list.nopnl .sell-head{grid-template-columns:28px minmax(0,1fr) auto}
+  .sell-list.nopnl .pnl{display:none}
+  @media (max-width:560px){.sell-row,.sell-head{grid-template-columns:20px minmax(0,1fr) auto 62px;gap:8px}.sell-row{font-size:11px}.sell-row .pnl small{display:none}}
   .sell-gate{display:grid;place-items:center;min-height:320px;border:1px dashed var(--line);border-radius:16px;background:var(--surface);padding:32px 18px;text-align:center}
   .sell-gate-in b{display:block;font-family:var(--display);font-size:clamp(22px,3vw,30px);font-weight:700;letter-spacing:-.015em;color:var(--text)}
   .sell-gate-in p{font-family:var(--mono);font-size:13px;color:var(--accent);margin:10px 0 22px}
@@ -615,7 +624,7 @@
   .sell-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:18px 0 12px}
   .sell-bar .note{font-family:var(--mono);font-size:11px;color:var(--text-dim)}
   .sell-list{padding:8px 14px}
-  .sell-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line-soft);font-family:var(--mono);font-size:12px}
+  .sell-row,.sell-head{display:grid;grid-template-columns:28px minmax(0,1fr) auto 104px;gap:12px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line-soft);font-family:var(--mono);font-size:12px}
   .sell-row:last-child{border-bottom:0}
   .sell-row.me{background:rgba(204,255,0,.07);border-radius:8px}
   .sell-row .rk{color:var(--text-faint);text-align:right;font-variant-numeric:tabular-nums}
@@ -3274,6 +3283,8 @@
     return fmtHeld(s);
   }
   const fmtEth = (p) => p == null ? '—' : (p >= 0.01 ? p.toFixed(3) : p.toFixed(4)) + ' ETH';
+  const fmtPnl = (x) => x == null ? '—' : (x > 0 ? '+' : x < 0 ? '−' : '') + (Math.abs(x) >= 0.01 ? Math.abs(x).toFixed(3) : Math.abs(x).toFixed(4));
+  const pnlCls = (x) => x == null ? '' : x > 0 ? ' up' : x < 0 ? ' dn' : '';
   function sellerName(a){ return a === TREASURY ? 'Rounds treasury' : displayName(a); }
   function sellLink(a){ return `<a href="https://opensea.io/${esc(a)}" target="_blank" rel="noopener noreferrer">${esc(sellerName(a))}</a>`; }
   function colName(d, c){ return (d.names && d.names[c]) || (c === 'roundsonrh' ? 'Rounds' : c); }
@@ -3301,19 +3312,22 @@
     let rows = [], hint = '';
     if (sellView === 'most') {
       rows = d.sellers.slice(0, 25).map(s => ({ a: s.a, name: sellLink(s.a),
-        sub: `median hold ${fmtDur(s.med)}` + (chain ? ` · ${s.cols} collection${s.cols === 1 ? '' : 's'}` : ''), v: `${s.n} sold`, vs: fmtEth(s.vol) }));
+        sub: `median hold ${fmtDur(s.med)}` + (chain ? ` · ${s.cols} collection${s.cols === 1 ? '' : 's'}` : ''), v: `${s.n} sold`, vs: fmtEth(s.vol),
+        pnl: s.pnl30, ps: s.pnl30 == null ? (s.n30 ? 'no buy prices' : 'no sales') : `${s.priced30} of ${s.n30} sales` }));
       hint = 'Most sold';
     } else if (sellView === 'fast') {
       rows = d.fastest.slice(0, 25).map(s => ({ a: s.a,
         name: s.c === 'roundsonrh'
           ? `<a href="https://opensea.io/assets/robinhood/0x8cd655173351c6f619acb907ba08bf920b736d1c/${esc(s.id)}" target="_blank" rel="noopener noreferrer">Rounds #${esc(s.id)}</a>`
           : `<a href="https://opensea.io/collection/${esc(s.c)}" target="_blank" rel="noopener noreferrer">${esc(colName(d, s.c))} #${esc(s.id)}</a>`,
-        sub: `sold by ${esc(sellerName(s.a))} · ${day(s.t)}`, v: `held ${fmtDur(s.h)}`, vs: fmtEth(s.p) }));
+        sub: `sold by ${esc(sellerName(s.a))} · ${day(s.t)}`, v: fmtDur(s.h), vs: fmtEth(s.p),
+        pnl: s.cost != null && s.p != null ? s.p - s.cost : null, ps: s.cost != null ? 'this flip' : 'minted / sent' }));
       hint = 'Quickest single flips';
     } else if (sellView === 'short') {
       const minN = chain ? 5 : 3;
       rows = d.sellers.filter(s => s.n >= minN && s.med != null).sort((x, y) => x.med - y.med).slice(0, 25)
-        .map(s => ({ a: s.a, name: sellLink(s.a), sub: `${s.n} sold · fastest ${fmtDur(s.min)}`, v: fmtDur(s.med), vs: 'median hold' }));
+        .map(s => ({ a: s.a, name: sellLink(s.a), sub: `${s.n} sold · fastest ${fmtDur(s.min)}`, v: fmtDur(s.med), vs: 'median hold',
+          pnl: s.pnl30, ps: s.pnl30 == null ? (s.n30 ? 'no buy prices' : 'no sales') : `${s.priced30} of ${s.n30} sales` }));
       hint = `Sellers with ${minN}+ sales, shortest median hold`;
     } else {
       rows = (d.collections || []).slice(0, 40).map(c => ({ a: null,
@@ -3323,7 +3337,11 @@
     }
     const mine = me && d.sellers.find(s => s.a === me);
     $('sellHint').textContent = hint + (mine ? ` · you've sold ${mine.n}` : '');
-    list.innerHTML = rows.length ? rows.map((r, i) => `<div class="sell-row${i < 3 ? ' top' : ''}${r.a && r.a === me ? ' me' : ''}"><span class="rk">${i + 1}</span><span class="nm">${r.name}<small>${r.sub}</small></span><span class="v">${esc(r.v)}<small>${esc(r.vs)}</small></span></div>`).join('')
+    const withPnl = sellView !== 'cols';
+    list.classList.toggle('nopnl', !withPnl);
+    const head = `<div class="sell-head"><span>#</span><span>${sellView === 'fast' ? 'NFT' : sellView === 'cols' ? 'Collection' : 'Wallet'}</span><span>${sellView === 'cols' ? 'Sales' : sellView === 'fast' ? 'Held' : sellView === 'short' ? 'Hold' : 'Sold'}</span><span class="pnl">${sellView === 'fast' ? 'Profit' : '30d PnL'}</span></div>`;
+    list.innerHTML = rows.length ? head + rows.map((r, i) => `<div class="sell-row${i < 3 ? ' top' : ''}${r.a && r.a === me ? ' me' : ''}"><span class="rk">${i + 1}</span><span class="nm">${r.name}<small>${r.sub}</small></span><span class="v">${esc(r.v)}<small>${esc(r.vs)}</small></span><span class="pnl${pnlCls(r.pnl)}">${esc(fmtPnl(r.pnl))}<small>${esc(r.ps || '')}</small></span></div>`).join('')
+        + (withPnl ? '<div class="lb-empty">PnL is in ETH: sale price minus what they paid, on sales with a known buy price. Mints and transfers are left out.</div>' : '')
       : '<div class="lb-empty">No sales yet.</div>';
   }
   $('sellView').addEventListener('click', e => {
