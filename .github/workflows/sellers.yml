@@ -1,0 +1,45 @@
+name: Sellers data
+
+# Once a day: OpenSea sales for the table's Sellers tab (scripts/sellers.mjs).
+# Rounds holders' account histories are cached between runs, so after the
+# first (long) run only new events are fetched. The 2-hourly refresh restores
+# the latest cache, so every publish carries the newest sellers.json.
+on:
+  schedule:
+    - cron: "41 10 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: sellers
+  cancel-in-progress: false
+
+jobs:
+  sellers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 130
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Restore last sellers data
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .sellers-state
+            site/data/sellers.json
+          key: sellers-${{ github.run_id }}
+          restore-keys: sellers-
+      - name: Pull sales from OpenSea
+        env:
+          OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
+          SELLERS_BUDGET_MIN: "100"
+        run: node scripts/sellers.mjs
+      - name: Save sellers data
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .sellers-state
+            site/data/sellers.json
+          key: sellers-${{ github.run_id }}

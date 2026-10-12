@@ -5,3 +5,4 @@ node_modules/
 moving-diff.json
 site/art/
 site/gif/
+.sellers-state/

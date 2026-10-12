@@ -67,6 +67,15 @@ jobs:
       - name: Holiday art (site/art, built fresh each run)
         run: node scripts/build-themes.mjs
 
+      - name: Sellers data (from the daily sellers run)
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .sellers-state
+            site/data/sellers.json
+          key: sellers-none
+          restore-keys: sellers-
+
       - name: Publish to roundsonrh.com
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -606,6 +606,26 @@
   @media (prefers-reduced-motion:reduce){
     .bar-fill{transition:none}
   }
+
+  .sell-gate{display:grid;place-items:center;min-height:320px;border:1px dashed var(--line);border-radius:16px;background:var(--surface);padding:32px 18px;text-align:center}
+  .sell-gate-in b{display:block;font-family:var(--display);font-size:clamp(22px,3vw,30px);font-weight:700;letter-spacing:-.015em;color:var(--text)}
+  .sell-gate-in p{font-family:var(--mono);font-size:13px;color:var(--accent);margin:10px 0 22px}
+  .sell-gate-in button{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;background:var(--accent);color:#000;border:0;border-radius:10px;padding:12px 28px;cursor:pointer;font-weight:600}
+  .sell-gate-in button:hover{filter:brightness(1.1)}
+  .sell-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:18px 0 12px}
+  .sell-bar .note{font-family:var(--mono);font-size:11px;color:var(--text-dim)}
+  .sell-list{padding:8px 14px}
+  .sell-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line-soft);font-family:var(--mono);font-size:12px}
+  .sell-row:last-child{border-bottom:0}
+  .sell-row.me{background:rgba(204,255,0,.07);border-radius:8px}
+  .sell-row .rk{color:var(--text-faint);text-align:right;font-variant-numeric:tabular-nums}
+  .sell-row.top .rk{color:var(--accent);font-weight:700}
+  .sell-row .nm{min-width:0;color:var(--text)}
+  .sell-row .nm a{color:inherit;text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sell-row .nm a:hover{color:var(--accent)}
+  .sell-row .nm small{display:block;color:var(--text-faint);font-size:11px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sell-row .v{color:var(--accent);font-weight:600;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .sell-row .v small{display:block;color:var(--text-faint);font-weight:400;font-size:11px;margin-top:3px}
 </style>
 </head>
 <body>
@@ -735,6 +755,7 @@
         <button type="button" class="tab" role="tab" id="tab-table" data-tab="table" aria-controls="pane-table" aria-selected="true">Your Table</button>
         <button type="button" class="tab" role="tab" id="tab-pieces" data-tab="pieces" aria-controls="pane-pieces" aria-selected="false">Your Rounds<span class="ct" id="tabPiecesCt"></span></button>
         <button type="button" class="tab" role="tab" id="tab-pfp" data-tab="pfp" aria-controls="pane-pfp" aria-selected="false">PFP studio</button>
+        <button type="button" class="tab" role="tab" id="tab-sellers" data-tab="sellers" aria-controls="pane-sellers" aria-selected="false">Sellers</button>
         <button type="button" class="tab" role="tab" id="tab-arcade" data-tab="arcade" aria-controls="pane-arcade" aria-selected="false" hidden>Arcade<span class="new" aria-hidden="true"></span></button>
       </div>
     </nav>
@@ -798,6 +819,42 @@
       <div class="moving" id="movingNote" hidden></div>
       <div class="pieces" id="piecesGrid"></div>
       <div class="pieces-more" id="piecesMore"></div>
+    </div>
+    </div>
+
+    <div class="pane" id="pane-sellers" role="tabpanel" aria-labelledby="tab-sellers" hidden>
+    <div class="sec">
+      <div class="sec-head">
+        <h2>Sellers</h2>
+        <div class="note" id="sellersNote">Who sells, how much and how fast, from OpenSea sales on Robinhood Chain.</div>
+      </div>
+      <div class="sell-gate" id="sellGate">
+        <div class="sell-gate-in">
+          <b>For informational purposes only.</b>
+          <p>Sell shame at your own risk.</p>
+          <button type="button" id="sellEnter">Enter</button>
+        </div>
+      </div>
+      <div id="sellBody" hidden>
+        <div class="sell-bar">
+          <div class="seg" id="sellScope" role="group" aria-label="Which sales">
+            <button type="button" data-s="chain" aria-pressed="true">All RH collections</button>
+            <button type="button" data-s="rounds" aria-pressed="false">Rounds</button>
+          </div>
+          <div class="note" id="sellScopeNote"></div>
+        </div>
+        <div class="grid" id="sellStats"></div>
+        <div class="sell-bar">
+          <div class="seg" id="sellView" role="group" aria-label="Sort sellers">
+            <button type="button" data-v="most" aria-pressed="true">Most sold</button>
+            <button type="button" data-v="fast" aria-pressed="false">Fastest flips</button>
+            <button type="button" data-v="short" aria-pressed="false">Shortest holds</button>
+            <button type="button" data-v="cols" aria-pressed="false">Collections</button>
+          </div>
+          <div class="note" id="sellHint"></div>
+        </div>
+        <div class="panel sell-list" id="sellList"><div class="lb-empty">Loading sales…</div></div>
+      </div>
     </div>
     </div>
 
@@ -3193,10 +3250,96 @@
       if (accounts && accounts[0] && !gate.hidden) { activeProvider = w.provider; watch(w.provider); checkAndRender(accounts[0]); }
     } catch (e) {}
   }, 350);
+
+  /* ---------------- sellers ----------------
+     data/sellers.json (scripts/sellers.mjs): OpenSea sales with how long the
+     seller held the NFT first. "chain" = every sale Rounds holders made across
+     Robinhood Chain; "rounds" = every sale of a Round. Behind an Enter gate. */
+  const TREASURY = '0x7146fe7024087a8dafd7f5933c7e3431aed6a3e6';
+  let SELLERS = null, sellView = 'most', sellScope = 'chain', sellersLoading = null;
+  $('sellEnter').addEventListener('click', () => { $('sellGate').hidden = true; $('sellBody').hidden = false; loadSellers(); });
+  async function loadSellers(){
+    if ($('sellBody').hidden) return;
+    if (!SELLERS) {
+      sellersLoading = sellersLoading || fetch('/data/sellers.json?t=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null);
+      SELLERS = await sellersLoading;
+    }
+    renderSellers();
+  }
+  function fmtDur(s){
+    if (s === null || s === undefined || !Number.isFinite(s)) return '—';
+    if (s < 60) return '<1 min';
+    if (s < 3600) return Math.floor(s / 60) + ' min';
+    if (s < 86400) { const h = Math.floor(s / 3600); return h + (h === 1 ? ' hr' : ' hrs'); }
+    return fmtHeld(s);
+  }
+  const fmtEth = (p) => p == null ? '—' : (p >= 0.01 ? p.toFixed(3) : p.toFixed(4)) + ' ETH';
+  function sellerName(a){ return a === TREASURY ? 'Rounds treasury' : displayName(a); }
+  function sellLink(a){ return `<a href="https://opensea.io/${esc(a)}" target="_blank" rel="noopener noreferrer">${esc(sellerName(a))}</a>`; }
+  function colName(d, c){ return (d.names && d.names[c]) || (c === 'roundsonrh' ? 'Rounds' : c); }
+  function renderSellers(){
+    const all = SELLERS, list = $('sellList');
+    const d = all && all[sellScope];
+    $('sellView').querySelector('[data-v="cols"]').hidden = sellScope !== 'chain';
+    if (sellScope !== 'chain' && sellView === 'cols') sellView = 'most';
+    document.querySelectorAll('#sellView button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.v === sellView)));
+    document.querySelectorAll('#sellScope button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.s === sellScope)));
+    if (!d) { list.innerHTML = '<div class="lb-empty">This data isn\'t ready yet. Check back after the next refresh.</div>'; $('sellStats').innerHTML = ''; $('sellScopeNote').textContent = ''; $('sellHint').textContent = ''; return; }
+    const chain = sellScope === 'chain';
+    $('sellScopeNote').textContent = chain
+      ? `Sales by ${d.accounts} Rounds holders across Robinhood Chain`
+      : 'Every Rounds sale since mint';
+    const pct = d.held_known ? Math.round(100 * d.within_day / d.held_known) : 0;
+    $('sellStats').innerHTML = [
+      ['Sales', d.sales.toLocaleString(), chain ? 'by Rounds holders' : 'on OpenSea since mint'],
+      [chain ? 'Holders who sold' : 'Wallets that sold', d.sellers_count.toLocaleString(), chain ? `${d.never_sold} never sold anything` : 'at least one Round'],
+      ['Median hold', fmtDur(d.median_hold), 'before selling'],
+      ['Sold within a day', pct + '%', `of sales with a known buy time`],
+    ].map(([l, v, sub]) => `<div class="stat"><div class="label">${l}</div><div class="value textual">${esc(v)}</div><div class="sub">${esc(sub)}</div></div>`).join('');
+    const me = currentAddr ? String(currentAddr).toLowerCase() : null;
+    const day = (t) => new Date(t * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    let rows = [], hint = '';
+    if (sellView === 'most') {
+      rows = d.sellers.slice(0, 25).map(s => ({ a: s.a, name: sellLink(s.a),
+        sub: `median hold ${fmtDur(s.med)}` + (chain ? ` · ${s.cols} collection${s.cols === 1 ? '' : 's'}` : ''), v: `${s.n} sold`, vs: fmtEth(s.vol) }));
+      hint = 'Most sold';
+    } else if (sellView === 'fast') {
+      rows = d.fastest.slice(0, 25).map(s => ({ a: s.a,
+        name: s.c === 'roundsonrh'
+          ? `<a href="https://opensea.io/assets/robinhood/0x8cd655173351c6f619acb907ba08bf920b736d1c/${esc(s.id)}" target="_blank" rel="noopener noreferrer">Rounds #${esc(s.id)}</a>`
+          : `<a href="https://opensea.io/collection/${esc(s.c)}" target="_blank" rel="noopener noreferrer">${esc(colName(d, s.c))} #${esc(s.id)}</a>`,
+        sub: `sold by ${esc(sellerName(s.a))} · ${day(s.t)}`, v: `held ${fmtDur(s.h)}`, vs: fmtEth(s.p) }));
+      hint = 'Quickest single flips';
+    } else if (sellView === 'short') {
+      const minN = chain ? 5 : 3;
+      rows = d.sellers.filter(s => s.n >= minN && s.med != null).sort((x, y) => x.med - y.med).slice(0, 25)
+        .map(s => ({ a: s.a, name: sellLink(s.a), sub: `${s.n} sold · fastest ${fmtDur(s.min)}`, v: fmtDur(s.med), vs: 'median hold' }));
+      hint = `Sellers with ${minN}+ sales, shortest median hold`;
+    } else {
+      rows = (d.collections || []).slice(0, 40).map(c => ({ a: null,
+        name: `<a href="https://opensea.io/collection/${esc(c.c)}" target="_blank" rel="noopener noreferrer">${esc(colName(d, c.c))}</a>`,
+        sub: `${c.sellers} holder${c.sellers === 1 ? '' : 's'} sold · ${(c.known || c.n) ? Math.round(100 * c.within_day / (c.known || c.n)) : 0}% within a day`, v: `${c.n} sales`, vs: `median hold ${fmtDur(c.med)}` }));
+      hint = 'What Rounds holders sell most';
+    }
+    const mine = me && d.sellers.find(s => s.a === me);
+    $('sellHint').textContent = hint + (mine ? ` · you've sold ${mine.n}` : '');
+    list.innerHTML = rows.length ? rows.map((r, i) => `<div class="sell-row${i < 3 ? ' top' : ''}${r.a && r.a === me ? ' me' : ''}"><span class="rk">${i + 1}</span><span class="nm">${r.name}<small>${r.sub}</small></span><span class="v">${esc(r.v)}<small>${esc(r.vs)}</small></span></div>`).join('')
+      : '<div class="lb-empty">No sales yet.</div>';
+  }
+  $('sellView').addEventListener('click', e => {
+    const b = e.target.closest('button[data-v]');
+    if (!b || b.dataset.v === sellView) return;
+    sellView = b.dataset.v; renderSellers();
+  });
+  $('sellScope').addEventListener('click', e => {
+    const b = e.target.closest('button[data-s]');
+    if (!b || b.dataset.s === sellScope) return;
+    sellScope = b.dataset.s; renderSellers();
+  });
   /* ---------------- tabs ----------------
      Three panes instead of one long scroll. The hash keeps the tab in the
      URL, so a post can link straight to #pfp. */
-  const TABS = ['table', 'pieces', 'pfp', 'arcade'];
+  const TABS = ['table', 'pieces', 'pfp', 'sellers', 'arcade'];
   let piecesPainted = false;
   function setTab(name, opts){
     if (!TABS.includes(name)) name = 'table';
@@ -3214,6 +3357,7 @@
       piecesPainted = true;
     }
     if (name === 'pfp') pfpRender();
+    if (name === 'sellers') loadSellers();
     if (name === 'arcade') arc.enter(); else arc.leave();
     const want = name === 'table' ? '' : '#' + name;
     if (location.hash !== want) {
