@@ -618,7 +618,7 @@
   @media (max-width:560px){.sell-row,.sell-head{grid-template-columns:20px minmax(0,1fr) auto 62px;gap:8px}.sell-row{font-size:11px}.sell-row .pnl small{display:none}}
   .sell-gate{display:grid;place-items:center;min-height:320px;border:1px dashed var(--line);border-radius:16px;background:var(--surface);padding:32px 18px;text-align:center}
   .sell-gate-in b{display:block;font-family:var(--display);font-size:clamp(22px,3vw,30px);font-weight:700;letter-spacing:-.015em;color:var(--text)}
-  .sell-gate-in p{font-family:var(--mono);font-size:13px;color:var(--accent);margin:10px 0 22px}
+  .sell-gate-in b{margin-bottom:22px}
   .sell-gate-in button{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;background:var(--accent);color:#000;border:0;border-radius:10px;padding:12px 28px;cursor:pointer;font-weight:600}
   .sell-gate-in button:hover{filter:brightness(1.1)}
   .sell-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:18px 0 12px}
@@ -632,6 +632,7 @@
   .sell-row .nm{min-width:0;color:var(--text)}
   .sell-row .nm a{color:inherit;text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sell-row .nm a:hover{color:var(--accent)}
+  .sell-row .nm small a{display:inline;text-decoration:underline;text-decoration-color:var(--line)}
   .sell-row .nm small{display:block;color:var(--text-faint);font-size:11px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sell-row .v{color:var(--accent);font-weight:600;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
   .sell-row .v small{display:block;color:var(--text-faint);font-weight:400;font-size:11px;margin-top:3px}
@@ -835,13 +836,12 @@
     <div class="sec">
       <div class="sec-head">
         <h2>Sellers</h2>
-        <div class="note" id="sellersNote">Who sells, how much and how fast, from OpenSea sales on Robinhood Chain.</div>
+        <div class="note" id="sellersNote">Who sells how much and how fast</div>
       </div>
       <div class="sell-gate" id="sellGate">
         <div class="sell-gate-in">
-          <b>For informational purposes only.</b>
-          <p>Sell shame at your own risk.</p>
-          <button type="button" id="sellEnter">Enter</button>
+          <b>For informational purposes only</b>
+          <button type="button" id="sellEnter">Got it</button>
         </div>
       </div>
       <div id="sellBody" hidden>
@@ -3298,21 +3298,21 @@
     if (!d) { list.innerHTML = '<div class="lb-empty">This data isn\'t ready yet. Check back after the next refresh.</div>'; $('sellStats').innerHTML = ''; $('sellScopeNote').textContent = ''; $('sellHint').textContent = ''; return; }
     const chain = sellScope === 'chain';
     $('sellScopeNote').textContent = chain
-      ? `Sales by ${d.accounts} Rounds holders across Robinhood Chain`
+      ? `Sales by ${d.accounts} Rounds holders across Robinhood Chain, past 30 days`
       : 'Every Rounds sale since mint';
     const pct = d.held_known ? Math.round(100 * d.within_day / d.held_known) : 0;
     $('sellStats').innerHTML = [
-      ['Sales', d.sales.toLocaleString(), chain ? 'by Rounds holders' : 'on OpenSea since mint'],
-      [chain ? 'Holders who sold' : 'Wallets that sold', d.sellers_count.toLocaleString(), chain ? `${d.never_sold} never sold anything` : 'at least one Round'],
-      ['Median hold', fmtDur(d.median_hold), 'before selling'],
-      ['Sold within a day', pct + '%', `of sales with a known buy time`],
+      [chain ? 'Sales in the past 30 days' : 'Sales', d.sales.toLocaleString(), chain ? 'by Rounds holders' : 'on OpenSea since mint'],
+      [chain ? '30 day median hold' : 'Median hold', fmtDur(d.median_hold), 'before selling'],
+      ['Sold within a day', pct + '%', 'of sales with a known buy time'],
+      [chain ? 'Rounds holders PnL' : 'Rounds sellers PnL', fmtPnl(d.pnl30_total) + (d.pnl30_total == null ? '' : ' ETH'), `30 days · ${(d.pnl30_sales || 0).toLocaleString()} sales with a known buy price`],
     ].map(([l, v, sub]) => `<div class="stat"><div class="label">${l}</div><div class="value textual">${esc(v)}</div><div class="sub">${esc(sub)}</div></div>`).join('');
     const me = currentAddr ? String(currentAddr).toLowerCase() : null;
     const day = (t) => new Date(t * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     let rows = [], hint = '';
     if (sellView === 'most') {
       rows = d.sellers.slice(0, 25).map(s => ({ a: s.a, name: sellLink(s.a),
-        sub: `median hold ${fmtDur(s.med)}` + (chain ? ` · ${s.cols} collection${s.cols === 1 ? '' : 's'}` : ''), v: `${s.n} sold`, vs: fmtEth(s.vol),
+        sub: `avg hold ${fmtDur(s.avg)}`, v: `${s.n} NFT${s.n === 1 ? '' : 's'} sold`, vs: fmtEth(s.vol),
         pnl: s.pnl30, ps: s.pnl30 == null ? (s.n30 ? 'no buy prices' : 'no sales') : `${s.priced30} of ${s.n30} sales` }));
       hint = 'Most sold';
     } else if (sellView === 'fast') {
@@ -3320,26 +3320,26 @@
         name: s.c === 'roundsonrh'
           ? `<a href="https://opensea.io/assets/robinhood/0x8cd655173351c6f619acb907ba08bf920b736d1c/${esc(s.id)}" target="_blank" rel="noopener noreferrer">Rounds #${esc(s.id)}</a>`
           : `<a href="https://opensea.io/collection/${esc(s.c)}" target="_blank" rel="noopener noreferrer">${esc(colName(d, s.c))} #${esc(s.id)}</a>`,
-        sub: `sold by ${esc(sellerName(s.a))} · ${day(s.t)}`, v: fmtDur(s.h), vs: fmtEth(s.p),
+        sub: `sold by <a href="https://opensea.io/${esc(s.a)}" target="_blank" rel="noopener noreferrer">${esc(sellerName(s.a))}</a> · ${day(s.t)}`, v: fmtDur(s.h), vs: fmtEth(s.p),
         pnl: s.cost != null && s.p != null ? s.p - s.cost : null, ps: s.cost != null ? 'this flip' : 'minted / sent' }));
-      hint = 'Quickest single flips';
+      hint = 'Fastest flips (3 days)';
     } else if (sellView === 'short') {
       const minN = chain ? 5 : 3;
-      rows = d.sellers.filter(s => s.n >= minN && s.med != null).sort((x, y) => x.med - y.med).slice(0, 25)
-        .map(s => ({ a: s.a, name: sellLink(s.a), sub: `${s.n} sold · fastest ${fmtDur(s.min)}`, v: fmtDur(s.med), vs: 'median hold',
+      rows = d.sellers.filter(s => s.n >= minN && s.avg != null).sort((x, y) => x.avg - y.avg).slice(0, 25)
+        .map(s => ({ a: s.a, name: sellLink(s.a), sub: `${s.n} sold · fastest ${fmtDur(s.min)}`, v: fmtDur(s.avg), vs: 'avg hold',
           pnl: s.pnl30, ps: s.pnl30 == null ? (s.n30 ? 'no buy prices' : 'no sales') : `${s.priced30} of ${s.n30} sales` }));
-      hint = `Sellers with ${minN}+ sales, shortest median hold`;
+      hint = `Shortest avg hold · sellers with ${minN}+ sales`;
     } else {
       rows = (d.collections || []).slice(0, 40).map(c => ({ a: null,
         name: `<a href="https://opensea.io/collection/${esc(c.c)}" target="_blank" rel="noopener noreferrer">${esc(colName(d, c.c))}</a>`,
-        sub: `${c.sellers} holder${c.sellers === 1 ? '' : 's'} sold · ${(c.known || c.n) ? Math.round(100 * c.within_day / (c.known || c.n)) : 0}% within a day`, v: `${c.n} sales`, vs: `median hold ${fmtDur(c.med)}` }));
+        sub: `${c.sellers7 ?? 0} holder${c.sellers7 === 1 ? '' : 's'} sold in the past week`, v: `${c.n} sales`, vs: `avg hold ${fmtDur(c.avg)}` }));
       hint = 'What Rounds holders sell most';
     }
     const mine = me && d.sellers.find(s => s.a === me);
     $('sellHint').textContent = hint + (mine ? ` · you've sold ${mine.n}` : '');
     const withPnl = sellView !== 'cols';
     list.classList.toggle('nopnl', !withPnl);
-    const head = `<div class="sell-head"><span>#</span><span>${sellView === 'fast' ? 'NFT' : sellView === 'cols' ? 'Collection' : 'Wallet'}</span><span>${sellView === 'cols' ? 'Sales' : sellView === 'fast' ? 'Held' : sellView === 'short' ? 'Hold' : 'Sold'}</span><span class="pnl">${sellView === 'fast' ? 'Profit' : '30d PnL'}</span></div>`;
+    const head = `<div class="sell-head"><span>#</span><span>${sellView === 'fast' ? 'NFT' : sellView === 'cols' ? 'Collection' : 'Wallet'}</span><span>${sellView === 'cols' ? 'Sales' : sellView === 'fast' ? 'Held' : sellView === 'short' ? 'Avg hold' : 'Sold'}</span><span class="pnl">${sellView === 'fast' ? 'Profit' : '30d PnL'}</span></div>`;
     list.innerHTML = rows.length ? head + rows.map((r, i) => `<div class="sell-row${i < 3 ? ' top' : ''}${r.a && r.a === me ? ' me' : ''}"><span class="rk">${i + 1}</span><span class="nm">${r.name}<small>${r.sub}</small></span><span class="v">${esc(r.v)}<small>${esc(r.vs)}</small></span><span class="pnl${pnlCls(r.pnl)}">${esc(fmtPnl(r.pnl))}<small>${esc(r.ps || '')}</small></span></div>`).join('')
         + (withPnl ? '<div class="lb-empty">PnL is in ETH: sale price minus what they paid, on sales with a known buy price. Mints and transfers are left out.</div>' : '')
       : '<div class="lb-empty">No sales yet.</div>';

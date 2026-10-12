@@ -49,21 +49,28 @@ const rev = [];
     rev.push(...(j.asset_events || [])); next = j.next; pages++;
   } while (next && pages < 1000);
 }
-function summarize(sales) {
+function summarize(sales, windowDays) {
+  const now = Date.now() / 1000;
+  if (windowDays) sales = sales.filter((s) => s.t >= now - windowDays * 86400);
   const by = new Map();
   for (const s of sales) (by.get(s.a) || by.set(s.a, []).get(s.a)).push(s);
-  const since30 = Date.now() / 1000 - 30 * 86400;
+  const since30 = now - 30 * 86400;
+  const avg = (xs) => (xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : null);
   const sellers = [...by].map(([a, xs]) => {
     const hs = xs.map((s) => s.h).filter((h) => h != null);
     // 30-day realized PnL: sale price minus what they paid, on sales in the
     // last 30 days where the buy price is known (mints/transfers are left out)
     const recent = xs.filter((s) => s.t >= since30), priced = recent.filter((s) => s.cost != null && s.p != null);
-    return { a, n: xs.length, vol: r6(xs.reduce((v, s) => v + (s.p || 0), 0)), med: med(hs), min: hs.length ? Math.min(...hs) : null, cols: new Set(xs.map((s) => s.c)).size, last: Math.max(...xs.map((s) => s.t)),
+    return { a, n: xs.length, vol: r6(xs.reduce((v, s) => v + (s.p || 0), 0)), med: med(hs), avg: avg(hs), min: hs.length ? Math.min(...hs) : null, cols: new Set(xs.map((s) => s.c)).size, last: Math.max(...xs.map((s) => s.t)),
       n30: recent.length, pnl30: priced.length ? r6(priced.reduce((v, s) => v + (s.p - s.cost), 0)) : null, priced30: priced.length };
-  }).sort((x, y) => (y.n - x.n) || ((x.med ?? 1e12) - (y.med ?? 1e12)));
+  }).sort((x, y) => (y.n - x.n) || ((x.avg ?? 1e12) - (y.avg ?? 1e12)));
   const holds = sales.map((s) => s.h).filter((h) => h != null);
-  return { sales: sales.length, sellers_count: sellers.length, median_hold: med(holds), within_day: holds.filter((h) => h < 86400).length, held_known: holds.length, sellers: sellers.slice(0, 300),
-    fastest: sales.filter((s) => s.h != null).sort((x, y) => (x.h - y.h) || (y.t - x.t)).slice(0, 150).map((s) => ({ ...s, cost: s.cost == null ? null : r6(s.cost) })) };
+  const pnlAll = sellers.filter((s) => s.pnl30 != null);
+  return { window_days: windowDays || null, sales: sales.length, sellers_count: sellers.length, median_hold: med(holds), within_day: holds.filter((h) => h < 86400).length, held_known: holds.length,
+    pnl30_total: pnlAll.length ? r6(pnlAll.reduce((v, s) => v + s.pnl30, 0)) : null, pnl30_sales: pnlAll.reduce((v, s) => v + s.priced30, 0),
+    sellers: sellers.slice(0, 300),
+    // fastest flips: sales in the last 3 days, quickest first
+    fastest: sales.filter((s) => s.h != null && s.t >= now - 3 * 86400).sort((x, y) => (x.h - y.h) || (y.t - x.t)).slice(0, 150).map((s) => ({ ...s, cost: s.cost == null ? null : r6(s.cost) })) };
 }
 function holdsFrom(events, keyOf) {
   const into = new Map();
@@ -88,7 +95,7 @@ let rounds = null;
     const buy = (bought.get(e.nft.identifier + ":" + a) || []).filter(([bt]) => bt <= t).sort((x, y) => y[0] - x[0])[0];
     return { c: "roundsonrh", id: e.nft.identifier, a, t, h: acq != null ? t - acq : null, p: r6(toEth(e.payment)), cost: buy && buy[0] === acq ? buy[1] : null };
   });
-  if (sales.length) rounds = summarize(sales);
+  if (sales.length) rounds = summarize(sales, 0);
 }
 
 /* ---------------- Chain: what Rounds holders sell everywhere ---------------- */
@@ -142,13 +149,13 @@ for (const [a, st] of Object.entries(state.accounts)) {
 }
 let chain = null;
 if (chainSales.length) {
-  chain = summarize(chainSales);
+  chain = summarize(chainSales, 30);
   chain.accounts = Object.keys(state.accounts).length;
   chain.never_sold = Object.values(state.accounts).filter((s) => !s.sells.length).length;
-  const byC = new Map();
-  for (const s of chainSales) (byC.get(s.c) || byC.set(s.c, []).get(s.c)).push(s);
-  chain.collections = [...byC].map(([c, xs]) => ({ c, n: xs.length, sellers: new Set(xs.map((s) => s.a)).size, med: med(xs.map((s) => s.h)), within_day: xs.filter((s) => s.h != null && s.h < 86400).length, known: xs.filter((s) => s.h != null).length }))
-    .filter((x) => x.n >= 10).sort((x, y) => y.n - x.n).slice(0, 80);
+  const byC = new Map(), now = Date.now() / 1000;
+  for (const s of chainSales) if (s.t >= now - 30 * 86400) (byC.get(s.c) || byC.set(s.c, []).get(s.c)).push(s);
+  chain.collections = [...byC].map(([c, xs]) => ({ c, n: xs.length, sellers: new Set(xs.map((s) => s.a)).size, sellers7: new Set(xs.filter((s) => s.t >= now - 7 * 86400).map((s) => s.a)).size, avg: (() => { const hs = xs.map((s) => s.h).filter((h) => h != null); return hs.length ? Math.round(hs.reduce((a, b) => a + b, 0) / hs.length) : null; })() }))
+    .filter((x) => x.n >= 5).sort((x, y) => y.n - x.n).slice(0, 80);
   // readable names for the collections we show
   let names = {};
   try { names = JSON.parse(fs.readFileSync(path.join(STATE_DIR, "names.json"), "utf8")); } catch {}
