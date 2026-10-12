@@ -156,6 +156,12 @@ if (chainSales.length) {
   for (const s of chainSales) if (s.t >= now - 30 * 86400) (byC.get(s.c) || byC.set(s.c, []).get(s.c)).push(s);
   chain.collections = [...byC].map(([c, xs]) => ({ c, n: xs.length, sellers: new Set(xs.map((s) => s.a)).size, sellers7: new Set(xs.filter((s) => s.t >= now - 7 * 86400).map((s) => s.a)).size, avg: (() => { const hs = xs.map((s) => s.h).filter((h) => h != null); return hs.length ? Math.round(hs.reduce((a, b) => a + b, 0) / hs.length) : null; })() }))
     .filter((x) => x.n >= 5).sort((x, y) => y.n - x.n).slice(0, 80);
+  // fastest flips per collection (past 30 days), for the collection picker
+  chain.fastest_by = {};
+  for (const x of chain.collections) {
+    chain.fastest_by[x.c] = byC.get(x.c).filter((s) => s.h != null).sort((p, q) => (p.h - q.h) || (q.t - p.t)).slice(0, 25)
+      .map((s) => ({ c: s.c, id: s.id, a: s.a, t: s.t, h: s.h, p: s.p, cost: s.cost == null ? null : r6(s.cost) }));
+  }
   // readable names for the collections we show
   let names = {};
   try { names = JSON.parse(fs.readFileSync(path.join(STATE_DIR, "names.json"), "utf8")); } catch {}
