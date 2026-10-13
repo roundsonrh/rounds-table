@@ -5,6 +5,8 @@ compatibility_date = "2026-10-01"
 [assets]
 directory = "site"
 binding = "ASSETS"
+# the Worker sees every request first (host-based routing for holders.roundsonrh.com)
+run_worker_first = true
 
 # shared with the name service: connected:<wallet> flags
 [[kv_namespaces]]

@@ -15,6 +15,8 @@
 const ROUNDS = 888;
 const HOLD_DAYS = 20;
 const SITE = "https://roundsonrh.com";
+const HOLDERS = "holders.roundsonrh.com"; // the holders page (site/holders.html) lives here
+const OLD_HOLDERS = new Set(["/holders", "/holders.html", "/table", "/table.html", "/table/", "/dashboard", "/dashboard.html"]);
 
 async function asset(env, origin, p) {
   const r = await env.ASSETS.fetch(new Request(origin + p));
@@ -34,6 +36,12 @@ async function activeTheme(env, origin, ask) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    // holders.roundsonrh.com/ → the holders page; old paths on any host → there
+    if (url.hostname === HOLDERS && (url.pathname === "/" || url.pathname === "/index.html")) {
+      return env.ASSETS.fetch(new Request(url.origin + "/holders" + url.search, request));
+    }
+    if (OLD_HOLDERS.has(url.pathname)) return Response.redirect(`https://${HOLDERS}/${url.search}`, 301);
 
     const a = url.pathname.match(/^\/anim\/([a-z0-9-]+)\/(\d{1,4})\/?$/);
     if (a) {
