@@ -857,7 +857,8 @@
         <div class="grid" id="sellStats"></div>
         <div class="sell-bar">
           <div class="seg" id="sellView" role="group" aria-label="Sort sellers">
-            <button type="button" data-v="most" aria-pressed="true">Most sold</button>
+            <button type="button" data-v="score" aria-pressed="true">Holder scores</button>
+            <button type="button" data-v="most" aria-pressed="false">Most sold</button>
             <button type="button" data-v="fast" aria-pressed="false">Fastest flips</button>
             <button type="button" data-v="short" aria-pressed="false">Shortest holds</button>
             <button type="button" data-v="cols" aria-pressed="false">Collections</button>
@@ -3268,13 +3269,14 @@
      seller held the NFT first. "chain" = every sale Rounds holders made across
      Robinhood Chain; "rounds" = every sale of a Round. Behind an Enter gate. */
   const TREASURY = '0x7146fe7024087a8dafd7f5933c7e3431aed6a3e6';
-  let SELLERS = null, sellView = 'most', sellScope = 'chain', sellCol = '', sellersLoading = null;
+  let SELLERS = null, TIERS = null, sellView = 'score', sellScope = 'chain', sellCol = '', sellersLoading = null;
   $('sellEnter').addEventListener('click', () => { $('sellGate').hidden = true; $('sellBody').hidden = false; loadSellers(); });
   async function loadSellers(){
     if ($('sellBody').hidden) return;
     if (!SELLERS) {
       sellersLoading = sellersLoading || fetch('/data/sellers.json?t=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null);
-      SELLERS = await sellersLoading;
+      const [sj, tj] = await Promise.all([sellersLoading, fetch('/data/tiers.json?t=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null)]);
+      SELLERS = sj; TIERS = tj;
     }
     renderSellers();
   }
@@ -3290,6 +3292,8 @@
   const pnlCls = (x) => x == null ? '' : x > 0 ? ' up' : x < 0 ? ' dn' : '';
   function sellerName(a){ return a === TREASURY ? 'Rounds treasury' : displayName(a); }
   function sellLink(a){ return `<a href="https://opensea.io/${esc(a)}" target="_blank" rel="noopener noreferrer">${esc(sellerName(a))}</a>`; }
+  const tierOfWallet = (a) => (TIERS && TIERS.owners && TIERS.owners[a]) || null;
+  const tierTag = (a) => { const t = tierOfWallet(a); return t ? ` · ${t[0]} ${t[1]}` : ''; };
   function colName(d, c){ return (d.names && d.names[c]) || (c === 'roundsonrh' ? 'Rounds' : c); }
   function renderSellers(){
     const all = SELLERS, list = $('sellList');
@@ -3320,9 +3324,18 @@
     const me = currentAddr ? String(currentAddr).toLowerCase() : null;
     const day = (t) => new Date(t * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     let rows = [], hint = '';
-    if (sellView === 'most') {
+    if (sellView === 'score') {
+      const all = Object.entries((TIERS && TIERS.owners) || {}).map(([a, t]) => ({ a, tier: t[0], score: t[1], n: t[2] }))
+        .sort((x, y) => (y.score - x.score) || (y.n - x.n));
+      const pick = all.slice(0, 25);
+      const meRow = me && all.findIndex(x => x.a === me);
+      if (meRow >= 25) pick.push({ ...all[meRow], rank: meRow + 1 });
+      rows = pick.map((x, i) => ({ a: x.a, rank: x.rank, name: sellLink(x.a), sub: `${x.tier} · ${x.n} Round${x.n === 1 ? '' : 's'}`, v: String(x.score), vs: 'of 100' }));
+      const count = {}; all.forEach(x => { count[x.tier] = (count[x.tier] || 0) + 1; });
+      hint = all.length ? ['Diamond Hands', 'Steady Hands', 'Swing Trader', 'Flipper', 'Paper Hands'].filter(t => count[t]).map(t => `${t} ${count[t]}`).join(' · ') : 'Holder scores';
+    } else if (sellView === 'most') {
       rows = d.sellers.slice(0, 25).map(s => ({ a: s.a, name: sellLink(s.a),
-        sub: `avg hold ${fmtDur(s.avg)}`, v: `${s.n} NFT${s.n === 1 ? '' : 's'} sold`, vs: fmtEth(s.vol),
+        sub: `avg hold ${fmtDur(s.avg)}${tierTag(s.a)}`, v: `${s.n} NFT${s.n === 1 ? '' : 's'} sold`, vs: fmtEth(s.vol),
         pnl: s.pnl30, ps: s.pnl30 == null ? (s.n30 ? 'no buy prices' : 'no sales') : `${s.priced30} of ${s.n30} sales` }));
       hint = 'Most sold';
     } else if (sellView === 'fast') {
@@ -3343,7 +3356,7 @@
     } else if (sellView === 'short') {
       const minN = chain ? 5 : 3;
       rows = d.sellers.filter(s => s.n >= minN && s.avg != null).sort((x, y) => x.avg - y.avg).slice(0, 25)
-        .map(s => ({ a: s.a, name: sellLink(s.a), sub: `${s.n} sold · fastest ${fmtDur(s.min)}`, v: fmtDur(s.avg), vs: 'avg hold',
+        .map(s => ({ a: s.a, name: sellLink(s.a), sub: `${s.n} sold · fastest ${fmtDur(s.min)}${tierTag(s.a)}`, v: fmtDur(s.avg), vs: 'avg hold',
           pnl: s.pnl30, ps: s.pnl30 == null ? (s.n30 ? 'no buy prices' : 'no sales') : `${s.priced30} of ${s.n30} sales` }));
       hint = `Shortest avg hold · sellers with ${minN}+ sales`;
     } else {
@@ -3353,13 +3366,15 @@
       hint = 'What Rounds holders sell most';
     }
     const mine = me && d.sellers.find(s => s.a === me);
-    $('sellHint').textContent = hint + (mine ? ` · you've sold ${mine.n}` : '');
-    const withPnl = sellView !== 'cols';
+    const myT = me && tierOfWallet(me);
+    $('sellHint').textContent = hint + (sellView === 'score' ? (myT ? ` · you: ${myT[0]} ${myT[1]}` : '') : (mine ? ` · you've sold ${mine.n}` : ''));
+    const withPnl = sellView !== 'cols' && sellView !== 'score';
     list.classList.toggle('nopnl', !withPnl);
-    const head = `<div class="sell-head"><span>#</span><span>${sellView === 'fast' ? (sellScope === 'chain' && sellCol ? 'Flipper' : 'NFT') : sellView === 'cols' ? 'Collection' : 'Wallet'}</span><span>${sellView === 'cols' ? 'Sales' : sellView === 'fast' ? 'Held' : sellView === 'short' ? 'Avg hold' : 'Sold'}</span><span class="pnl">${sellView === 'fast' ? 'Profit' : '30d PnL'}</span></div>`;
-    list.innerHTML = rows.length ? head + rows.map((r, i) => `<div class="sell-row${i < 3 ? ' top' : ''}${r.a && r.a === me ? ' me' : ''}"><span class="rk">${i + 1}</span><span class="nm">${r.name}<small>${r.sub}</small></span><span class="v">${esc(r.v)}<small>${esc(r.vs)}</small></span><span class="pnl${pnlCls(r.pnl)}">${esc(fmtPnl(r.pnl))}<small>${esc(r.ps || '')}</small></span></div>`).join('')
+    const head = `<div class="sell-head"><span>#</span><span>${sellView === 'fast' ? (sellScope === 'chain' && sellCol ? 'Flipper' : 'NFT') : sellView === 'cols' ? 'Collection' : 'Wallet'}</span><span>${sellView === 'score' ? 'Score' : sellView === 'cols' ? 'Sales' : sellView === 'fast' ? 'Held' : sellView === 'short' ? 'Avg hold' : 'Sold'}</span><span class="pnl">${sellView === 'fast' ? 'Profit' : '30d PnL'}</span></div>`;
+    list.innerHTML = rows.length ? head + rows.map((r, i) => `<div class="sell-row${i < 3 ? ' top' : ''}${r.a && r.a === me ? ' me' : ''}"><span class="rk">${r.rank || i + 1}</span><span class="nm">${r.name}<small>${r.sub}</small></span><span class="v">${esc(r.v)}<small>${esc(r.vs)}</small></span><span class="pnl${pnlCls(r.pnl)}">${esc(fmtPnl(r.pnl))}<small>${esc(r.ps || '')}</small></span></div>`).join('')
+        + (sellView === 'score' ? '<div class="lb-empty">Holder Score = 65% sell patience (median hold on their sales across Robinhood Chain, past 30 days) + 15% how long they\'ve held their Round + 20% turnover (how little of what they picked up in 30 days they sold). Hold times score on a curve up to 30 days. 85+ Diamond Hands · 65+ Steady Hands · 45+ Swing Trader · 25+ Flipper · under 25 Paper Hands. It\'s also a trait on every Round.</div>' : '')
         + (withPnl ? '<div class="lb-empty">PnL is in ETH: sale price minus what they paid, on sales with a known buy price. Mints and transfers are left out.</div>' : '')
-      : '<div class="lb-empty">No sales yet.</div>';
+      : `<div class="lb-empty">${sellView === 'score' ? 'Scores show up after the next refresh.' : 'No sales yet.'}</div>`;
   }
   $('sellView').addEventListener('click', e => {
     const b = e.target.closest('button[data-v]');

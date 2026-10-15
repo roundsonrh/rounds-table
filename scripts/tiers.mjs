@@ -52,16 +52,23 @@ if (process.argv[2] === "compute") {
   for (const [a, st] of Object.entries((state && state.accounts) || {})) {
     if (st.at) byOwner.set(a.toLowerCase(), ownerStats(st, now)); // skip never-crawled
   }
-  const ids = {};
+  const ids = {}, best = new Map();
   for (const [id, h] of Object.entries(holds)) {
-    const o = byOwner.get(String(h.owner).toLowerCase());
-    if (o) ids[id] = tierOf(o, now - Number(h.since));
+    const a = String(h.owner).toLowerCase(), o = byOwner.get(a);
+    if (!o) continue;
+    const held = now - Number(h.since);
+    ids[id] = tierOf(o, held);
+    const b = best.get(a) || { held: 0, n: 0 };
+    best.set(a, { held: Math.max(b.held, held), n: b.n + 1 });
   }
+  // wallet score for the Table Flippers tab: same formula, using their longest-held Round
+  const owners = {};
+  for (const [a, b] of best) owners[a] = [...tierOf(byOwner.get(a), b.held), b.n];
   let prev = {};
   try { prev = (await (await fetch(`${SITE}/data/tiers.json?t=${Date.now()}`)).json()).ids || {}; } catch {}
   const all = new Set([...Object.keys(ids), ...Object.keys(prev)]);
   const changed = [...all].filter((id) => JSON.stringify(ids[id] || null) !== JSON.stringify(prev[id] || null)).sort((a, b) => a - b);
-  fs.writeFileSync(OUT, JSON.stringify({ generated_at: new Date().toISOString(), window_days: 30, ids }));
+  fs.writeFileSync(OUT, JSON.stringify({ generated_at: new Date().toISOString(), window_days: 30, weights: { patience: 0.65, round: 0.15, turnover: 0.2 }, ids, owners }));
   fs.writeFileSync(DIFF, JSON.stringify(changed));
   const count = {};
   for (const [t] of Object.values(ids)) count[t] = (count[t] || 0) + 1;
