@@ -3,13 +3,14 @@
 //   node scripts/tiers.mjs compute   (after the sellers cache is restored, before deploy)
 //                                    → site/data/tiers.json  { ids: { "<id>": [tier, score] } }
 //   node scripts/tiers.mjs refresh   (after deploy) ask OpenSea to re-read Rounds whose tier changed
-// Tiers, by the owner's median hold time on sales in the past 30 days:
-//   Diamond Hands  no sales in 30 days, or median hold 30+ days
-//   Steady Hands   7+ days
-//   Swing Trader   1+ day
-//   Flipper        1+ hour
-//   Paper Hands    under an hour
-// Holder Score 0–100 rises with median hold time on a log scale (30 days = 100).
+// Holder Score (0–100) blends three things, each scored 0–1 on a log scale
+// where 30 days = full marks:
+//   45%  sell patience   median hold on the owner's sales across RH Chain, past 30 days
+//                        (no sales = 1, sales with no known buy time = 0.5)
+//   35%  this Round      how long the current owner has held this Round
+//   20%  turnover        1 − (sales ÷ NFTs received) in the past 30 days, floored at 0
+// Tier from the score:
+//   85+ Diamond Hands · 65+ Steady Hands · 45+ Swing Trader · 25+ Flipper · under 25 Paper Hands
 // Owners the crawl hasn't reached yet get no tier until it does.
 import fs from "fs";
 import path from "path";
@@ -22,14 +23,24 @@ const DIFF = path.join(ROOT, "tiers-diff.json");
 const DAY = 86400, WINDOW = 30 * DAY;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export function tierOf(sales, now = Date.now() / 1000) {
-  const recent = sales.filter((s) => s.t >= now - WINDOW);
-  if (!recent.length) return ["Diamond Hands", 100];
-  const hs = recent.map((s) => s.h).filter((h) => h != null).sort((a, b) => a - b);
-  const med = hs.length ? hs[Math.floor((hs.length - 1) / 2)] : 7 * DAY; // no known buy times: treat as held a while
-  const score = Math.max(1, Math.min(100, Math.round(100 * Math.log1p(med / 3600) / Math.log1p(720))));
-  const tier = med >= 30 * DAY ? "Diamond Hands" : med >= 7 * DAY ? "Steady Hands" : med >= DAY ? "Swing Trader" : med >= 3600 ? "Flipper" : "Paper Hands";
-  return [tier, score];
+const logScore = (sec) => Math.max(0, Math.min(1, Math.log1p(sec / 3600) / Math.log1p(720)));
+export function ownerStats(st, now = Date.now() / 1000) {
+  const into = new Map();
+  for (const [k, t] of st.ins || []) (into.get(k) || into.set(k, []).get(k)).push(t);
+  const sales = (st.sells || []).filter(([, , t]) => t >= now - WINDOW).map(([k, , t]) => {
+    const got = (into.get(k) || []).filter((x) => x <= t);
+    return got.length ? t - Math.max(...got) : null;
+  });
+  const hs = sales.filter((h) => h != null).sort((a, b) => a - b);
+  const patience = !sales.length ? 1 : hs.length ? logScore(hs[Math.floor((hs.length - 1) / 2)]) : 0.5;
+  const received = (st.ins || []).filter(([, t]) => t >= now - WINDOW).length;
+  const turnover = 1 - Math.min(1, sales.length / Math.max(1, received));
+  return { patience, turnover };
+}
+export function tierOf(o, heldSec) {
+  const score = Math.round(100 * (0.45 * o.patience + 0.35 * logScore(heldSec) + 0.2 * o.turnover));
+  const tier = score >= 85 ? "Diamond Hands" : score >= 65 ? "Steady Hands" : score >= 45 ? "Swing Trader" : score >= 25 ? "Flipper" : "Paper Hands";
+  return [tier, Math.max(1, score)];
 }
 
 if (process.argv[2] === "compute") {
@@ -39,19 +50,12 @@ if (process.argv[2] === "compute") {
   const now = Date.now() / 1000;
   const byOwner = new Map();
   for (const [a, st] of Object.entries((state && state.accounts) || {})) {
-    if (!st.at) continue; // never crawled
-    const into = new Map();
-    for (const [k, t] of st.ins || []) (into.get(k) || into.set(k, []).get(k)).push(t);
-    const sales = (st.sells || []).map(([k, , t]) => {
-      const got = (into.get(k) || []).filter((x) => x <= t);
-      return { t, h: got.length ? t - Math.max(...got) : null };
-    });
-    byOwner.set(a.toLowerCase(), tierOf(sales, now));
+    if (st.at) byOwner.set(a.toLowerCase(), ownerStats(st, now)); // skip never-crawled
   }
   const ids = {};
   for (const [id, h] of Object.entries(holds)) {
-    const t = byOwner.get(String(h.owner).toLowerCase());
-    if (t) ids[id] = t;
+    const o = byOwner.get(String(h.owner).toLowerCase());
+    if (o) ids[id] = tierOf(o, now - Number(h.since));
   }
   let prev = {};
   try { prev = (await (await fetch(`${SITE}/data/tiers.json?t=${Date.now()}`)).json()).ids || {}; } catch {}
