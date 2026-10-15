@@ -5,9 +5,9 @@
 //   node scripts/tiers.mjs refresh   (after deploy) ask OpenSea to re-read Rounds whose tier changed
 // Holder Score (0–100) blends three things, each scored 0–1 on a log scale
 // where 30 days = full marks:
-//   45%  sell patience   median hold on the owner's sales across RH Chain, past 30 days
+//   65%  sell patience   median hold on the owner's sales across RH Chain, past 30 days
 //                        (no sales = 1, sales with no known buy time = 0.5)
-//   35%  this Round      how long the current owner has held this Round
+//   15%  this Round      how long the current owner has held this Round
 //   20%  turnover        1 − (sales ÷ NFTs received) in the past 30 days, floored at 0
 // Tier from the score:
 //   85+ Diamond Hands · 65+ Steady Hands · 45+ Swing Trader · 25+ Flipper · under 25 Paper Hands
@@ -38,7 +38,7 @@ export function ownerStats(st, now = Date.now() / 1000) {
   return { patience, turnover };
 }
 export function tierOf(o, heldSec) {
-  const score = Math.round(100 * (0.45 * o.patience + 0.35 * logScore(heldSec) + 0.2 * o.turnover));
+  const score = Math.round(100 * (0.65 * o.patience + 0.15 * logScore(heldSec) + 0.2 * o.turnover));
   const tier = score >= 85 ? "Diamond Hands" : score >= 65 ? "Steady Hands" : score >= 45 ? "Swing Trader" : score >= 25 ? "Flipper" : "Paper Hands";
   return [tier, Math.max(1, score)];
 }
