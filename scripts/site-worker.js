@@ -83,6 +83,12 @@ export default {
       out = { ...out, image: `${SITE}/art/${theme.id}/${id}.svg` };
       if (moving) out.animation_url = `${SITE}/anim/${theme.id}/${id}`;
     }
+    // Holder Tier: how this Round's owner trades across Robinhood Chain (scripts/tiers.mjs)
+    try {
+      const tiers = await asset(env, url.origin, "/data/tiers.json");
+      const t = tiers && tiers.ids && tiers.ids[id];
+      if (t) out = { ...out, attributes: [...(out.attributes || []), { trait_type: "Holder Tier", value: t[0] }, { trait_type: "Holder Score", value: t[1], display_type: "number", max_value: 100 }] };
+    } catch { /* no tier: serve without it */ }
     return new Response(JSON.stringify(out), { headers });
   },
 };
