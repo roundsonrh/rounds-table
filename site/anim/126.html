@@ -5,7 +5,8 @@
 // whole piece inhales (circles swell and spread from its center) and
 // exhales; the breath ripples outward, so the middle moves first. A small
 // drift keeps it alive between breaths. Loops every 16 seconds.
-const D=[4679,5477,592,5778,1336,592,4001,9501,592,7037,6393,592,3606,7221,592,6884,4418,592,2364,6099,592,5916,7062,592,4827,3687,592,9270,4432,574,3752,4833,479,1719,4678,592,4064,1839,592,8924,5587,592,8505,7607,592,7048,2264,524,8545,3153,431,2587,2738,548,6044,9380,412,4757,7436,412,7351,8640,557,6036,3667,444,5619,5373,286,3206,1760,225,6649,9122,179,8856,6619,393,2392,3582,262,5048,4664,250,7293,5282,202,2603,7057,270,4843,9282,242,7942,2535,314,4007,3971,218,8458,3770,141,5617,3105,202,8234,8378,188,1790,3694,161,7385,1451,239,6896,5208,166,4930,1743,196,4331,4252,102,6622,1458,215,4840,1179,221,5461,9958,129,2112,3972,182,6369,8545,215],ID=126,P=16,B=8;
+const D=[4679,5477,592,5778,1336,592,4001,9501,592,7037,6393,592,3606,7221,592,6884,4418,592,2364,6099,592,5916,7062,592,4827,3687,592,9270,4432,574,3752,4833,479,1719,4678,592,4064,1839,592,8924,5587,592,8505,7607,592,7048,2264,524,8545,3153,431,2587,2738,548,6044,9380,412,4757,7436,412,7351,8640,557,6036,3667,444,5619,5373,286,3206,1760,225,6649,9122,179,8856,6619,393,2392,3582,262,5048,4664,250,7293,5282,202,2603,7057,270,4843,9282,242,7942,2535,314,4007,3971,218,8458,3770,141,5617,3105,202,8234,8378,188,1790,3694,161,7385,1451,239,6896,5208,166,4930,1743,196,4331,4252,102,6622,1458,215,4840,1179,221,5461,9958,129,2112,3972,182,6369,8545,215],ID=126,P=16,B=8,ST=+(new URLSearchParams(location.search).get("s")||0);
+// ?s=40 (held 40+ days): every circle also hollows to an outline and fills back in, a 16s wave from the center
 let s=ID*9301+49297;const rnd=()=>((s=(s*233280+12345)%2147483647)/2147483647);
 let cx=0,cy=0,w=0;for(let i=0;i<D.length;i+=3){const a=D[i+2]*D[i+2];cx+=D[i]*a;cy+=D[i+1]*a;w+=a;}cx/=w;cy/=w;
 let far=1;for(let i=0;i<D.length;i+=3)far=Math.max(far,Math.hypot(D[i]-cx,D[i+1]-cy));
@@ -17,7 +18,10 @@ addEventListener("resize",fit);fit();
 const ease=(u)=>u*u*(3-2*u);
 function frame(t){const sec=t/1000%P,T=sec/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
 for(const c of C){const b=ease((1-Math.cos(sec/B*6.283-c.d*1.2))/2),sp=1+.07*b;
-const x=(cx+(c.x-cx)*sp+c.ax*Math.sin(T+c.px))*k,y=(cy+(c.y-cy)*sp+c.ay*Math.cos(T+c.py))*k,r=c.r*(.94+.2*b)*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
+const x=(cx+(c.x-cx)*sp+c.ax*Math.sin(T+c.px))*k,y=(cy+(c.y-cy)*sp+c.ay*Math.cos(T+c.py))*k,r=c.r*(.94+.2*b)*k;
+if(ST>=40){g.fill();const h=ease((1-Math.cos(T-c.d*2))/2),hole=Math.max(0,(r-Math.max(r*.12,1.5))*h);g.beginPath();g.arc(x,y,r,0,6.283);g.fill();
+if(hole>1){g.fillStyle="#000";g.beginPath();g.arc(x,y,hole,0,6.283);g.fill();g.fillStyle="#ccff00";}g.beginPath();continue;}
+g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
 g.fill();requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
 </script></body></html>

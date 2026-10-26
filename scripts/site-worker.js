@@ -65,23 +65,26 @@ export default {
     if (!(id >= 1 && id <= ROUNDS)) return new Response(JSON.stringify({ error: "No such Round." }), { status: 404, headers });
     const meta = await asset(env, url.origin, `/meta-src/${id}.json`);
     if (!meta) return new Response(JSON.stringify({ error: "Missing metadata." }), { status: 500, headers });
-    let moving = false, theme = null;
+    let moving = false, stage40 = false, theme = null;
     try {
       const holds = await asset(env, url.origin, "/data/holds.json");
       const h = holds && holds.holds && holds.holds[id];
       moving = !!h && Date.now() / 1000 - Number(h.since) >= HOLD_DAYS * 86400;
+      stage40 = !!h && Date.now() / 1000 - Number(h.since) >= 40 * 86400; // day 40: breathing + transforming
     } catch { /* any trouble: serve the still, never break metadata */ }
     try { theme = await activeTheme(env, url.origin, url.searchParams.get("theme")); } catch { theme = null; }
     let out = meta;
     // breathing GIF as the image so it moves in marketplace grids too; the
     // full animation plays when the NFT is opened
     if (moving) {
-      const gif = await env.ASSETS.fetch(new Request(`${url.origin}/gif/${id}.gif`, { method: "HEAD" })).catch(() => null);
-      out = { ...meta, image: gif && gif.ok ? `${SITE}/gif/${id}.gif` : meta.image, animation_url: `${SITE}/anim/${id}` };
+      const has = async (p) => { const r = await env.ASSETS.fetch(new Request(`${url.origin}${p}`, { method: "HEAD" })).catch(() => null); return !!(r && r.ok); };
+      const g40 = stage40 && await has(`/gif40/${id}.gif`);
+      const gif = g40 ? `/gif40/${id}.gif` : (await has(`/gif/${id}.gif`)) ? `/gif/${id}.gif` : null;
+      out = { ...meta, image: gif ? SITE + gif : meta.image, animation_url: `${SITE}/anim/${id}${stage40 ? "?s=40" : ""}` };
     }
     if (theme) {
       out = { ...out, image: `${SITE}/art/${theme.id}/${id}.svg` };
-      if (moving) out.animation_url = `${SITE}/anim/${theme.id}/${id}`;
+      if (moving) out.animation_url = `${SITE}/anim/${theme.id}/${id}${stage40 ? "?s=40" : ""}`;
     }
     // Holder Tier: how this Round's owner trades across Robinhood Chain (scripts/tiers.mjs)
     try {

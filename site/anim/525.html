@@ -5,7 +5,8 @@
 // whole piece inhales (circles swell and spread from its center) and
 // exhales; the breath ripples outward, so the middle moves first. A small
 // drift keeps it alive between breaths. Loops every 16 seconds.
-const D=[3107,3207,578,9523,2132,515,7667,8465,1083,69,5529,321,3168,4623,566,8557,4643,782,896,7403,1210,5211,4054,544,8762,3480,224,6648,4768,1043,4978,5752,735,3864,6934,790,5998,2134,884,7108,6466,651,1763,4223,611,2739,1957,420,8186,6291,309,10,4550,639,9852,3564,375,1584,5548,274,9869,2943,195,4090,8184,324,2026,3213,426,5478,3276,200,3476,5500,335,7882,7118,245,235,6180,128,6512,3393,244,2359,2489,192],ID=525,P=16,B=8;
+const D=[3107,3207,578,9523,2132,515,7667,8465,1083,69,5529,321,3168,4623,566,8557,4643,782,896,7403,1210,5211,4054,544,8762,3480,224,6648,4768,1043,4978,5752,735,3864,6934,790,5998,2134,884,7108,6466,651,1763,4223,611,2739,1957,420,8186,6291,309,10,4550,639,9852,3564,375,1584,5548,274,9869,2943,195,4090,8184,324,2026,3213,426,5478,3276,200,3476,5500,335,7882,7118,245,235,6180,128,6512,3393,244,2359,2489,192],ID=525,P=16,B=8,ST=+(new URLSearchParams(location.search).get("s")||0);
+// ?s=40 (held 40+ days): every circle also hollows to an outline and fills back in, a 16s wave from the center
 let s=ID*9301+49297;const rnd=()=>((s=(s*233280+12345)%2147483647)/2147483647);
 let cx=0,cy=0,w=0;for(let i=0;i<D.length;i+=3){const a=D[i+2]*D[i+2];cx+=D[i]*a;cy+=D[i+1]*a;w+=a;}cx/=w;cy/=w;
 let far=1;for(let i=0;i<D.length;i+=3)far=Math.max(far,Math.hypot(D[i]-cx,D[i+1]-cy));
@@ -17,7 +18,10 @@ addEventListener("resize",fit);fit();
 const ease=(u)=>u*u*(3-2*u);
 function frame(t){const sec=t/1000%P,T=sec/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
 for(const c of C){const b=ease((1-Math.cos(sec/B*6.283-c.d*1.2))/2),sp=1+.07*b;
-const x=(cx+(c.x-cx)*sp+c.ax*Math.sin(T+c.px))*k,y=(cy+(c.y-cy)*sp+c.ay*Math.cos(T+c.py))*k,r=c.r*(.94+.2*b)*k;g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
+const x=(cx+(c.x-cx)*sp+c.ax*Math.sin(T+c.px))*k,y=(cy+(c.y-cy)*sp+c.ay*Math.cos(T+c.py))*k,r=c.r*(.94+.2*b)*k;
+if(ST>=40){g.fill();const h=ease((1-Math.cos(T-c.d*2))/2),hole=Math.max(0,(r-Math.max(r*.12,1.5))*h);g.beginPath();g.arc(x,y,r,0,6.283);g.fill();
+if(hole>1){g.fillStyle="#000";g.beginPath();g.arc(x,y,hole,0,6.283);g.fill();g.fillStyle="#ccff00";}g.beginPath();continue;}
+g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
 g.fill();requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
 </script></body></html>

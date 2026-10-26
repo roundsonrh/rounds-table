@@ -64,6 +64,16 @@ jobs:
       - name: Build any missing breathing GIFs
         run: pip install --quiet pillow && python3 scripts/build-gif.py
 
+      - name: Day 40 GIFs (cached, built as Rounds near 40 days)
+        uses: actions/cache@v4
+        with:
+          path: site/gif40
+          key: gif40-${{ hashFiles('scripts/build-gif40.py', 'site/data/pieces.json') }}-${{ github.run_id }}
+          restore-keys: gif40-${{ hashFiles('scripts/build-gif40.py', 'site/data/pieces.json') }}-
+
+      - name: Build any missing day 40 GIFs
+        run: python3 scripts/build-gif40.py
+
       - name: Holiday art (site/art, built fresh each run)
         run: node scripts/build-themes.mjs
 

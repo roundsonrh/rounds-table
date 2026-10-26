@@ -1308,6 +1308,7 @@
     if (moving.length) {
       const one = moving.length === 1;
       el.innerHTML = `<b>${moving.length}</b> of your Rounds ${one ? 'has' : 'have'} been held ${MOVE_DAYS}+ days, so ${one ? 'it\'s' : 'they\'re'} <b>breathing</b> now. `
+        + (() => { const t = moving.filter(id => heldDays(id) >= 40).length; return t ? `<b>${t}</b> ${t === 1 ? 'has' : 'have'} passed 40 days and ${t === 1 ? 'is' : 'are'} <b>transforming</b> too. ` : ''; })()
         + `<a href="https://opensea.io/assets/robinhood/0x8cd655173351c6f619acb907ba08bf920b736d1c/${moving[0]}" target="_blank" rel="noopener noreferrer">See it on OpenSea ↗</a>`;
     } else if (ages.length) {
       const left = Math.max(1, Math.ceil(MOVE_DAYS - Math.max(...ages)));
@@ -1445,7 +1446,7 @@
     canvas.width = size * dpr; canvas.height = size * dpr;
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
-    const job = { ctx, size, circles: rec[3], ...breathCenter(rec[3]) };
+    const job = { ctx, size, circles: rec[3], stage: heldDays(tokenId) >= 40 ? 40 : 20, ...breathCenter(rec[3]) };
     paintBreath(job, 0);
     // held 20+ days → it breathes here too, same breath as on OpenSea
     if (isBreathing(tokenId)) { BREATHERS.set(canvas, job); startBreathing(); }
@@ -1458,6 +1459,7 @@
   const BREATH_S = 8;
   const BREATHERS = new Map();
   let breathRaf = 0;
+  function heldDays(tokenId){ const s = heldSince(tokenId); return s ? (Date.now() / 1000 - s) / 86400 : 0; }
   function isBreathing(tokenId){
     const s = heldSince(tokenId);
     return !!s && (Date.now() / 1000 - s) / 86400 >= MOVE_DAYS;
@@ -1475,23 +1477,33 @@
     ctx.fillRect(0, 0, size, size);
     ctx.fillStyle = '#ccff00';
     ctx.beginPath();
+    const hollow = j.stage >= 40 && sec !== null && sec !== 0;
     for (let i = 0; i < c.length; i += 3) {
-      let x = c[i], y = c[i+1], r = c[i+2];
+      let x = c[i], y = c[i+1], r = c[i+2], dd = 0;
       if (sec !== null && sec !== 0) {
-        const u = (1 - Math.cos(sec / BREATH_S * 6.283 - Math.hypot(x - cx, y - cy) / far * 1.2)) / 2;
+        dd = Math.hypot(x - cx, y - cy) / far;
+        const u = (1 - Math.cos(sec / BREATH_S * 6.283 - dd * 1.2)) / 2;
         const b = u * u * (3 - 2 * u), sp = 1 + .07 * b;
         x = cx + (x - cx) * sp; y = cy + (y - cy) * sp; r = r * (.94 + .2 * b);
       }
       x *= k; y *= k; r *= k;
+      if (hollow) {
+        // day 40: hollow out to an outline and fill back in, a 16s wave from the center
+        const v = (1 - Math.cos(sec / 16 * 6.283 - dd * 2)) / 2, h = v * v * (3 - 2 * v);
+        const hole = Math.max(0, (r - Math.max(r * .12, .8)) * h);
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+        if (hole > .6) { ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(x, y, hole, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#ccff00'; }
+        continue;
+      }
       ctx.moveTo(x + r, y);
       ctx.arc(x, y, r, 0, Math.PI * 2);
     }
-    ctx.fill();
+    if (!hollow) ctx.fill();
   }
   function startBreathing(){
     if (breathRaf || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
     const tick = (t) => {
-      for (const [cv, j] of BREATHERS) { if (!cv.isConnected) BREATHERS.delete(cv); else paintBreath(j, t / 1000 % BREATH_S || 1e-6); }
+      for (const [cv, j] of BREATHERS) { if (!cv.isConnected) BREATHERS.delete(cv); else paintBreath(j, t / 1000 % (j.stage >= 40 ? 16 : BREATH_S) || 1e-6); }
       breathRaf = BREATHERS.size ? requestAnimationFrame(tick) : 0;
     };
     breathRaf = requestAnimationFrame(tick);
