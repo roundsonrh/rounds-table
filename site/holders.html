@@ -554,6 +554,9 @@
   .bars-head .lbl{font-family:var(--mono);font-size:11px;color:var(--text-faint)}
   .bar-row.priced{grid-template-columns:minmax(0,1fr) 150px}
   .bar-val .fl{color:var(--text)}
+  .chg{font-family:var(--mono);font-size:.9em;color:var(--text-faint)}
+  .chg.up{color:var(--accent)} .chg.dn{color:#ff6b5e}
+  .bars-mkt{font-family:var(--mono);font-size:11px;color:var(--text-faint);margin:-2px 0 10px}
 
   .panel{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:22px}
   .empty{font-family:var(--mono);font-size:12px;color:var(--text-faint);padding:12px 0}
@@ -1250,8 +1253,9 @@
   // written by holdtime.js. A missing file means no hold times anywhere —
   // silently, not as an error.
   // OpenSea floors/volume, fetched at refresh time (floors.json). Optional.
-  let FLOORS = null;
+  let FLOORS = null, FCHG = null;
   async function loadFloors(){
+    fetch('/data/floor-change.json?t=' + Date.now()).then(r => r.ok ? r.json() : null).then(j => { FCHG = j && j.since ? j : null; }).catch(() => {});
     // the snapshot from the last refresh, then the live floors (worker, refreshed
     // every few minutes in slices) on top of it
     const [snap, live] = await Promise.all([
@@ -1268,6 +1272,9 @@
     };
   }
   const floorOf = (c) => (FLOORS && c && c.a && FLOORS.collections[String(c.a).toLowerCase()]) || null;
+  // 24h floor change in % (floor-change.json, from floors.mjs), null if unknown
+  const chgOf = (c) => { const f = floorOf(c); const v = FCHG && f && FCHG.chg[f.slug]; return typeof v === 'number' ? v : null; };
+  const chgTag = (v) => v == null ? '' : ` <span class="chg${v > 0 ? ' up' : v < 0 ? ' dn' : ''}">${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(Math.abs(v) < 10 ? 1 : 0)}%</span>`;
   // Like a stock exchange: anything trading under $1 (or with nothing listed) is delisted from the chart.
   const DELIST_USD = 1;
   const isDelisted = (c) => { const f = floorOf(c); return !!f && f.floor_usd != null && f.floor_usd < DELIST_USD; };
@@ -2249,7 +2256,8 @@
     if (q) idx = idx.filter(i => String(COLS[i].name || '').toLowerCase().includes(q) || String(COLS[i].a || '').toLowerCase() === q);
     const usd = (c, k) => { const f = floorOf(c); return f ? (k === 'floor' ? f.floor_usd || 0 : f.vol_7d_usd || 0) : -1; };
     const list = idx.map(i => [i, COLS[i]]).filter(([,c]) => c)
-      .sort((a, b) => barsSort === 'holders' ? b[1].holder_count - a[1].holder_count
+      .sort((a, b) => barsSort === 'chg' ? ((chgOf(b[1]) ?? -1e9) - (chgOf(a[1]) ?? -1e9)) || (b[1].holder_count - a[1].holder_count)
+        : barsSort === 'holders' ? b[1].holder_count - a[1].holder_count
         : (usd(b[1], barsSort) - usd(a[1], barsSort)) || (b[1].holder_count - a[1].holder_count));
 
     // header: scope · sort · search
@@ -2262,7 +2270,8 @@
         ${FLOORS ? `<div class="seg" role="group" aria-label="Sort collections">
           <button type="button" data-s="holders">Rounds holders</button>
           <button type="button" data-s="floor">Floor</button>
-          <button type="button" data-s="vol">7d volume</button></div>` : ''}
+          <button type="button" data-s="vol">7d volume</button>
+          ${FCHG ? '<button type="button" data-s="chg">24h %</button>' : ''}</div>` : ''}
       </div>
       <div class="bars-ctl">
         <input type="search" class="bars-q" placeholder="search collections" aria-label="Search collections" value="${esc(barsQuery)}">
@@ -2289,7 +2298,21 @@
     const nC = `${list.length.toLocaleString()} collection${list.length === 1 ? '' : 's'}`;
     sub.textContent = (all ? `${nC} held at the table` : `${nC} you share with other holders`)
       + (FLOORS ? ` · floors from OpenSea, updated ${floorsAge()}` : '');
+    let mkEl = null;
+    if (FCHG) {
+      const moves = list.map(([, c]) => [c, chgOf(c)]).filter(([, v]) => v != null);
+      const up = moves.filter(([, v]) => v > 0).length, dn = moves.filter(([, v]) => v < 0).length;
+      const top = moves.slice().sort((x, y) => Math.abs(y[1]) - Math.abs(x[1]))[0];
+      if (moves.length) {
+        const mk = document.createElement('div');
+        mk.className = 'bars-mkt';
+        mk.innerHTML = `24h: <span class="chg up">${up} up</span> · <span class="chg dn">${dn} down</span> · ${moves.length - up - dn} flat`
+          + (top && top[1] ? ` · biggest mover <b>${esc(top[0].name || short(top[0].a || ''))}</b>${chgTag(top[1])}` : '');
+        mkEl = mk;
+      }
+    }
     wrap.appendChild(sub);
+    if (mkEl) wrap.appendChild(mkEl);
 
     if (!list.length) {
       const e = document.createElement('div');
@@ -2312,7 +2335,7 @@
       const mineToo = all && me && (me.collections || []).includes(ci);
       row.className = 'bar-row clickable' + (FLOORS ? ' priced' : '') + (barsOpen === ci ? ' open' : '');
       const right = !FLOORS ? `<b>${c.holder_count}</b> · ${pct.toFixed(0)}%`
-        : `<b>${c.holder_count}</b> · <span class="fl">${f && f.floor_usd != null ? fmtUsd(barsSort === 'vol' ? (f.vol_7d_usd || 0) : f.floor_usd) : '—'}</span>`;
+        : `<b>${c.holder_count}</b> · <span class="fl">${f && f.floor_usd != null ? fmtUsd(barsSort === 'vol' ? (f.vol_7d_usd || 0) : f.floor_usd) : '—'}</span>${barsSort === 'vol' ? '' : chgTag(chgOf(c))}`;
       row.innerHTML =
         `<div><div class="nm">${esc(c.name || short(c.a || ''))}${mineToo ? ' <i class="you">you</i>' : ''}</div>
            <div class="bar-track"><div class="bar-fill" style="width:0"></div></div></div>
@@ -2321,7 +2344,7 @@
       requestAnimationFrame(() => { row.querySelector('.bar-fill').style.width = Math.max(1.5, pct) + '%'; });
       row.addEventListener('mousemove', e =>
         showTip(`<b>${esc(c.name || short(c.a || ''))}</b><br>${c.holder_count} of ${total} Rounds holders` +
-          (f && f.floor_usd != null ? `<br><span class="m">floor ${fmtUsd(f.floor_usd)} · 7d volume ${fmtUsd(f.vol_7d_usd || 0)}</span>` : '') +
+          (f && f.floor_usd != null ? `<br><span class="m">floor ${fmtUsd(f.floor_usd)}${chgOf(c) != null ? ' (' + (chgOf(c) > 0 ? '+' : '') + chgOf(c) + '% 24h)' : ''} · 7d volume ${fmtUsd(f.vol_7d_usd || 0)}</span>` : '') +
           `<br><span class="m">click to see who holds it</span>`, e.clientX, e.clientY));
       row.addEventListener('mouseleave', hideTip);
       row.addEventListener('click', () => {
