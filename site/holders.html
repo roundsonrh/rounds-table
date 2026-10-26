@@ -1492,7 +1492,7 @@
         const v = (1 - Math.cos(sec / 16 * 6.283 - dd * 2)) / 2, h = v * v * (3 - 2 * v);
         const hole = Math.max(0, (r - Math.max(r * .12, .8)) * h);
         ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-        if (hole > .6) { ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(x, y, hole, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#ccff00'; }
+        if (hole > Math.max(.8, r * .15)) { ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(x, y, hole, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#ccff00'; }
         continue;
       }
       ctx.moveTo(x + r, y);

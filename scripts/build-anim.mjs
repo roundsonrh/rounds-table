@@ -32,7 +32,7 @@ function frame(t){const sec=t/1000%P,T=sec/P*6.283,k=S/10000;g.fillStyle="#000";
 for(const c of C){const b=ease((1-Math.cos(sec/B*6.283-c.d*1.2))/2),sp=1+.07*b;
 const x=(cx+(c.x-cx)*sp+c.ax*Math.sin(T+c.px))*k,y=(cy+(c.y-cy)*sp+c.ay*Math.cos(T+c.py))*k,r=c.r*(.94+.2*b)*k;
 if(ST>=40){g.fill();const h=ease((1-Math.cos(T-c.d*2))/2),hole=Math.max(0,(r-Math.max(r*.12,1.5))*h);g.beginPath();g.arc(x,y,r,0,6.283);g.fill();
-if(hole>1){g.fillStyle="#000";g.beginPath();g.arc(x,y,hole,0,6.283);g.fill();g.fillStyle="#ccff00";}g.beginPath();continue;}
+if(hole>Math.max(1.5,r*.15)){g.fillStyle="#000";g.beginPath();g.arc(x,y,hole,0,6.283);g.fill();g.fillStyle="#ccff00";}g.beginPath();continue;}
 g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
 g.fill();requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
