@@ -53,8 +53,8 @@ export default {
       if (!r.ok) return r;
       const html = (await r.text())
         .replace("background:#000", `background:${t.bg}`)
-        .replace('g.fillStyle="#000"', `g.fillStyle="${t.bg}"`)
-        .replace('g.fillStyle="#ccff00"', `g.fillStyle="${t.fill}"`);
+        .replaceAll('g.fillStyle="#000"', `g.fillStyle="${t.bg}"`) // all: day 40 also paints its holes and refills
+        .replaceAll('g.fillStyle="#ccff00"', `g.fillStyle="${t.fill}"`);
       return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "access-control-allow-origin": "*", "cache-control": "public, max-age=3600" } });
     }
 
