@@ -73,7 +73,7 @@ const snaps = ((hist && hist.snaps) || []).filter((x) => now - x.t < 31 * H);
 snaps.push({ t: now, f: cur });
 const base = snaps.filter((x) => now - x.t >= 20 * H).sort((a, b) => Math.abs(now - a.t - 24 * H) - Math.abs(now - b.t - 24 * H))[0];
 const chg = {};
-if (base) for (const [slug, f] of Object.entries(cur)) { const p0 = base.f[slug]; if (p0 > 0) chg[slug] = Math.round((f / p0 - 1) * 1000) / 10; }
+if (base) for (const [slug, f] of Object.entries(cur)) { const p0 = base.f[slug]; if (p0 > 0 && f / p0 <= 10 && f / p0 >= 0.1) chg[slug] = Math.round((f / p0 - 1) * 1000) / 10; /* skip dust-floor jumps (10x either way) */ }
 fs.writeFileSync(path.join(DATA, "floor-hist.json"), JSON.stringify({ snaps }));
 fs.writeFileSync(path.join(DATA, "floor-change.json"), JSON.stringify({ generated_at: new Date().toISOString(), since: base ? new Date(base.t).toISOString() : null, chg }));
 console.log(base ? `Floor change: ${Object.keys(chg).length} collections vs ${Math.round((now - base.t) / H)}h ago` : `Floor change: building history (${snaps.length} snapshot${snaps.length === 1 ? "" : "s"})`);
