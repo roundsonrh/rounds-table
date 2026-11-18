@@ -4,7 +4,8 @@
 #tabs button{all:unset;cursor:pointer;padding:6px 9px;border-radius:999px;color:var(--fg);opacity:.75}
 #tabs button.on{background:var(--fg);color:var(--bg);opacity:1}
 #tabs button.lock{cursor:default;opacity:.35}
-#tabs.hide{opacity:0;pointer-events:none}</style></head>
+#tabs.hide{opacity:0;pointer-events:none}
+@media(max-width:520px){#tabs{font-size:9.5px;gap:2px;padding:3px;bottom:6px}#tabs button{padding:5px 6px}#tabs .soon{display:none}}</style></head>
 <body><canvas id="c"></canvas><div id="tabs"></div><script>
 // Rounds #698, alive. Every stage a holder has earned plays stacked ("All"),
 // or one at a time from the tabs. ?s = stage earned (days held: 20, 40, 60),
@@ -33,7 +34,7 @@ const tabs=document.getElementById("tabs");
 function left(d){if(!SINCE)return"day "+d;const n=Math.ceil(d-(Date.now()/1000-SINCE)/86400);return n<=1?"tomorrow":"in "+n+"d";}
 function drawTabs(){tabs.innerHTML="";const add=(label,key,locked)=>{const b=document.createElement("button");b.textContent=label;
 if(locked)b.className="lock";else{if(mode===MODES[key])b.className="on";b.onclick=()=>{mode=MODES[key];drawTabs();};}tabs.appendChild(b);};
-add("All","all");for(const [d,n] of STAGES){if(d===80){add(n+" ?","x",true);continue;}add(ST>=d?n:n+" · "+left(d),d,ST<d);}}
+add("All","all");for(const [d,n] of STAGES){if(d===80){add(n+" ?","x",true);tabs.lastChild.classList.add("soon");continue;}add(ST>=d?n:n+" "+left(d),d,ST<d);}}
 drawTabs();addEventListener("resize",fit);fit();
 let idle=0;const wake=()=>{if(S>=240)tabs.classList.remove("hide");clearTimeout(idle);idle=setTimeout(()=>tabs.classList.add("hide"),3500);};
 addEventListener("pointermove",wake);addEventListener("pointerdown",wake);wake();
