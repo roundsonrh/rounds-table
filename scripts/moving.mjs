@@ -18,13 +18,14 @@ if (process.argv[2] === "compute") {
   const now = Date.now() / 1000;
   const ids = Object.entries(holds).filter(([, h]) => now - Number(h.since) >= DAYS * 86400).map(([id]) => id).sort((a, b) => a - b);
   const ids40 = Object.entries(holds).filter(([, h]) => now - Number(h.since) >= 40 * 86400).map(([id]) => id).sort((a, b) => a - b);
-  let prev = [], prev40 = [];
-  try { const j = await (await fetch(`${SITE}/data/moving.json?t=${Date.now()}`)).json(); prev = j.ids || []; prev40 = j.ids40 || []; } catch {}
+  const ids60 = Object.entries(holds).filter(([, h]) => now - Number(h.since) >= 60 * 86400).map(([id]) => id).sort((a, b) => a - b);
+  let prev = [], prev40 = [], prev60 = [];
+  try { const j = await (await fetch(`${SITE}/data/moving.json?t=${Date.now()}`)).json(); prev = j.ids || []; prev40 = j.ids40 || []; prev60 = j.ids60 || []; } catch {}
   const diff = (x, y) => { const A = new Set(x), B = new Set(y); return [...x.filter((v) => !B.has(v)), ...y.filter((v) => !A.has(v))]; };
-  const changed = [...new Set([...diff(ids, prev), ...diff(ids40, prev40)])];
-  fs.writeFileSync(path.join(ROOT, "site", "data", "moving.json"), JSON.stringify({ generated_at: new Date().toISOString(), days: DAYS, ids, ids40 }));
+  const changed = [...new Set([...diff(ids, prev), ...diff(ids40, prev40), ...diff(ids60, prev60)])];
+  fs.writeFileSync(path.join(ROOT, "site", "data", "moving.json"), JSON.stringify({ generated_at: new Date().toISOString(), days: DAYS, ids, ids40, ids60 }));
   fs.writeFileSync(DIFF, JSON.stringify(changed));
-  console.log(`Moving Rounds: ${ids.length} breathing · ${ids40.length} transforming · ${changed.length} changed since last run`);
+  console.log(`Moving Rounds: ${ids.length} breathing · ${ids40.length} transforming · ${ids60.length} rippling · ${changed.length} changed since last run`);
 } else if (process.argv[2] === "refresh") {
   const KEY = (process.env.OPENSEA_API_KEY || "").trim();
   let ids = [];

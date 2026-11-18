@@ -74,6 +74,16 @@ jobs:
       - name: Build any missing day 40 GIFs
         run: python3 scripts/build-gif40.py
 
+      - name: Day 60 GIFs (cached, built as Rounds near 60 days)
+        uses: actions/cache@v4
+        with:
+          path: site/gif60
+          key: gif60-${{ hashFiles('scripts/build-gif60.py', 'site/data/pieces.json') }}-${{ github.run_id }}
+          restore-keys: gif60-${{ hashFiles('scripts/build-gif60.py', 'site/data/pieces.json') }}-
+
+      - name: Build any missing day 60 GIFs
+        run: python3 scripts/build-gif60.py || echo "day 60 GIFs skipped"
+
       - name: Holiday art (site/art, built fresh each run)
         run: node scripts/build-themes.mjs
 

@@ -1,27 +1,51 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Rounds #336</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}</style></head>
-<body><canvas id="c"></canvas><script>
-// Rounds #336, breathing. Same circles as the still. Every 8 seconds the
-// whole piece inhales (circles swell and spread from its center) and
-// exhales; the breath ripples outward, so the middle moves first. A small
-// drift keeps it alive between breaths. Loops every 16 seconds.
-const D=[7798,5534,958,5167,3184,90,4238,3852,162,7427,3844,729,8117,8775,847,3479,3945,248,5365,2604,492,9442,7266,743,4622,8533,130,3005,5813,517,4590,1515,834,2348,2972,452,3791,7531,881,7117,1785,1035,2409,4743,168,6187,9556,396,9217,3915,677,2514,6894,436,6397,7775,808,5613,8877,178,2330,8609,533,4227,2851,440,8426,2951,373,1227,5480,790,2841,2093,537,1798,3833,525,9058,5878,325,4508,9336,473,3453,4675,460,7832,7392,512,9915,3324,226,6031,2351,141,3455,9301,352,9188,5189,232,2554,5018,128,5059,8466,299,5323,7220,305,2700,4044,305,5674,3779,378,1464,6954,245],ID=336,P=16,B=8,ST=+(new URLSearchParams(location.search).get("s")||0);
-// ?s=40 (held 40+ days): every circle also hollows to an outline and fills back in, a 16s wave from the center
+<title>Rounds #336</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+#tabs{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(0,0,0,.72);font:11px/1 ui-monospace,Menlo,monospace;transition:opacity .4s;white-space:nowrap;max-width:96vw;overflow-x:auto;scrollbar-width:none}
+#tabs button{all:unset;cursor:pointer;padding:6px 9px;border-radius:999px;color:var(--fg);opacity:.75}
+#tabs button.on{background:var(--fg);color:var(--bg);opacity:1}
+#tabs button.lock{cursor:default;opacity:.35}
+#tabs.hide{opacity:0;pointer-events:none}</style></head>
+<body><canvas id="c"></canvas><div id="tabs"></div><script>
+// Rounds #336, alive. Every stage a holder has earned plays stacked ("All"),
+// or one at a time from the tabs. ?s = stage earned (days held: 20, 40, 60),
+// ?h = held since (unix seconds), for the countdown on locked tabs.
+//  20 Breathing     an 8s inhale/exhale rippling out from the center, with a slow drift
+//  40 Transforming  every circle hollows to an outline and fills back in (16s wave)
+//  60 Rippling      each breath sends three faint rings out from the bigger circles
+const D=[7798,5534,958,5167,3184,90,4238,3852,162,7427,3844,729,8117,8775,847,3479,3945,248,5365,2604,492,9442,7266,743,4622,8533,130,3005,5813,517,4590,1515,834,2348,2972,452,3791,7531,881,7117,1785,1035,2409,4743,168,6187,9556,396,9217,3915,677,2514,6894,436,6397,7775,808,5613,8877,178,2330,8609,533,4227,2851,440,8426,2951,373,1227,5480,790,2841,2093,537,1798,3833,525,9058,5878,325,4508,9336,473,3453,4675,460,7832,7392,512,9915,3324,226,6031,2351,141,3455,9301,352,9188,5189,232,2554,5018,128,5059,8466,299,5323,7220,305,2700,4044,305,5674,3779,378,1464,6954,245],ID=336,P=16,B=8;
+const BG="#000",FG="#ccff00";
+const Q=new URLSearchParams(location.search),ST=+(Q.get("s")||20),SINCE=+(Q.get("h")||0);
+document.documentElement.style.setProperty("--fg",FG);document.documentElement.style.setProperty("--bg",BG);
 let s=ID*9301+49297;const rnd=()=>((s=(s*233280+12345)%2147483647)/2147483647);
 let cx=0,cy=0,w=0;for(let i=0;i<D.length;i+=3){const a=D[i+2]*D[i+2];cx+=D[i]*a;cy+=D[i+1]*a;w+=a;}cx/=w;cy/=w;
 let far=1;for(let i=0;i<D.length;i+=3)far=Math.max(far,Math.hypot(D[i]-cx,D[i+1]-cy));
 const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(160,30+12000/(r+40));
 C.push({x:D[i],y:D[i+1],r,d:Math.hypot(D[i]-cx,D[i+1]-cy)/far,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),px:rnd()*6.283,py:rnd()*6.283});}
+const BIG=C.map(c=>c.r).sort((a,b)=>a-b)[Math.floor(C.length*.6)]||0;
 const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
-function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);}
-addEventListener("resize",fit);fit();
+function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);tabs.classList.toggle("hide",S<240);}
 const ease=(u)=>u*u*(3-2*u);
-function frame(t){const sec=t/1000%P,T=sec/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
-for(const c of C){const b=ease((1-Math.cos(sec/B*6.283-c.d*1.2))/2),sp=1+.07*b;
-const x=(cx+(c.x-cx)*sp+c.ax*Math.sin(T+c.px))*k,y=(cy+(c.y-cy)*sp+c.ay*Math.cos(T+c.py))*k,r=c.r*(.94+.2*b)*k;
-if(ST>=40){g.fill();const h=ease((1-Math.cos(T-c.d*2))/2),hole=Math.max(0,(r-Math.max(r*.12,1.5))*h);g.beginPath();g.arc(x,y,r,0,6.283);g.fill();
-if(hole>Math.max(1.5,r*.15)){g.fillStyle="#000";g.beginPath();g.arc(x,y,hole,0,6.283);g.fill();g.fillStyle="#ccff00";}g.beginPath();continue;}
-g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
-g.fill();requestAnimationFrame(frame);}
+// stages and tabs
+const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Transforming"],[60,"Rippling"],[80,"Day 80"]];
+const MODES={all:{br:ST>=20,ho:ST>=40,ri:ST>=60},0:{},20:{br:1},40:{br:1,ho:1},60:{br:1,ri:1}};
+let mode=MODES.all;
+const tabs=document.getElementById("tabs");
+function left(d){if(!SINCE)return"day "+d;const n=Math.ceil(d-(Date.now()/1000-SINCE)/86400);return n<=1?"tomorrow":"in "+n+"d";}
+function drawTabs(){tabs.innerHTML="";const add=(label,key,locked)=>{const b=document.createElement("button");b.textContent=label;
+if(locked)b.className="lock";else{if(mode===MODES[key])b.className="on";b.onclick=()=>{mode=MODES[key];drawTabs();};}tabs.appendChild(b);};
+add("All","all");for(const [d,n] of STAGES){if(d===80){add(n+" ?","x",true);continue;}add(ST>=d?n:n+" · "+left(d),d,ST<d);}}
+drawTabs();addEventListener("resize",fit);fit();
+let idle=0;const wake=()=>{if(S>=240)tabs.classList.remove("hide");clearTimeout(idle);idle=setTimeout(()=>tabs.classList.add("hide"),3500);};
+addEventListener("pointermove",wake);addEventListener("pointerdown",wake);wake();
+function frame(t){const sec=t/1000%P,T=sec/P*6.283,k=S/10000,M=mode;g.fillStyle=BG;g.fillRect(0,0,S,S);
+const G=C.map(c=>{if(!M.br)return[c.x*k,c.y*k,c.r*k,c.d,c.r>=BIG];const b=ease((1-Math.cos(sec/B*6.283-c.d*1.2))/2),sp=1+.07*b;
+return[(cx+(c.x-cx)*sp+c.ax*Math.sin(T+c.px))*k,(cy+(c.y-cy)*sp+c.ay*Math.cos(T+c.py))*k,c.r*(.94+.2*b)*k,c.d,c.r>=BIG];});
+if(M.ri){g.strokeStyle=FG;g.lineWidth=Math.max(.8,S/600);for(const [x,y,r,d,big] of G){if(!big)continue;for(const lag of [0,1/3,2/3]){const p=(((sec/B-d*1.2/6.283+lag)%1)+1)%1,rr=r*(1.04+.9*p),a=.7*Math.pow(1-p,1.5);
+if(a<.06||rr<2)continue;g.globalAlpha=a;g.beginPath();g.arc(x,y,rr,0,6.283);g.stroke();}}g.globalAlpha=1;}
+g.fillStyle=FG;
+if(!M.ho){g.beginPath();for(const [x,y,r] of G){g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}g.fill();}
+else for(const [x,y,r,d] of G){g.fillStyle=FG;g.beginPath();g.arc(x,y,r,0,6.283);g.fill();
+const h=ease((1-Math.cos(T-d*2))/2),hole=Math.max(0,(r-Math.max(r*.12,1.5))*h);if(hole>Math.max(1.5,r*.15)){g.fillStyle=BG;g.beginPath();g.arc(x,y,hole,0,6.283);g.fill();}}
+requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
 </script></body></html>

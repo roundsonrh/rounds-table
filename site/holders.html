@@ -1308,7 +1308,7 @@
     if (moving.length) {
       const one = moving.length === 1;
       el.innerHTML = `<b>${moving.length}</b> of your Rounds ${one ? 'has' : 'have'} been held ${MOVE_DAYS}+ days, so ${one ? 'it\'s' : 'they\'re'} <b>breathing</b> now. `
-        + (() => { const t = moving.filter(id => heldDays(id) >= 40).length; return t ? `<b>${t}</b> ${t === 1 ? 'has' : 'have'} passed 40 days and ${t === 1 ? 'is' : 'are'} <b>transforming</b> too. ` : ''; })()
+        + (() => { const t = moving.filter(id => heldDays(id) >= 40).length; const r = moving.filter(id => heldDays(id) >= 60).length; return (t ? `<b>${t}</b> ${t === 1 ? 'has' : 'have'} passed 40 days and ${t === 1 ? 'is' : 'are'} <b>transforming</b> too. ` : '') + (r ? `<b>${r}</b> ${r === 1 ? 'has' : 'have'} passed 60 days and ${r === 1 ? 'is' : 'are'} <b>rippling</b>. ` : ''); })()
         + `<a href="https://opensea.io/assets/robinhood/0x8cd655173351c6f619acb907ba08bf920b736d1c/${moving[0]}" target="_blank" rel="noopener noreferrer">See it on OpenSea ↗</a>`;
     } else if (ages.length) {
       const left = Math.max(1, Math.ceil(MOVE_DAYS - Math.max(...ages)));
@@ -1446,7 +1446,7 @@
     canvas.width = size * dpr; canvas.height = size * dpr;
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
-    const job = { ctx, size, circles: rec[3], stage: heldDays(tokenId) >= 40 ? 40 : 20, ...breathCenter(rec[3]) };
+    const job = { ctx, size, circles: rec[3], stage: heldDays(tokenId) >= 60 ? 60 : heldDays(tokenId) >= 40 ? 40 : 20, ...breathCenter(rec[3]) };
     paintBreath(job, 0);
     // held 20+ days → it breathes here too, same breath as on OpenSea
     if (isBreathing(tokenId)) { BREATHERS.set(canvas, job); startBreathing(); }
@@ -1478,6 +1478,23 @@
     ctx.fillStyle = '#ccff00';
     ctx.beginPath();
     const hollow = j.stage >= 40 && sec !== null && sec !== 0;
+    if (j.stage >= 60 && sec !== null && sec !== 0) {
+      // day 60: three faint rings per breath from the bigger circles
+      if (j.big === undefined) j.big = c.filter((_, i) => i % 3 === 2).sort((a, b) => a - b)[Math.floor(c.length / 3 * .6)] || 0;
+      ctx.strokeStyle = '#ccff00'; ctx.lineWidth = Math.max(.6, size / 400);
+      for (let i = 0; i < c.length; i += 3) {
+        if (c[i+2] < j.big) continue;
+        const dd = Math.hypot(c[i] - cx, c[i+1] - cy) / far;
+        const u = (1 - Math.cos(sec / BREATH_S * 6.283 - dd * 1.2)) / 2, b = u * u * (3 - 2 * u), sp = 1 + .07 * b;
+        const x = (cx + (c[i] - cx) * sp) * k, y = (cy + (c[i+1] - cy) * sp) * k, r = c[i+2] * (.94 + .2 * b) * k;
+        for (const lag of [0, 1/3, 2/3]) {
+          const p = (((sec / BREATH_S - dd * 1.2 / 6.283 + lag) % 1) + 1) % 1, a = .7 * Math.pow(1 - p, 1.5);
+          if (a < .06) continue;
+          ctx.globalAlpha = a; ctx.beginPath(); ctx.arc(x, y, r * (1.04 + .9 * p), 0, Math.PI * 2); ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
     for (let i = 0; i < c.length; i += 3) {
       let x = c[i], y = c[i+1], r = c[i+2], dd = 0;
       if (sec !== null && sec !== 0) {

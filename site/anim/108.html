@@ -1,27 +1,51 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Rounds #108</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}</style></head>
-<body><canvas id="c"></canvas><script>
-// Rounds #108, breathing. Same circles as the still. Every 8 seconds the
-// whole piece inhales (circles swell and spread from its center) and
-// exhales; the breath ripples outward, so the middle moves first. A small
-// drift keeps it alive between breaths. Loops every 16 seconds.
-const D=[2984,3240,116,5465,2715,163,7863,3153,165,5867,4183,52,6017,1331,146,7524,5395,138,214,3254,76,2845,7724,69,8304,8125,141,8807,2140,165,6292,4032,121,3706,5790,164,6890,5890,68,3661,8941,119,8257,1063,89,7652,1622,129,4823,8152,62,6131,6465,66,2584,1879,133,5356,5392,150,424,3942,63,3028,3654,143,6410,8629,122,7832,9518,102,5942,9659,88,3515,7509,126,3943,7841,159,9186,9722,158,2249,7318,139,7275,8316,57,1560,531,67,9873,2859,124,5039,5169,124,365,7304,147,5429,6563,140,7562,7282,109,6947,5368,86,7683,5693,64,6984,5527,63,3755,3307,153,166,8289,164,5977,898,165,754,5084,52,4578,3817,62,1932,9216,149,3094,787,153,3152,544,87,6490,2216,121,8144,9073,54,3040,5450,163,7606,9816,103,2596,4394,165,99,6479,58,3154,6025,135,9749,5677,90,2338,6940,90,3573,4316,139,4195,8123,70,2806,715,57,3140,2316,71,1702,6118,67,4331,1119,93,1183,8305,142,4793,9429,118,4393,5448,125,6314,9604,142,5888,8406,145,5478,9981,93,6012,4059,107,6665,8395,149,6114,9468,93,7169,8599,73,9418,5577,70,2026,2423,144,5013,6881,144,3187,1980,105,6004,3431,112,1001,7939,152,1812,9566,129,4040,8424,161,2888,8428,155,4142,4901,163,289,7832,83,3895,4376,87,7034,8980,73,6618,7096,156,7606,3329,107,7036,2200,73,5474,7408,124,9463,7365,57,4814,2693,112,7011,3837,159,2325,2890,114,8704,5402,64,2157,4142,65,5062,2088,136,9452,9564,112,4484,105,55,1897,7119,159,2059,6485,53,6793,1066,123,3685,2941,114,9799,3797,114,7681,5038,156,2422,1569,84,6226,2704,161,6924,7514,52,5895,8991,83,5820,271,125,4074,2905,61,8519,4514,145,2939,4070,144,7897,4617,100,4902,9758,61,6862,2317,109,9975,6347,67,681,1483,122,4909,4024,92,8910,6976,79],ID=108,P=16,B=8,ST=+(new URLSearchParams(location.search).get("s")||0);
-// ?s=40 (held 40+ days): every circle also hollows to an outline and fills back in, a 16s wave from the center
+<title>Rounds #108</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+#tabs{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(0,0,0,.72);font:11px/1 ui-monospace,Menlo,monospace;transition:opacity .4s;white-space:nowrap;max-width:96vw;overflow-x:auto;scrollbar-width:none}
+#tabs button{all:unset;cursor:pointer;padding:6px 9px;border-radius:999px;color:var(--fg);opacity:.75}
+#tabs button.on{background:var(--fg);color:var(--bg);opacity:1}
+#tabs button.lock{cursor:default;opacity:.35}
+#tabs.hide{opacity:0;pointer-events:none}</style></head>
+<body><canvas id="c"></canvas><div id="tabs"></div><script>
+// Rounds #108, alive. Every stage a holder has earned plays stacked ("All"),
+// or one at a time from the tabs. ?s = stage earned (days held: 20, 40, 60),
+// ?h = held since (unix seconds), for the countdown on locked tabs.
+//  20 Breathing     an 8s inhale/exhale rippling out from the center, with a slow drift
+//  40 Transforming  every circle hollows to an outline and fills back in (16s wave)
+//  60 Rippling      each breath sends three faint rings out from the bigger circles
+const D=[2984,3240,116,5465,2715,163,7863,3153,165,5867,4183,52,6017,1331,146,7524,5395,138,214,3254,76,2845,7724,69,8304,8125,141,8807,2140,165,6292,4032,121,3706,5790,164,6890,5890,68,3661,8941,119,8257,1063,89,7652,1622,129,4823,8152,62,6131,6465,66,2584,1879,133,5356,5392,150,424,3942,63,3028,3654,143,6410,8629,122,7832,9518,102,5942,9659,88,3515,7509,126,3943,7841,159,9186,9722,158,2249,7318,139,7275,8316,57,1560,531,67,9873,2859,124,5039,5169,124,365,7304,147,5429,6563,140,7562,7282,109,6947,5368,86,7683,5693,64,6984,5527,63,3755,3307,153,166,8289,164,5977,898,165,754,5084,52,4578,3817,62,1932,9216,149,3094,787,153,3152,544,87,6490,2216,121,8144,9073,54,3040,5450,163,7606,9816,103,2596,4394,165,99,6479,58,3154,6025,135,9749,5677,90,2338,6940,90,3573,4316,139,4195,8123,70,2806,715,57,3140,2316,71,1702,6118,67,4331,1119,93,1183,8305,142,4793,9429,118,4393,5448,125,6314,9604,142,5888,8406,145,5478,9981,93,6012,4059,107,6665,8395,149,6114,9468,93,7169,8599,73,9418,5577,70,2026,2423,144,5013,6881,144,3187,1980,105,6004,3431,112,1001,7939,152,1812,9566,129,4040,8424,161,2888,8428,155,4142,4901,163,289,7832,83,3895,4376,87,7034,8980,73,6618,7096,156,7606,3329,107,7036,2200,73,5474,7408,124,9463,7365,57,4814,2693,112,7011,3837,159,2325,2890,114,8704,5402,64,2157,4142,65,5062,2088,136,9452,9564,112,4484,105,55,1897,7119,159,2059,6485,53,6793,1066,123,3685,2941,114,9799,3797,114,7681,5038,156,2422,1569,84,6226,2704,161,6924,7514,52,5895,8991,83,5820,271,125,4074,2905,61,8519,4514,145,2939,4070,144,7897,4617,100,4902,9758,61,6862,2317,109,9975,6347,67,681,1483,122,4909,4024,92,8910,6976,79],ID=108,P=16,B=8;
+const BG="#000",FG="#ccff00";
+const Q=new URLSearchParams(location.search),ST=+(Q.get("s")||20),SINCE=+(Q.get("h")||0);
+document.documentElement.style.setProperty("--fg",FG);document.documentElement.style.setProperty("--bg",BG);
 let s=ID*9301+49297;const rnd=()=>((s=(s*233280+12345)%2147483647)/2147483647);
 let cx=0,cy=0,w=0;for(let i=0;i<D.length;i+=3){const a=D[i+2]*D[i+2];cx+=D[i]*a;cy+=D[i+1]*a;w+=a;}cx/=w;cy/=w;
 let far=1;for(let i=0;i<D.length;i+=3)far=Math.max(far,Math.hypot(D[i]-cx,D[i+1]-cy));
 const C=[];for(let i=0;i<D.length;i+=3){const r=D[i+2],a=Math.min(160,30+12000/(r+40));
 C.push({x:D[i],y:D[i+1],r,d:Math.hypot(D[i]-cx,D[i+1]-cy)/far,ax:a*(.5+rnd()*.5),ay:a*(.5+rnd()*.5),px:rnd()*6.283,py:rnd()*6.283});}
+const BIG=C.map(c=>c.r).sort((a,b)=>a-b)[Math.floor(C.length*.6)]||0;
 const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
-function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);}
-addEventListener("resize",fit);fit();
+function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);tabs.classList.toggle("hide",S<240);}
 const ease=(u)=>u*u*(3-2*u);
-function frame(t){const sec=t/1000%P,T=sec/P*6.283,k=S/10000;g.fillStyle="#000";g.fillRect(0,0,S,S);g.fillStyle="#ccff00";g.beginPath();
-for(const c of C){const b=ease((1-Math.cos(sec/B*6.283-c.d*1.2))/2),sp=1+.07*b;
-const x=(cx+(c.x-cx)*sp+c.ax*Math.sin(T+c.px))*k,y=(cy+(c.y-cy)*sp+c.ay*Math.cos(T+c.py))*k,r=c.r*(.94+.2*b)*k;
-if(ST>=40){g.fill();const h=ease((1-Math.cos(T-c.d*2))/2),hole=Math.max(0,(r-Math.max(r*.12,1.5))*h);g.beginPath();g.arc(x,y,r,0,6.283);g.fill();
-if(hole>Math.max(1.5,r*.15)){g.fillStyle="#000";g.beginPath();g.arc(x,y,hole,0,6.283);g.fill();g.fillStyle="#ccff00";}g.beginPath();continue;}
-g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}
-g.fill();requestAnimationFrame(frame);}
+// stages and tabs
+const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Transforming"],[60,"Rippling"],[80,"Day 80"]];
+const MODES={all:{br:ST>=20,ho:ST>=40,ri:ST>=60},0:{},20:{br:1},40:{br:1,ho:1},60:{br:1,ri:1}};
+let mode=MODES.all;
+const tabs=document.getElementById("tabs");
+function left(d){if(!SINCE)return"day "+d;const n=Math.ceil(d-(Date.now()/1000-SINCE)/86400);return n<=1?"tomorrow":"in "+n+"d";}
+function drawTabs(){tabs.innerHTML="";const add=(label,key,locked)=>{const b=document.createElement("button");b.textContent=label;
+if(locked)b.className="lock";else{if(mode===MODES[key])b.className="on";b.onclick=()=>{mode=MODES[key];drawTabs();};}tabs.appendChild(b);};
+add("All","all");for(const [d,n] of STAGES){if(d===80){add(n+" ?","x",true);continue;}add(ST>=d?n:n+" · "+left(d),d,ST<d);}}
+drawTabs();addEventListener("resize",fit);fit();
+let idle=0;const wake=()=>{if(S>=240)tabs.classList.remove("hide");clearTimeout(idle);idle=setTimeout(()=>tabs.classList.add("hide"),3500);};
+addEventListener("pointermove",wake);addEventListener("pointerdown",wake);wake();
+function frame(t){const sec=t/1000%P,T=sec/P*6.283,k=S/10000,M=mode;g.fillStyle=BG;g.fillRect(0,0,S,S);
+const G=C.map(c=>{if(!M.br)return[c.x*k,c.y*k,c.r*k,c.d,c.r>=BIG];const b=ease((1-Math.cos(sec/B*6.283-c.d*1.2))/2),sp=1+.07*b;
+return[(cx+(c.x-cx)*sp+c.ax*Math.sin(T+c.px))*k,(cy+(c.y-cy)*sp+c.ay*Math.cos(T+c.py))*k,c.r*(.94+.2*b)*k,c.d,c.r>=BIG];});
+if(M.ri){g.strokeStyle=FG;g.lineWidth=Math.max(.8,S/600);for(const [x,y,r,d,big] of G){if(!big)continue;for(const lag of [0,1/3,2/3]){const p=(((sec/B-d*1.2/6.283+lag)%1)+1)%1,rr=r*(1.04+.9*p),a=.7*Math.pow(1-p,1.5);
+if(a<.06||rr<2)continue;g.globalAlpha=a;g.beginPath();g.arc(x,y,rr,0,6.283);g.stroke();}}g.globalAlpha=1;}
+g.fillStyle=FG;
+if(!M.ho){g.beginPath();for(const [x,y,r] of G){g.moveTo(x+r,y);g.arc(x,y,r,0,6.283);}g.fill();}
+else for(const [x,y,r,d] of G){g.fillStyle=FG;g.beginPath();g.arc(x,y,r,0,6.283);g.fill();
+const h=ease((1-Math.cos(T-d*2))/2),hole=Math.max(0,(r-Math.max(r*.12,1.5))*h);if(hole>Math.max(1.5,r*.15)){g.fillStyle=BG;g.beginPath();g.arc(x,y,hole,0,6.283);g.fill();}}
+requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
 </script></body></html>

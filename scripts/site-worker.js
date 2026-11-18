@@ -53,7 +53,8 @@ export default {
       if (!r.ok) return r;
       const html = (await r.text())
         .replace("background:#000", `background:${t.bg}`)
-        .replaceAll('g.fillStyle="#000"', `g.fillStyle="${t.bg}"`) // all: day 40 also paints its holes and refills
+        .replace('const BG="#000",FG="#ccff00"', `const BG="${t.bg}",FG="${t.fill}"`)
+        .replaceAll('g.fillStyle="#000"', `g.fillStyle="${t.bg}"`) // older pages
         .replaceAll('g.fillStyle="#ccff00"', `g.fillStyle="${t.fill}"`);
       return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "access-control-allow-origin": "*", "cache-control": "public, max-age=3600" } });
     }
@@ -65,27 +66,32 @@ export default {
     if (!(id >= 1 && id <= ROUNDS)) return new Response(JSON.stringify({ error: "No such Round." }), { status: 404, headers });
     const meta = await asset(env, url.origin, `/meta-src/${id}.json`);
     if (!meta) return new Response(JSON.stringify({ error: "Missing metadata." }), { status: 500, headers });
-    let moving = false, stage40 = false, theme = null;
+    let moving = false, stage = 0, since = 0, theme = null;
     try {
       const holds = await asset(env, url.origin, "/data/holds.json");
       const h = holds && holds.holds && holds.holds[id];
-      moving = !!h && Date.now() / 1000 - Number(h.since) >= HOLD_DAYS * 86400;
-      stage40 = !!h && Date.now() / 1000 - Number(h.since) >= 40 * 86400; // day 40: breathing + transforming
+      if (h) {
+        since = Math.floor(Number(h.since));
+        const days = (Date.now() / 1000 - since) / 86400;
+        stage = days >= 60 ? 60 : days >= 40 ? 40 : days >= HOLD_DAYS ? 20 : 0; // 20 breathing · 40 transforming · 60 rippling
+        moving = stage >= 20;
+      }
     } catch { /* any trouble: serve the still, never break metadata */ }
     try { theme = await activeTheme(env, url.origin, url.searchParams.get("theme")); } catch { theme = null; }
     let out = meta;
-    // breathing GIF as the image so it moves in marketplace grids too; the
-    // full animation plays when the NFT is opened
+    // grid image: the GIF of the highest stage built so far; the full page (animation_url)
+    // plays every earned stage stacked, with tabs to view them one at a time
     if (moving) {
       const has = async (p) => { const r = await env.ASSETS.fetch(new Request(`${url.origin}${p}`, { method: "HEAD" })).catch(() => null); return !!(r && r.ok); };
-      const g40 = stage40 && await has(`/gif40/${id}.gif`);
-      const gif = g40 ? `/gif40/${id}.gif` : (await has(`/gif/${id}.gif`)) ? `/gif/${id}.gif` : null;
-      out = { ...meta, image: gif ? SITE + gif : meta.image, animation_url: `${SITE}/anim/${id}${stage40 ? "?s=40" : ""}` };
+      let gif = null;
+      for (const [min, dir] of [[60, "gif60"], [40, "gif40"], [20, "gif"]]) if (stage >= min && await has(`/${dir}/${id}.gif`)) { gif = `/${dir}/${id}.gif`; break; }
+      out = { ...meta, image: gif ? SITE + gif : meta.image, animation_url: `${SITE}/anim/${id}?s=${stage}&h=${since}` };
     }
     if (theme) {
       out = { ...out, image: `${SITE}/art/${theme.id}/${id}.svg` };
-      if (moving) out.animation_url = `${SITE}/anim/${theme.id}/${id}${stage40 ? "?s=40" : ""}`;
+      if (moving) out.animation_url = `${SITE}/anim/${theme.id}/${id}?s=${stage}&h=${since}`;
     }
+    out = { ...out, attributes: [...(out.attributes || []), { trait_type: "Stage", value: ["Still", "Breathing", "Transforming", "Rippling"][stage / 20] }] };
     // Holder Tier: how this Round's owner trades across Robinhood Chain (scripts/tiers.mjs)
     try {
       const tiers = await asset(env, url.origin, "/data/tiers.json");
