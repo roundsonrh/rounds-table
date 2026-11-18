@@ -1308,7 +1308,7 @@
     if (moving.length) {
       const one = moving.length === 1;
       el.innerHTML = `<b>${moving.length}</b> of your Rounds ${one ? 'has' : 'have'} been held ${MOVE_DAYS}+ days, so ${one ? 'it\'s' : 'they\'re'} <b>breathing</b> now. `
-        + (() => { const t = moving.filter(id => heldDays(id) >= 40).length; const r = moving.filter(id => heldDays(id) >= 60).length; return (t ? `<b>${t}</b> ${t === 1 ? 'has' : 'have'} passed 40 days and ${t === 1 ? 'is' : 'are'} <b>transforming</b> too. ` : '') + (r ? `<b>${r}</b> ${r === 1 ? 'has' : 'have'} passed 60 days and ${r === 1 ? 'is' : 'are'} <b>rippling</b>. ` : ''); })()
+        + (() => { const t = moving.filter(id => heldDays(id) >= 40).length; const r = moving.filter(id => heldDays(id) >= 60).length; return (t ? `<b>${t}</b> ${t === 1 ? 'has' : 'have'} passed 40 days and ${t === 1 ? 'is' : 'are'} <b>outlining</b> too. ` : '') + (r ? `<b>${r}</b> ${r === 1 ? 'has' : 'have'} passed 60 days and ${r === 1 ? 'is' : 'are'} <b>rippling</b>. ` : ''); })()
         + `<a href="https://opensea.io/assets/robinhood/0x8cd655173351c6f619acb907ba08bf920b736d1c/${moving[0]}" target="_blank" rel="noopener noreferrer">See it on OpenSea ↗</a>`;
     } else if (ages.length) {
       const left = Math.max(1, Math.ceil(MOVE_DAYS - Math.max(...ages)));

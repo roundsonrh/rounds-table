@@ -10,7 +10,7 @@
 // or one at a time from the tabs. ?s = stage earned (days held: 20, 40, 60),
 // ?h = held since (unix seconds), for the countdown on locked tabs.
 //  20 Breathing     an 8s inhale/exhale rippling out from the center, with a slow drift
-//  40 Transforming  every circle hollows to an outline and fills back in (16s wave)
+//  40 Outlining  every circle hollows to an outline and fills back in (16s wave)
 //  60 Rippling      each breath sends three faint rings out from the bigger circles
 const D=[9634,2420,431,3676,3019,135,30,7630,197,7858,426,458,2905,4195,405,6444,4028,254,1894,5771,149,9925,5174,459,8516,1796,389,3895,3945,334,9078,3336,385,7478,3478,358,1463,1173,301,163,4056,452,2068,4683,208,9160,6849,367,2682,1,335,6717,4936,134,723,866,470,3084,9834,419,2950,8517,287,196,1878,533,3778,855,494,3310,6165,512,9177,180,307,1891,9807,174,9746,861,234,6402,1600,474,6578,9772,156,9214,4983,251,6673,676,426,7558,8840,504,1544,9225,405,600,8465,416,3012,1462,449,8956,915,407,7191,7791,473,581,4945,280,3745,1972,362,1966,5459,134,839,6205,177,6423,9036,299,3862,9487,104,9138,5855,207,2184,8533,409,9940,9360,460,7093,6662,207,3402,7233,300,3052,4888,210,2909,677,136,8439,7372,352,1919,2048,316,3221,2790,280,9998,6241,405,7177,1981,158,8637,5871,276,6736,4605,125],ID=614,P=16,B=8;
 const BG="#000",FG="#ccff00";
@@ -26,7 +26,7 @@ const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
 function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);tabs.classList.toggle("hide",S<240);}
 const ease=(u)=>u*u*(3-2*u);
 // stages and tabs
-const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Transforming"],[60,"Rippling"],[80,"Day 80"]];
+const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Outlining"],[60,"Rippling"],[80,"Day 80"]];
 const MODES={all:{br:ST>=20,ho:ST>=40,ri:ST>=60},0:{},20:{br:1},40:{br:1,ho:1},60:{br:1,ri:1}};
 let mode=MODES.all;
 const tabs=document.getElementById("tabs");

@@ -10,7 +10,7 @@
 // or one at a time from the tabs. ?s = stage earned (days held: 20, 40, 60),
 // ?h = held since (unix seconds), for the countdown on locked tabs.
 //  20 Breathing     an 8s inhale/exhale rippling out from the center, with a slow drift
-//  40 Transforming  every circle hollows to an outline and fills back in (16s wave)
+//  40 Outlining  every circle hollows to an outline and fills back in (16s wave)
 //  60 Rippling      each breath sends three faint rings out from the bigger circles
 const D=[2179,1386,435,7561,8525,435,5811,8920,429,3353,2244,397,2640,2757,435,338,2336,435,2244,3817,435,3759,1491,435,4269,6644,435,8912,9247,429,1039,171,435,9341,8042,435,1783,2218,416,1045,2939,403,7571,6652,435,4459,8941,435,6334,7445,429,6775,9236,410,1014,1586,416,3107,5172,429,3396,584,397,6644,6658,386,6545,8456,380,7371,9920,386,5390,8171,416,3484,3344,416,5046,9526,368,465,1033,322,8395,8089,391,5060,7253,347,5660,6112,386,8202,9980,397,4484,7681,331,1989,225,410,2888,1682,307,3158,9002,368,1267,4640,422,6023,9693,327,3027,4239,374,5500,5257,352,9231,7059,422,7554,7749,317,362,4205,327,8653,5768,403,1416,3651,347,3708,7633,285,2704,30,294,3962,9945,264,2729,916,281,4079,8405,217,327,3159,277,4083,4142,410,4559,1419,260,7872,9261,347,4215,2922,268,7191,5786,303,6399,5262,327,4075,2153,289,4206,667,264,294,4987,214,5126,1069,374,8229,7228,289,1425,852,312,5162,3100,380,9040,9999,327,205,0,303,5193,8757,201,6989,7718,147,1989,2938,234,7087,4731,416],ID=482,P=16,B=8;
 const BG="#000",FG="#ccff00";
@@ -26,7 +26,7 @@ const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
 function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);tabs.classList.toggle("hide",S<240);}
 const ease=(u)=>u*u*(3-2*u);
 // stages and tabs
-const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Transforming"],[60,"Rippling"],[80,"Day 80"]];
+const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Outlining"],[60,"Rippling"],[80,"Day 80"]];
 const MODES={all:{br:ST>=20,ho:ST>=40,ri:ST>=60},0:{},20:{br:1},40:{br:1,ho:1},60:{br:1,ri:1}};
 let mode=MODES.all;
 const tabs=document.getElementById("tabs");

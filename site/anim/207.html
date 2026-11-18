@@ -10,7 +10,7 @@
 // or one at a time from the tabs. ?s = stage earned (days held: 20, 40, 60),
 // ?h = held since (unix seconds), for the countdown on locked tabs.
 //  20 Breathing     an 8s inhale/exhale rippling out from the center, with a slow drift
-//  40 Transforming  every circle hollows to an outline and fills back in (16s wave)
+//  40 Outlining  every circle hollows to an outline and fills back in (16s wave)
 //  60 Rippling      each breath sends three faint rings out from the bigger circles
 const D=[6086,6955,2318,7898,4395,230,4574,4320,279,7757,1956,335,8568,2628,267,2338,8876,198,2775,2156,207,1139,6207,170,605,5548,362,5216,715,257,1177,7044,269,4163,3336,317,8152,5118,236,3827,4078,246,3940,783,352,4165,4789,266,8687,3718,389,2407,7140,196,5103,3355,356,3258,2332,213,3189,4580,312,8621,4442,300,2009,4525,198,3377,6258,214,2327,5125,349,803,6639,176,1555,8061,332,9038,5084,280,5823,4085,313,6537,3499,344,1981,2804,305,1517,4436,203,1572,2068,214,6142,748,269,955,3727,288,2885,8154,238,2518,6402,264,5996,9937,185,1927,3439,251,3419,3342,316,3401,9323,241,4235,2443,235,2868,1414,241,4714,2274,184,8343,8944,162,4639,1216,315,4038,8765,337,7812,3309,227,5174,2524,257,6044,2914,364,7018,4360,243,3548,7456,169,2260,5773,232,3816,5544,259],ID=207,P=16,B=8;
 const BG="#000",FG="#ccff00";
@@ -26,7 +26,7 @@ const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
 function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);tabs.classList.toggle("hide",S<240);}
 const ease=(u)=>u*u*(3-2*u);
 // stages and tabs
-const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Transforming"],[60,"Rippling"],[80,"Day 80"]];
+const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Outlining"],[60,"Rippling"],[80,"Day 80"]];
 const MODES={all:{br:ST>=20,ho:ST>=40,ri:ST>=60},0:{},20:{br:1},40:{br:1,ho:1},60:{br:1,ri:1}};
 let mode=MODES.all;
 const tabs=document.getElementById("tabs");

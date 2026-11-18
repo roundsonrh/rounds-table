@@ -10,7 +10,7 @@
 // or one at a time from the tabs. ?s = stage earned (days held: 20, 40, 60),
 // ?h = held since (unix seconds), for the countdown on locked tabs.
 //  20 Breathing     an 8s inhale/exhale rippling out from the center, with a slow drift
-//  40 Transforming  every circle hollows to an outline and fills back in (16s wave)
+//  40 Outlining  every circle hollows to an outline and fills back in (16s wave)
 //  60 Rippling      each breath sends three faint rings out from the bigger circles
 const D=[6196,5726,50,5201,4492,272,3207,9313,155,666,1290,95,6265,4428,50,647,1115,50,4173,2187,781,6042,6363,279,5833,4444,182,650,7716,50,9031,983,954,4782,6416,191,8606,6491,884,3023,5647,517,6026,2434,718,1610,3824,1197,8135,3732,683,1579,7208,732,9850,33,49,4335,6455,67,1954,9133,695,3814,7191,341,4007,5500,476,1868,9914,49,4995,513,183,3846,729,50,2192,1853,52,6846,8584,50,9397,3859,49,9305,8585,776,3764,3732,431,2410,40,1030,2717,2146,305,1237,9928,331,7629,9893,963,300,2296,537,5264,1784,50,3659,8283,70,6184,9480,411,3478,1212,100],ID=783,P=16,B=8;
 const BG="#000",FG="#ccff00";
@@ -26,7 +26,7 @@ const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
 function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);tabs.classList.toggle("hide",S<240);}
 const ease=(u)=>u*u*(3-2*u);
 // stages and tabs
-const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Transforming"],[60,"Rippling"],[80,"Day 80"]];
+const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Outlining"],[60,"Rippling"],[80,"Day 80"]];
 const MODES={all:{br:ST>=20,ho:ST>=40,ri:ST>=60},0:{},20:{br:1},40:{br:1,ho:1},60:{br:1,ri:1}};
 let mode=MODES.all;
 const tabs=document.getElementById("tabs");

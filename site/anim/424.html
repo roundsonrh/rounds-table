@@ -10,7 +10,7 @@
 // or one at a time from the tabs. ?s = stage earned (days held: 20, 40, 60),
 // ?h = held since (unix seconds), for the countdown on locked tabs.
 //  20 Breathing     an 8s inhale/exhale rippling out from the center, with a slow drift
-//  40 Transforming  every circle hollows to an outline and fills back in (16s wave)
+//  40 Outlining  every circle hollows to an outline and fills back in (16s wave)
 //  60 Rippling      each breath sends three faint rings out from the bigger circles
 const D=[7238,8140,66,7788,8100,125,5658,3929,183,7213,5345,68,7206,2155,94,4089,5427,161,5057,5557,65,6897,6290,183,5163,1488,105,4851,3226,175,3629,4514,109,1890,4711,159,5443,5373,168,6750,4003,112,6515,4499,53,8979,3878,123,2240,3877,168,5707,9794,154,2132,3596,56,8302,7608,99,1183,7322,123,5832,9427,127,5186,4708,68,7849,3647,138,5695,7514,64,8109,3296,145,3652,4908,121,6864,6737,95,3537,1352,187,4043,7433,146,6257,1807,55,4758,3791,152,4782,5430,131,4699,7377,149,7914,7358,149,3542,1849,84,4628,5845,181,1974,5803,163,3396,7252,105,5991,3508,166,3714,9457,136,5061,5002,79,4345,5138,93,6286,6584,143,1582,7425,111,4056,3269,116,2681,3067,69,4126,4082,74,1414,7838,59,2214,5094,52,7395,8466,74,5444,4935,118,8069,2767,118,5214,3739,107,1513,8186,67,3288,9214,59],ID=424,P=16,B=8;
 const BG="#000",FG="#ccff00";
@@ -26,7 +26,7 @@ const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
 function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);tabs.classList.toggle("hide",S<240);}
 const ease=(u)=>u*u*(3-2*u);
 // stages and tabs
-const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Transforming"],[60,"Rippling"],[80,"Day 80"]];
+const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Outlining"],[60,"Rippling"],[80,"Day 80"]];
 const MODES={all:{br:ST>=20,ho:ST>=40,ri:ST>=60},0:{},20:{br:1},40:{br:1,ho:1},60:{br:1,ri:1}};
 let mode=MODES.all;
 const tabs=document.getElementById("tabs");

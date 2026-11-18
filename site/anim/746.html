@@ -10,7 +10,7 @@
 // or one at a time from the tabs. ?s = stage earned (days held: 20, 40, 60),
 // ?h = held since (unix seconds), for the countdown on locked tabs.
 //  20 Breathing     an 8s inhale/exhale rippling out from the center, with a slow drift
-//  40 Transforming  every circle hollows to an outline and fills back in (16s wave)
+//  40 Outlining  every circle hollows to an outline and fills back in (16s wave)
 //  60 Rippling      each breath sends three faint rings out from the bigger circles
 const D=[4758,2776,507,8047,763,507,8447,2576,507,8355,7258,507,3627,4769,507,2779,2521,507,4159,6014,507,4941,451,507,2719,9258,507,9256,1514,507,8300,3903,507,9449,3887,507,7267,7210,507,6068,7194,507,3762,3611,507,1951,5821,507,5283,9330,500,346,8191,492,5840,4116,492,7504,1692,507,7374,5153,507,9440,7099,507,643,9238,492,2486,7080,477,3886,1660,463,9634,5157,507,8622,9615,477,1768,3014,507,561,3688,477,659,6158,492,8040,5971,477,287,1411,443,7309,9566,485,1481,8433,492,5131,1646,507,790,2596,477,2658,8138,470,9557,9720,436,7121,3823,477,1408,7425,492,5867,2722,500,5004,7443,470,1889,1375,507,7440,2719,500,9158,464,500,7198,8484,507,3837,8549,485,600,4998,449,2558,577,485,3787,654,463,9465,8095,449,6035,420,470,9402,2839,470,5840,6120,332,650,442,500,2632,3865,470,3664,2604,353,6372,5128,423,3817,9738,423,6171,8560,449,6027,1717,317,8263,8321,492,2655,4924,470,2902,1433,423,3613,7438,381],ID=746,P=16,B=8;
 const BG="#000",FG="#ccff00";
@@ -26,7 +26,7 @@ const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
 function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);tabs.classList.toggle("hide",S<240);}
 const ease=(u)=>u*u*(3-2*u);
 // stages and tabs
-const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Transforming"],[60,"Rippling"],[80,"Day 80"]];
+const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Outlining"],[60,"Rippling"],[80,"Day 80"]];
 const MODES={all:{br:ST>=20,ho:ST>=40,ri:ST>=60},0:{},20:{br:1},40:{br:1,ho:1},60:{br:1,ri:1}};
 let mode=MODES.all;
 const tabs=document.getElementById("tabs");

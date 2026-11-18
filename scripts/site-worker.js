@@ -73,7 +73,7 @@ export default {
       if (h) {
         since = Math.floor(Number(h.since));
         const days = (Date.now() / 1000 - since) / 86400;
-        stage = days >= 60 ? 60 : days >= 40 ? 40 : days >= HOLD_DAYS ? 20 : 0; // 20 breathing · 40 transforming · 60 rippling
+        stage = days >= 60 ? 60 : days >= 40 ? 40 : days >= HOLD_DAYS ? 20 : 0; // 20 breathing · 40 outlining · 60 rippling
         moving = stage >= 20;
       }
     } catch { /* any trouble: serve the still, never break metadata */ }
@@ -91,7 +91,7 @@ export default {
       out = { ...out, image: `${SITE}/art/${theme.id}/${id}.svg` };
       if (moving) out.animation_url = `${SITE}/anim/${theme.id}/${id}?s=${stage}&h=${since}`;
     }
-    out = { ...out, attributes: [...(out.attributes || []), { trait_type: "Stage", value: ["Still", "Breathing", "Transforming", "Rippling"][stage / 20] }] };
+    out = { ...out, attributes: [...(out.attributes || []), { trait_type: "Stage", value: ["Still", "Breathing", "Outlining", "Rippling"][stage / 20] }] };
     // Holder Tier: how this Round's owner trades across Robinhood Chain (scripts/tiers.mjs)
     try {
       const tiers = await asset(env, url.origin, "/data/tiers.json");

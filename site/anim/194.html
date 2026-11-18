@@ -10,7 +10,7 @@
 // or one at a time from the tabs. ?s = stage earned (days held: 20, 40, 60),
 // ?h = held since (unix seconds), for the countdown on locked tabs.
 //  20 Breathing     an 8s inhale/exhale rippling out from the center, with a slow drift
-//  40 Transforming  every circle hollows to an outline and fills back in (16s wave)
+//  40 Outlining  every circle hollows to an outline and fills back in (16s wave)
 //  60 Rippling      each breath sends three faint rings out from the bigger circles
 const D=[712,2773,359,9817,3589,1015,1257,553,1247,2314,8496,50,8724,7095,1283,7802,9376,456,9118,5440,179,3031,8050,154,501,8720,49,6844,7118,197,1117,7054,69,2188,3216,116,7117,6681,50,1003,3864,644,7487,8596,49,2032,2272,501,7320,3771,154,936,7785,172,7644,693,882,9415,9140,703,8904,2289,198,2334,5563,689,7628,2611,580,991,8902,50,3012,176,204,373,7621,49,9607,1999,50,142,7163,49,2831,9933,772,7735,5217,574,2937,575,48,9879,677,50,984,8564,85,2372,7396,486,2966,3969,603,83,5579,596,9843,9944,49,1738,8786,234,1423,7423,221,963,9361,139,260,9243,351,2253,8068,49,6932,8073,491,9061,513,49,3145,7180,50,9163,124,222,2980,2416,315,8250,3855,315,6971,4337,323,9925,5261,462,1688,6612,49,8486,1843,274,6828,3189,131,720,6868,62,9485,853,256,8743,4660,295,1044,6323,176,6955,9899,410,1713,4564,225],ID=194,P=16,B=8;
 const BG="#000",FG="#ccff00";
@@ -26,7 +26,7 @@ const cv=document.getElementById("c"),g=cv.getContext("2d");let S=0;
 function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,innerHeight);cv.style.width=cv.style.height=S+"px";cv.width=cv.height=Math.round(S*dpr);g.setTransform(dpr,0,0,dpr,0,0);tabs.classList.toggle("hide",S<240);}
 const ease=(u)=>u*u*(3-2*u);
 // stages and tabs
-const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Transforming"],[60,"Rippling"],[80,"Day 80"]];
+const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Outlining"],[60,"Rippling"],[80,"Day 80"]];
 const MODES={all:{br:ST>=20,ho:ST>=40,ri:ST>=60},0:{},20:{br:1},40:{br:1,ho:1},60:{br:1,ri:1}};
 let mode=MODES.all;
 const tabs=document.getElementById("tabs");

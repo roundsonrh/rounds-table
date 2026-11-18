@@ -1,4 +1,4 @@
-"""Builds site/gif40/<id>.gif — day 40 (Transforming): the breath from
+"""Builds site/gif40/<id>.gif — day 40 (Outlining): the breath from
 build-gif.py plus every circle slowly hollowing out to an outline and filling
 back in, a 16s wave rippling out from the piece's center. Used as the NFT's
 `image` once a Round has been held 40+ days. Only builds Rounds held 38+

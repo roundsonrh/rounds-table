@@ -9,3 +9,4 @@ site/gif/
 tiers-diff.json
 site/gif40/
 site/gif60/
+scripts/__pycache__/

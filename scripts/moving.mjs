@@ -25,7 +25,7 @@ if (process.argv[2] === "compute") {
   const changed = [...new Set([...diff(ids, prev), ...diff(ids40, prev40), ...diff(ids60, prev60)])];
   fs.writeFileSync(path.join(ROOT, "site", "data", "moving.json"), JSON.stringify({ generated_at: new Date().toISOString(), days: DAYS, ids, ids40, ids60 }));
   fs.writeFileSync(DIFF, JSON.stringify(changed));
-  console.log(`Moving Rounds: ${ids.length} breathing · ${ids40.length} transforming · ${ids60.length} rippling · ${changed.length} changed since last run`);
+  console.log(`Moving Rounds: ${ids.length} breathing · ${ids40.length} outlining · ${ids60.length} rippling · ${changed.length} changed since last run`);
 } else if (process.argv[2] === "refresh") {
   const KEY = (process.env.OPENSEA_API_KEY || "").trim();
   let ids = [];
