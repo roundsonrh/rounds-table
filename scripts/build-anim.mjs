@@ -40,7 +40,7 @@ function fit(){const dpr=Math.min(devicePixelRatio||1,2);S=Math.min(innerWidth,i
 const ease=(u)=>u*u*(3-2*u);
 // stages and tabs
 const STAGES=[[0,"Still"],[20,"Breathing"],[40,"Outlining"],[60,"Rippling"],[80,"Day 80"]];
-const MODES={all:{br:ST>=20,ho:ST>=40,ri:ST>=60},0:{},20:{br:1},40:{br:1,ho:1},60:{br:1,ri:1}};
+const MODES={all:{br:ST>=20,ho:ST>=40,ri:ST>=60},0:{},20:{br:1},40:{ho:1},60:{ri:1}}; // each tab plays its stage alone; All stacks them
 let mode=MODES.all;
 const tabs=document.getElementById("tabs");
 function left(d){if(!SINCE)return"day "+d;const n=Math.ceil(d-(Date.now()/1000-SINCE)/86400);return n<=1?"tomorrow":"in "+n+"d";}
